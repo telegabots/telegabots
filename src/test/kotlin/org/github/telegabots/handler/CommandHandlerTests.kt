@@ -1,6 +1,7 @@
-package org.github.telegabots.simple
+package org.github.telegabots.handler
 
 import org.github.telegabots.BaseCommand
+import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
 import org.github.telegabots.annotation.CommandHandler
 import org.github.telegabots.error.CommandInvokeException
@@ -23,7 +24,7 @@ class CommandHandlerTests : BaseTests() {
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
         assertEquals(
-            "First parameter must be String but found int in handler public final void org.github.telegabots.simple.InvalidCommandWithoutStringParam.execute(int)",
+            "First parameter must be String but found int in handler public final void org.github.telegabots.handler.InvalidCommandWithoutStringParam.execute(int)",
             ex.message
         )
     }
@@ -62,7 +63,7 @@ class CommandHandlerTests : BaseTests() {
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
         assertEquals(
-            "Handler must contains at least one parameter: public final boolean org.github.telegabots.simple.InvalidCommandWithoutAnyParam.execute()",
+            "Handler must contains at least one parameter: public final boolean org.github.telegabots.handler.InvalidCommandWithoutAnyParam.execute()",
             ex.message
         )
     }
@@ -74,7 +75,7 @@ class CommandHandlerTests : BaseTests() {
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
         assertEquals(
-            "Handler must return bool or void but it returns int in method public final int org.github.telegabots.simple.InvalidCommandReturnNonBoolParam.execute(java.lang.String)",
+            "Handler must return bool or void but it returns int in method public final int org.github.telegabots.handler.InvalidCommandReturnNonBoolParam.execute(java.lang.String)",
             ex.message
         )
     }

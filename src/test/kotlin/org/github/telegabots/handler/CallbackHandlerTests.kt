@@ -1,8 +1,9 @@
-package org.github.telegabots.simple
+package org.github.telegabots.handler
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.github.telegabots.BaseCommand
+import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
 import org.github.telegabots.annotation.CallbackHandler
 import org.github.telegabots.exectutor.BotCommandExecutor
@@ -16,7 +17,7 @@ class CallbackHandlerTests : BaseTests() {
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
         assertEquals(
-            "Handler must contains at least two parameters: public final void org.github.telegabots.simple.InvalidCallbackCommandWithoutAnyParam.handle()",
+            "Handler must contains at least two parameters: public final void org.github.telegabots.handler.InvalidCallbackCommandWithoutAnyParam.handle()",
             ex.message
         )
     }

@@ -1,4 +1,4 @@
-package org.github.telegabots.simple
+package org.github.telegabots
 
 import org.mockito.Mockito
 import org.telegram.telegrambots.meta.api.objects.Message
