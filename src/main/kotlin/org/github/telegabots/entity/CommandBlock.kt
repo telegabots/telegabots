@@ -1,0 +1,14 @@
+package org.github.telegabots.entity
+
+import org.github.telegabots.MessageType
+
+/**
+ * Entity related with message and user
+ */
+data class CommandBlock(val id: Long,
+                        val messageId: Int,
+                        val userId: Int,
+                        val messageType: MessageType
+) {
+    fun isValid(): Boolean = messageId != 0 && userId != 0
+}

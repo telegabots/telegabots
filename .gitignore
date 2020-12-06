@@ -1,0 +1,8 @@
+*.iml
+application.properties
+target
+logs
+.idea
+import
+cache
+*.db
