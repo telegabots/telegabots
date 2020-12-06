@@ -12,10 +12,12 @@ import org.github.telegabots.service.JsonService
 /**
  * Stores commands tree and all user-related states
  */
-class UserStateService(private val userId: Int,
-                       private val dbProvider: StateDbProvider,
-                       private val jsonService: JsonService,
-                       private val globalState: StateProvider) {
+class UserStateService(
+    private val userId: Int,
+    private val dbProvider: StateDbProvider,
+    private val jsonService: JsonService,
+    private val globalState: StateProvider
+) {
     private val sharedStates: MutableMap<Int, StateProvider> = mutableMapOf()
     private val localStates: MutableMap<Long, StateProvider> = mutableMapOf()
     private val userState = UserStateProvider(userId, dbProvider, jsonService)
@@ -27,33 +29,47 @@ class UserStateService(private val userId: Int,
     fun getLastPage(blockId: Long): CommandPage? = dbProvider.findLastPageByBlockId(userId, blockId)
 
     fun saveBlock(messageId: Int, messageType: MessageType): CommandBlock =
-            dbProvider.saveBlock(CommandBlock(messageId = messageId,
-                    userId = userId,
-                    messageType = messageType,
-                    id = 0))
+        dbProvider.saveBlock(
+            CommandBlock(
+                messageId = messageId,
+                userId = userId,
+                messageType = messageType,
+                id = 0
+            )
+        )
 
     fun savePage(blockId: Long, handler: Class<out BaseCommand>, subCommands: List<List<SubCommand>>) =
-            dbProvider.savePage(CommandPage(blockId = blockId,
-                    handler = handler.name,
-                    subCommands = toSubCommands(subCommands)))
+        dbProvider.savePage(
+            CommandPage(
+                blockId = blockId,
+                handler = handler.name,
+                subCommands = toSubCommands(subCommands)
+            )
+        )
 
     fun getStates(messageId: Int, pageId: Long): States =
-            StatesImpl(localState = getLocalState(pageId),
-                    sharedState = getSharedState(messageId),
-                    userState = userState,
-                    globalState = globalState)
+        StatesImpl(
+            localState = getLocalState(pageId),
+            sharedState = getSharedState(messageId),
+            userState = userState,
+            globalState = globalState
+        )
 
     fun getStates(messageId: Int, state: StateDef?): States =
-            StatesImpl(localState = LocalTempStateProvider(state, jsonService),
-                    sharedState = getSharedState(messageId),
-                    userState = userState,
-                    globalState = globalState)
+        StatesImpl(
+            localState = LocalTempStateProvider(state, jsonService),
+            sharedState = getSharedState(messageId),
+            userState = userState,
+            globalState = globalState
+        )
 
     fun getStates(): States =
-            StatesImpl(localState = EmptyStateProvider,
-                    sharedState = EmptyStateProvider,
-                    userState = userState,
-                    globalState = globalState)
+        StatesImpl(
+            localState = LocalTempStateProvider(StateDef.Empty, jsonService),
+            sharedState = LocalTempStateProvider(StateDef.Empty, jsonService),
+            userState = userState,
+            globalState = globalState
+        )
 
     /**
      * Flushes dirty states to db
@@ -75,10 +91,12 @@ class UserStateService(private val userId: Int,
     }
 
     private fun toSubCommands(subCommands: List<List<SubCommand>>): List<List<CommandDef>> =
-            subCommands.map { it.map { cmd -> toSubcommand(cmd) } }
+        subCommands.map { it.map { cmd -> toSubcommand(cmd) } }
 
     private fun toSubcommand(cmd: SubCommand): CommandDef =
-            CommandDef(titleId = cmd.titleId,
-                    handler = cmd.handler?.name,
-                    state = jsonService.toStateDef(cmd.state))
+        CommandDef(
+            titleId = cmd.titleId,
+            handler = cmd.handler?.name,
+            state = jsonService.toStateDef(cmd.state)
+        )
 }

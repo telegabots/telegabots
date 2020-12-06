@@ -10,16 +10,20 @@ import org.telegram.telegrambots.meta.api.objects.Update
 /**
  * Wrapper for convenient Telegram bot running
  */
-class TelegaBot(private val messageSender: MessageSender,
-                private val serviceProvider: ServiceProvider,
-                private val adminChatId: Long = 0L,
-                private val dbProvider: StateDbProvider,
-                private val jsonService: JsonService,
-                private val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java) {
+class TelegaBot(
+    private val messageSender: MessageSender,
+    private val serviceProvider: ServiceProvider,
+    private val adminChatId: Long = 0L,
+    private val dbProvider: StateDbProvider,
+    private val jsonService: JsonService,
+    private val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java
+) {
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
     private val commandHandlers = CommandHandlers()
-    private val callContextManager = CallContextManager(messageSender, serviceProvider, adminChatId,
-            dbProvider, commandHandlers, jsonService, rootCommand)
+    private val callContextManager = CallContextManager(
+        messageSender, serviceProvider, adminChatId,
+        dbProvider, commandHandlers, jsonService, rootCommand
+    )
 
     fun handle(update: Update): Boolean {
         log.debug("Handle message: {}", update)
@@ -40,23 +44,26 @@ class TelegaBot(private val messageSender: MessageSender,
             val message = update.message
             val userId = message.from.id
 
-            InputMessage(type = MessageType.TEXT,
-                    query = message.text,
-                    chatId = message.chatId,
-                    userId = userId,
-                    isAdmin = userId.toLong() == adminChatId)
+            InputMessage(
+                type = MessageType.TEXT,
+                query = message.text,
+                chatId = message.chatId,
+                userId = userId,
+                isAdmin = userId.toLong() == adminChatId
+            )
         } else if (update.hasCallbackQuery()) {
-            log.debug("Callback query, data: {}", update.callbackQuery.data)
             val callbackQuery = update.callbackQuery
             val message = callbackQuery.message
             val userId = message.from.id
 
-            InputMessage(type = MessageType.CALLBACK,
-                    query = callbackQuery.data ?: "",
-                    chatId = message.chatId,
-                    userId = userId,
-                    messageId = message.messageId,
-                    isAdmin = userId.toLong() == adminChatId)
+            InputMessage(
+                type = MessageType.CALLBACK,
+                query = callbackQuery.data ?: "",
+                chatId = message.chatId,
+                userId = userId,
+                messageId = message.messageId,
+                isAdmin = userId.toLong() == adminChatId
+            )
         } else {
             log.warn("Unsupported message type: {}", update)
             return null

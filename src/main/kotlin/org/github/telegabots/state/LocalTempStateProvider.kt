@@ -4,7 +4,7 @@ import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 
 /**
- * Used as Local state for CommandDef. Can be flushed
+ * Used as Local state for CommandDef. Can not be flushed
  */
 internal class LocalTempStateProvider(private val state: StateDef?,
                                       private val jsonService: JsonService) : AbstractStateProvider(jsonService) {

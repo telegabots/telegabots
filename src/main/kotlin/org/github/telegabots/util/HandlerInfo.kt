@@ -1,9 +1,5 @@
 package org.github.telegabots.util
 
-import org.github.telegabots.CommandContext
-import org.github.telegabots.MessageType
-import org.github.telegabots.Service
-import org.github.telegabots.State
 import org.github.telegabots.*
 import org.github.telegabots.error.CommandInvokeException
 import org.github.telegabots.state.StateKey
@@ -29,7 +25,7 @@ data class HandlerInfo(
 
             val args = toArgs(text, states, context)
 
-            return (method.invoke(command, args) ?: true) as Boolean
+            return (method.invoke(command, *args) ?: true) as Boolean
         } catch (ex: Throwable) {
             throw CommandInvokeException(command.javaClass, getInnerException(ex))
         }
@@ -37,15 +33,11 @@ data class HandlerInfo(
 
     fun executeCallback(messageId: Int, query: String, states: States, context: CommandContext) {
         check(messageType == MessageType.CALLBACK) { "Invalid message type: $messageType" }
-        try {
-            if (params.size == 2) {
-                method.invoke(command, messageId, query)
-                return;
-            }
 
+        try {
             val args = toArgs(messageId, query, states, context)
 
-            method.invoke(command, args)
+            method.invoke(command, *args)
         } catch (ex: Throwable) {
             throw CommandInvokeException(command.javaClass, getInnerException(ex))
         }
@@ -58,9 +50,10 @@ data class HandlerInfo(
 
     private fun toArgs(messageId: Int, query: String, states: States, context: CommandContext): Array<Any?> {
         return Array(params.size) { idx ->
-            if (idx == 0) messageId
-            else if (idx == 1) query
-            else toArg(params[idx], states, context)
+            when (idx) {
+                0, 1 -> if (params[idx].isInteger()) messageId else query
+                else -> toArg(params[idx], states, context)
+            }
         }
     }
 

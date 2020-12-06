@@ -43,8 +43,8 @@ abstract class AbstractStateProvider(private val jsonService: JsonService) : Sta
         if (!initted) {
             initted = true
             loadState().items
-                    .map { jsonService.toStateItem(it) }
-                    .forEach { cache[it.key] = it }
+                .map { jsonService.toStateItem(it) }
+                .forEach { cache[it.key] = it }
         }
     }
 }
