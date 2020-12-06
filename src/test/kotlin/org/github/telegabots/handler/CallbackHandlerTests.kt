@@ -1,18 +1,17 @@
 package org.github.telegabots.handler
 
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.github.telegabots.BaseCommand
 import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
 import org.github.telegabots.annotation.CallbackHandler
-import org.github.telegabots.exectutor.BotCommandExecutor
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 
 class CallbackHandlerTests : BaseTests() {
     @Test
     fun testCommand_Fail_WhenHandlerWithoutParams() {
-        val executor = BotCommandExecutor(rootCommand = InvalidCallbackCommandWithoutAnyParam::class.java)
+        val executor = createExecutor(InvalidCallbackCommandWithoutAnyParam::class.java)
         val update = createAnyMessage()
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
@@ -24,7 +23,7 @@ class CallbackHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Fail_WhenHandlerWithOnlyIntParam() {
-        val executor = BotCommandExecutor(rootCommand = InvalidCallbackCommandWithOnlyIntParam::class.java)
+        val executor = createExecutor(InvalidCallbackCommandWithOnlyIntParam::class.java)
         val update = createAnyMessage()
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
@@ -36,7 +35,7 @@ class CallbackHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Fail_WhenHandlerWithOnlyTwoIntParams() {
-        val executor = BotCommandExecutor(rootCommand = InvalidCallbackCommandWithTwoIntParams::class.java)
+        val executor = createExecutor(InvalidCallbackCommandWithTwoIntParams::class.java)
         val update = createAnyMessage()
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
@@ -48,7 +47,7 @@ class CallbackHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Fail_WhenHandlerWithOnlyTwoStringParams() {
-        val executor = BotCommandExecutor(rootCommand = InvalidCallbackCommandWithTwoStringParams::class.java)
+        val executor = createExecutor(InvalidCallbackCommandWithTwoStringParams::class.java)
         val update = createAnyMessage()
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
@@ -60,14 +59,14 @@ class CallbackHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Success_WhenHandlerWithIntStringParams() {
-        val executor = BotCommandExecutor(rootCommand = ValidCallbackCommandIntString::class.java)
+        val executor = createExecutor(ValidCallbackCommandIntString::class.java)
         val update = createAnyCallbackMessage(messageId = 4273, callbackData = "IntString")
         executor.handle(update)
     }
 
     @Test
     fun testCommand_Success_WhenHandlerWithStringIntParams() {
-        val executor = BotCommandExecutor(rootCommand = ValidCallbackCommandStringInt::class.java)
+        val executor = createExecutor(ValidCallbackCommandStringInt::class.java)
         val update = createAnyCallbackMessage(messageId = 55557, callbackData = "StringInt")
         executor.handle(update)
     }

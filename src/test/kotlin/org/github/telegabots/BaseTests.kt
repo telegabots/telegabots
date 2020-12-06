@@ -1,5 +1,6 @@
 package org.github.telegabots
 
+import org.github.telegabots.exectutor.BotCommandExecutor
 import org.mockito.Mockito
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery
 import org.telegram.telegrambots.meta.api.objects.Message
@@ -7,6 +8,8 @@ import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.User
 
 abstract class BaseTests {
+    protected fun createExecutor(clazz: Class<out BaseCommand>) = BotCommandExecutor(rootCommand = clazz)
+
     protected fun createAnyMessage(
         messageText: String = "Message does not matter",
         chatId: Long = -123456L,

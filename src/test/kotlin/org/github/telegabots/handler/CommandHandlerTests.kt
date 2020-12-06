@@ -5,7 +5,6 @@ import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
 import org.github.telegabots.annotation.CommandHandler
 import org.github.telegabots.error.CommandInvokeException
-import org.github.telegabots.exectutor.BotCommandExecutor
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.text.ParseException
@@ -19,7 +18,7 @@ import kotlin.test.assertTrue
 class CommandHandlerTests : BaseTests() {
     @Test
     fun testCommand_Fail_WhenTextHandlerHasNotStringParam() {
-        val executor = BotCommandExecutor(rootCommand = InvalidCommandWithoutStringParam::class.java)
+        val executor = createExecutor(InvalidCommandWithoutStringParam::class.java)
         val update = createAnyMessage()
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
@@ -31,7 +30,7 @@ class CommandHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Success_WhenHandlerNotReturnsBool() {
-        val executor = BotCommandExecutor(rootCommand = SimpleCommandWithoutBoolReturn::class.java)
+        val executor = createExecutor(SimpleCommandWithoutBoolReturn::class.java)
         val update = createAnyMessage()
         val success = executor.handle(update)
 
@@ -40,7 +39,7 @@ class CommandHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Success_WhenHandlerReturnsBool() {
-        val executor = BotCommandExecutor(rootCommand = SimpleCommandReturnsBool::class.java)
+        val executor = createExecutor(SimpleCommandReturnsBool::class.java)
         val update = createAnyMessage()
         val success = executor.handle(update)
 
@@ -49,7 +48,7 @@ class CommandHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Success_WhenHandlerInherited() {
-        val executor = BotCommandExecutor(rootCommand = InheritSimpleCommand::class.java)
+        val executor = createExecutor(InheritSimpleCommand::class.java)
         val update = createAnyMessage()
         val success = executor.handle(update)
 
@@ -58,7 +57,7 @@ class CommandHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Fail_WhenHandlerWithoutParams() {
-        val executor = BotCommandExecutor(rootCommand = InvalidCommandWithoutAnyParam::class.java)
+        val executor = createExecutor(InvalidCommandWithoutAnyParam::class.java)
         val update = createAnyMessage()
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
@@ -70,7 +69,7 @@ class CommandHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Fail_WhenHandlerReturnsNonBool() {
-        val executor = BotCommandExecutor(rootCommand = InvalidCommandReturnNonBoolParam::class.java)
+        val executor = createExecutor(InvalidCommandReturnNonBoolParam::class.java)
         val update = createAnyMessage()
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
@@ -82,7 +81,7 @@ class CommandHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_WhenHandlerThrowsError() {
-        val executor = BotCommandExecutor(rootCommand = SimpleCommandThrowsError::class.java)
+        val executor = createExecutor(SimpleCommandThrowsError::class.java)
         val update = createAnyMessage()
         val ex = assertThrows<CommandInvokeException> { executor.handle(update) }
 

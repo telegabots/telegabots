@@ -73,7 +73,9 @@ data class HandlerInfo(
         }
 
         if (param.isService()) {
-            return context.getService(param.type as Class<Service>)
+            val service = context.getService(param.type as Class<Service>)
+            check(service != null) { "Service not found: ${param.type.name}" }
+            return service
         }
 
         return states.get(param.stateKind, StateKey(param.type, param.stateName))?.value
