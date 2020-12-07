@@ -20,7 +20,9 @@ class ServiceParamTests : BaseTests() {
         executor.addService(SimpleTestService::class.java, SimpleTestService())
 
         assertFalse(CommandWithServiceParam.called.get())
+
         executor.handle(update)
+
         assertTrue(CommandWithServiceParam.called.get())
     }
 
@@ -37,11 +39,12 @@ class ServiceParamTests : BaseTests() {
     }
 }
 
-class CommandWithServiceParam : BaseCommand() {
+internal class CommandWithServiceParam : BaseCommand() {
     @CommandHandler
     fun handle(msg: String, service: SimpleTestService) {
         assertEquals("Hello from client!", msg)
         assertEquals("Hello from service, Ruslan", service.greet("Ruslan"))
+
         called.set(true)
     }
 
@@ -50,6 +53,6 @@ class CommandWithServiceParam : BaseCommand() {
     }
 }
 
-class SimpleTestService : Service {
+internal class SimpleTestService : Service {
     fun greet(name: String): String = "Hello from service, $name"
 }

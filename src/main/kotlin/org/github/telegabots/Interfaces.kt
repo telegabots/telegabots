@@ -105,7 +105,7 @@ enum class UpdateType {
 }
 
 data class SubCommand(val titleId: String,
-                      val handler: Class<BaseCommand>? = null,
+                      val handler: Class<out BaseCommand>? = null,
                       val state: State? = null)
 
 interface MessageSender {

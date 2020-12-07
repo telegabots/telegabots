@@ -34,7 +34,7 @@ class CommandHandlerTests : BaseTests() {
         val update = createAnyMessage()
         val success = executor.handle(update)
 
-        assertTrue { success }
+        assertTrue(success)
     }
 
     @Test
@@ -43,7 +43,7 @@ class CommandHandlerTests : BaseTests() {
         val update = createAnyMessage()
         val success = executor.handle(update)
 
-        assertFalse { success }
+        assertFalse(success)
     }
 
     @Test
@@ -52,7 +52,7 @@ class CommandHandlerTests : BaseTests() {
         val update = createAnyMessage()
         val success = executor.handle(update)
 
-        assertFalse { success }
+        assertFalse(success)
     }
 
     @Test

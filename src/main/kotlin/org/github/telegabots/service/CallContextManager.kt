@@ -4,20 +4,15 @@ import org.github.telegabots.*
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandDef
 import org.github.telegabots.entity.CommandPage
-import org.github.telegabots.state.StateDbProvider
 import org.github.telegabots.state.UsersStatesManager
 import org.slf4j.LoggerFactory
 
 class CallContextManager(private val messageSender: MessageSender,
                          private val serviceProvider: ServiceProvider,
-                         private val adminChatId: Long,
-                         private val dbProvider: StateDbProvider,
                          private val commandHandlers: CommandHandlers,
-                         private val jsonService: JsonService,
+                         private val usersStatesManager : UsersStatesManager,
                          private val rootCommand: Class<out BaseCommand>) {
-
     private val log = LoggerFactory.getLogger(CallContextManager::class.java)
-    private val usersStatesManager = UsersStatesManager(dbProvider, jsonService)
 
     fun get(input: InputMessage): CommandCallContext {
         return when (input.type) {

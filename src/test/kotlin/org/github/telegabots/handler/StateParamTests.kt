@@ -6,7 +6,7 @@ import org.github.telegabots.State
 import org.github.telegabots.annotation.CallbackHandler
 import org.github.telegabots.annotation.CommandHandler
 import org.junit.jupiter.api.Test
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
@@ -18,12 +18,12 @@ class StateParamTests : BaseTests() {
         val executor = createExecutor(CommandWithStateParam::class.java)
         val update = createAnyMessage(messageText = "Hello from client")
 
-        assertEquals(0, CommandWithStateParam.handleCounter.get())
+        assertFalse(CommandWithStateParam.handlerCalled.get())
 
         val success = executor.handle(update)
 
         assertTrue(success)
-        assertEquals(1, CommandWithStateParam.handleCounter.get())
+        assertTrue(CommandWithStateParam.handlerCalled.get())
     }
 
     @Test
@@ -31,12 +31,38 @@ class StateParamTests : BaseTests() {
         val executor = createExecutor(CommandWithStateParam::class.java)
         val update = createAnyCallbackMessage(messageId = 445577, callbackData = "Hello from client callback")
 
-        assertEquals(0, CommandWithStateParam.handleCallbackCounter.get())
+        assertFalse(CommandWithStateParam.callbackHandlerCalled.get())
 
         val success = executor.handle(update)
 
         assertTrue(success)
-        assertEquals(1, CommandWithStateParam.handleCallbackCounter.get())
+        assertTrue(CommandWithStateParam.callbackHandlerCalled.get())
+    }
+
+    @Test
+    fun testCommand_Success_WhenHandlerWithReadonlyLocalStateParam() {
+        val executor = createExecutor(CommandWithReadonlyLocalState::class.java)
+        val update = createAnyMessage(messageText = "Hello!")
+
+        assertFalse(CommandWithReadonlyLocalState.handlerCalled.get())
+
+        val success = executor.handle(update)
+
+        assertTrue(success)
+        assertTrue(CommandWithReadonlyLocalState.handlerCalled.get())
+    }
+
+    @Test
+    fun testCommand_Success_WhenHandlerWithCallbackReadonlyLocalStateParam() {
+        val executor = createExecutor(CommandWithReadonlyLocalState::class.java)
+        val update = createAnyCallbackMessage(messageId = 123987, callbackData = "Data2")
+
+        assertFalse(CommandWithReadonlyLocalState.callbackHandlerCalled.get())
+
+        val success = executor.handle(update)
+
+        assertTrue(success)
+        assertTrue(CommandWithReadonlyLocalState.callbackHandlerCalled.get())
     }
 }
 
@@ -52,7 +78,7 @@ internal class CommandWithStateParam : BaseCommand() {
         assertEquals(42777, intState.get())
         assertTrue(intState.isPresent())
 
-        handleCounter.incrementAndGet()
+        handlerCalled.set(true)
     }
 
     @CallbackHandler
@@ -67,11 +93,35 @@ internal class CommandWithStateParam : BaseCommand() {
         assertEquals(12.5, doubleState.get())
         assertTrue(doubleState.isPresent())
 
-        handleCallbackCounter.incrementAndGet()
+        callbackHandlerCalled.set(true)
     }
 
     companion object {
-        val handleCounter = AtomicInteger()
-        val handleCallbackCounter = AtomicInteger()
+        val handlerCalled = AtomicBoolean()
+        val callbackHandlerCalled = AtomicBoolean()
+    }
+}
+
+internal class CommandWithReadonlyLocalState : BaseCommand() {
+    @CommandHandler
+    fun handle(message: String, readOnlyState: String?) {
+        assertEquals("Hello!", message)
+        assertNull(readOnlyState)
+
+        handlerCalled.set(true)
+    }
+
+    @CallbackHandler
+    fun handleCallback(messageId: Int, message: String, readOnlyState: String?) {
+        assertEquals("Data2", message)
+        assertEquals(123987, messageId)
+        assertNull(readOnlyState)
+
+        callbackHandlerCalled.set(true)
+    }
+
+    companion object {
+        val handlerCalled = AtomicBoolean()
+        val callbackHandlerCalled = AtomicBoolean()
     }
 }
