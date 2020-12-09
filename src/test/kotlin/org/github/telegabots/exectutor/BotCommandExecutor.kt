@@ -3,6 +3,7 @@ package org.github.telegabots.exectutor
 import org.github.telegabots.*
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.state.MemoryStateDbProvider
+import org.github.telegabots.test.call
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.slf4j.LoggerFactory
@@ -12,7 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.Update
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
-class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : MessageSender {
+class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : MessageSender, CommandInterceptor {
     private val log = LoggerFactory.getLogger(BotCommandExecutor::class.java)!!
     private val messageIdCounter = AtomicInteger(100_000)
     private val serviceProvider = mock(ServiceProvider::class.java)
@@ -24,7 +25,8 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
         adminChatId = 0,
         dbProvider = dbProvider,
         jsonService = jsonService,
-        rootCommand = rootCommand
+        rootCommand = rootCommand,
+        commandInterceptor = this
     )
 
     fun handle(update: Update): Boolean {
@@ -41,7 +43,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
         contentType: ContentType,
         disablePreview: Boolean,
         preSendHandler: Consumer<SendMessage>
-    ): Int  {
+    ): Int {
         // TODO: check method was called
         log.info("sendMessage: chatId: $chatId, message: $message")
         return messageIdCounter.incrementAndGet()
@@ -57,5 +59,9 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     ) {
         // TODO: check method was called
         log.info("updateMessage: chatId: $chatId, messageId: $messageId, message: $message")
+    }
+
+    override fun executed(command: BaseCommand, messageType: MessageType) {
+        command::class.call()
     }
 }

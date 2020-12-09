@@ -4,6 +4,8 @@ import org.github.telegabots.BaseCommand
 import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
 import org.github.telegabots.annotation.CallbackHandler
+import org.github.telegabots.test.assertNotCalled
+import org.github.telegabots.test.assertWasCalled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
@@ -61,14 +63,23 @@ class CallbackHandlerTests : BaseTests() {
     fun testCommand_Success_WhenHandlerWithIntStringParams() {
         val executor = createExecutor(ValidCallbackCommandIntString::class.java)
         val update = createAnyCallbackMessage(messageId = 4273, callbackData = "IntString")
+
+        ValidCallbackCommandIntString::class.assertNotCalled()
+
         executor.handle(update)
+
+        ValidCallbackCommandIntString::class.assertWasCalled()
     }
 
     @Test
     fun testCommand_Success_WhenHandlerWithStringIntParams() {
         val executor = createExecutor(ValidCallbackCommandStringInt::class.java)
         val update = createAnyCallbackMessage(messageId = 55557, callbackData = "StringInt")
+
+        ValidCallbackCommandStringInt::class.assertNotCalled()
+
         executor.handle(update)
+        ValidCallbackCommandStringInt::class.assertWasCalled()
     }
 }
 

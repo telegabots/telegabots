@@ -5,12 +5,11 @@ import org.github.telegabots.BaseTests
 import org.github.telegabots.Service
 import org.github.telegabots.annotation.CommandHandler
 import org.github.telegabots.error.CommandInvokeException
+import org.github.telegabots.test.assertNotCalled
+import org.github.telegabots.test.assertWasCalled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class ServiceParamTests : BaseTests() {
     @Test
@@ -19,11 +18,11 @@ class ServiceParamTests : BaseTests() {
         val update = createAnyMessage(messageText = "Hello from client!")
         executor.addService(SimpleTestService::class.java, SimpleTestService())
 
-        assertFalse(CommandWithServiceParam.called.get())
+        CommandWithServiceParam::class.assertNotCalled()
 
         executor.handle(update)
 
-        assertTrue(CommandWithServiceParam.called.get())
+        CommandWithServiceParam::class.assertWasCalled()
     }
 
     @Test
@@ -44,12 +43,6 @@ internal class CommandWithServiceParam : BaseCommand() {
     fun handle(msg: String, service: SimpleTestService) {
         assertEquals("Hello from client!", msg)
         assertEquals("Hello from service, Ruslan", service.greet("Ruslan"))
-
-        called.set(true)
-    }
-
-    companion object {
-        val called = AtomicBoolean()
     }
 }
 

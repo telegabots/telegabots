@@ -3,13 +3,14 @@ package org.github.telegabots.service
 import org.slf4j.LoggerFactory
 import org.github.telegabots.BaseCommand
 import org.github.telegabots.CommandHandler
+import org.github.telegabots.CommandInterceptor
 import org.github.telegabots.util.CommandClassUtil
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Creating and thread-safe storing of CommandHandler
  */
-class CommandHandlers {
+class CommandHandlers(private val commandInterceptor: CommandInterceptor) {
     private val log = LoggerFactory.getLogger(CommandHandlers::class.java)
     private val commandHandlers = ConcurrentHashMap<String, CommandHandler>()
 
@@ -29,7 +30,7 @@ class CommandHandlers {
             val command = commandClass.newInstance() as BaseCommand
             val handlers = CommandClassUtil.getHandlers(command)
 
-            return CommandHandler(command = command, handlers = handlers)
+            return CommandHandler(command = command, handlers = handlers, commandInterceptor = commandInterceptor)
         } catch (e: ClassNotFoundException) {
             log.error("Handler not found: {}", handler, e)
             throw e

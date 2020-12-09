@@ -5,6 +5,8 @@ import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
 import org.github.telegabots.annotation.CommandHandler
 import org.github.telegabots.error.CommandInvokeException
+import org.github.telegabots.test.assertNotCalled
+import org.github.telegabots.test.assertWasCalled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.text.ParseException
@@ -32,8 +34,12 @@ class CommandHandlerTests : BaseTests() {
     fun testCommand_Success_WhenHandlerNotReturnsBool() {
         val executor = createExecutor(SimpleCommandWithoutBoolReturn::class.java)
         val update = createAnyMessage()
+
+        SimpleCommandWithoutBoolReturn::class.assertNotCalled()
+
         val success = executor.handle(update)
 
+        SimpleCommandWithoutBoolReturn::class.assertWasCalled()
         assertTrue(success)
     }
 
@@ -41,8 +47,12 @@ class CommandHandlerTests : BaseTests() {
     fun testCommand_Success_WhenHandlerReturnsBool() {
         val executor = createExecutor(SimpleCommandReturnsBool::class.java)
         val update = createAnyMessage()
+
+        SimpleCommandReturnsBool::class.assertNotCalled()
+
         val success = executor.handle(update)
 
+        SimpleCommandReturnsBool::class.assertWasCalled()
         assertFalse(success)
     }
 
@@ -50,8 +60,12 @@ class CommandHandlerTests : BaseTests() {
     fun testCommand_Success_WhenHandlerInherited() {
         val executor = createExecutor(InheritSimpleCommand::class.java)
         val update = createAnyMessage()
+
+        InheritSimpleCommand::class.assertNotCalled()
+
         val success = executor.handle(update)
 
+        InheritSimpleCommand::class.assertWasCalled()
         assertFalse(success)
     }
 

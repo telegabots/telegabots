@@ -17,10 +17,11 @@ class TelegaBot(
     private val adminChatId: Long = 0L,
     private val dbProvider: StateDbProvider,
     private val jsonService: JsonService,
-    private val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java
+    private val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java,
+    private val commandInterceptor: CommandInterceptor = CommandInterceptorEmpty
 ) {
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
-    private val commandHandlers = CommandHandlers()
+    private val commandHandlers = CommandHandlers(commandInterceptor)
     private val usersStatesManager = UsersStatesManager(dbProvider, jsonService)
     private val callContextManager = CallContextManager(
         messageSender, serviceProvider, commandHandlers, usersStatesManager, rootCommand

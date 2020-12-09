@@ -11,50 +11,64 @@ import java.util.function.Consumer
 interface CommandContext : UserContext, CommandExecutor {
     fun currentCommand(): BaseCommand
 
-    fun sendMessage(message: String,
-                    contentType: ContentType,
-                    messageType: MessageType,
-                    disablePreview: Boolean = true,
-                    subCommands: List<List<SubCommand>> = emptyList(),
-                    handler: Class<out BaseCommand>? = null)
+    fun sendMessage(
+        message: String,
+        contentType: ContentType,
+        messageType: MessageType,
+        disablePreview: Boolean = true,
+        subCommands: List<List<SubCommand>> = emptyList(),
+        handler: Class<out BaseCommand>? = null
+    )
 
-    fun updateMessage(messageId: Int,
-                      message: String,
-                      contentType: ContentType,
-                      updateType: UpdateType,
-                      disablePreview: Boolean = true,
-                      subCommands: List<List<SubCommand>> = emptyList(),
-                      handler: Class<out BaseCommand>? = null)
+    fun updateMessage(
+        messageId: Int,
+        message: String,
+        contentType: ContentType,
+        updateType: UpdateType,
+        disablePreview: Boolean = true,
+        subCommands: List<List<SubCommand>> = emptyList(),
+        handler: Class<out BaseCommand>? = null
+    )
 
-    fun sendAdminMessage(message: String,
-                         contentType: ContentType,
-                         disablePreview: Boolean = true)
+    fun sendAdminMessage(
+        message: String,
+        contentType: ContentType,
+        disablePreview: Boolean = true
+    )
 
-    fun sendHtmlMessage(message: String,
-                        messageType: MessageType = MessageType.TEXT,
-                        disablePreview: Boolean = true,
-                        subCommands: List<List<SubCommand>> = emptyList(),
-                        handler: Class<out BaseCommand>? = null) =
-            sendMessage(message,
-                    contentType = ContentType.Html,
-                    messageType = messageType,
-                    disablePreview = disablePreview,
-                    subCommands = subCommands,
-                    handler = handler)
+    fun sendHtmlMessage(
+        message: String,
+        messageType: MessageType = MessageType.TEXT,
+        disablePreview: Boolean = true,
+        subCommands: List<List<SubCommand>> = emptyList(),
+        handler: Class<out BaseCommand>? = null
+    ) =
+        sendMessage(
+            message,
+            contentType = ContentType.Html,
+            messageType = messageType,
+            disablePreview = disablePreview,
+            subCommands = subCommands,
+            handler = handler
+        )
 
-    fun updateHtmlMessage(messageId: Int,
-                          message: String,
-                          updateType: UpdateType,
-                          disablePreview: Boolean = true,
-                          subCommands: List<List<SubCommand>> = emptyList(),
-                          handler: Class<out BaseCommand>? = null) =
-            updateMessage(messageId,
-                    message,
-                    contentType = ContentType.Html,
-                    updateType = updateType,
-                    disablePreview = disablePreview,
-                    subCommands = subCommands,
-                    handler = handler)
+    fun updateHtmlMessage(
+        messageId: Int,
+        message: String,
+        updateType: UpdateType,
+        disablePreview: Boolean = true,
+        subCommands: List<List<SubCommand>> = emptyList(),
+        handler: Class<out BaseCommand>? = null
+    ) =
+        updateMessage(
+            messageId,
+            message,
+            contentType = ContentType.Html,
+            updateType = updateType,
+            disablePreview = disablePreview,
+            subCommands = subCommands,
+            handler = handler
+        )
 
 
     fun enterCommand(command: BaseCommand)
@@ -104,26 +118,32 @@ enum class UpdateType {
     NewPage
 }
 
-data class SubCommand(val titleId: String,
-                      val handler: Class<out BaseCommand>? = null,
-                      val state: State? = null)
+data class SubCommand(
+    val titleId: String,
+    val handler: Class<out BaseCommand>? = null,
+    val state: State? = null
+)
 
 interface MessageSender {
     /**
      * Sends message to telegram chat
      */
-    fun sendMessage(chatId: String,
-                    message: String,
-                    contentType: ContentType,
-                    disablePreview: Boolean = true,
-                    preSendHandler: Consumer<SendMessage> = Consumer { }): Int
+    fun sendMessage(
+        chatId: String,
+        message: String,
+        contentType: ContentType,
+        disablePreview: Boolean = true,
+        preSendHandler: Consumer<SendMessage> = Consumer { }
+    ): Int
 
-    fun updateMessage(chatId: String,
-                      messageId: Int,
-                      message: String,
-                      contentType: ContentType,
-                      disablePreview: Boolean = true,
-                      preSendHandler: Consumer<EditMessageText> = Consumer { })
+    fun updateMessage(
+        chatId: String,
+        messageId: Int,
+        message: String,
+        contentType: ContentType,
+        disablePreview: Boolean = true,
+        preSendHandler: Consumer<EditMessageText> = Consumer { }
+    )
 }
 
 interface ServiceProvider {
@@ -155,13 +175,27 @@ enum class MessageType {
     CALLBACK
 }
 
-data class InputMessage(val type: MessageType,
-                        val query: String,
-                        val chatId: Long,
-                        val userId: Int,
-                        val isAdmin: Boolean,
-                        val messageId: Int? = null) {
+data class InputMessage(
+    val type: MessageType,
+    val query: String,
+    val chatId: Long,
+    val userId: Int,
+    val isAdmin: Boolean,
+    val messageId: Int? = null
+) {
     init {
         check(userId != 0) { "UserId cannot be $userId" }
+    }
+}
+
+/**
+ * For internal uses
+ */
+interface CommandInterceptor {
+    fun executed(command: BaseCommand, messageType: MessageType)
+}
+
+internal object CommandInterceptorEmpty : CommandInterceptor {
+    override fun executed(command: BaseCommand, messageType: MessageType) {
     }
 }
