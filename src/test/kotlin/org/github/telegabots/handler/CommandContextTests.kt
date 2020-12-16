@@ -2,8 +2,8 @@ package org.github.telegabots.handler
 
 import org.github.telegabots.*
 import org.github.telegabots.annotation.CommandHandler
-import org.github.telegabots.test.assertNotCalled
-import org.github.telegabots.test.assertWasCalled
+import org.github.telegabots.test.CommandAssert.assertNotCalled
+import org.github.telegabots.test.CommandAssert.assertWasCalled
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -13,22 +13,21 @@ class CommandContextTests : BaseTests() {
         val executor = createExecutor(CommandWithCommandContext::class.java)
         val update1 = createAnyMessage()
 
-        CommandWithCommandContext::class.assertNotCalled()
+        assertNotCalled<CommandWithCommandContext>()
 
         val success1 = executor.handle(update1)
 
-        CommandWithCommandContext::class.assertWasCalled()
+        assertWasCalled<CommandWithCommandContext>()
         assertTrue(success1)
 
         val update2 = createAnyMessage("Command Id Title")
 
-        AnotherCommand::class.assertNotCalled()
+        assertNotCalled<AnotherCommand>()
 
         val success2 = executor.handle(update2)
 
         assertTrue(success2)
-
-        AnotherCommand::class.assertWasCalled()
+        assertWasCalled<AnotherCommand>()
     }
 }
 

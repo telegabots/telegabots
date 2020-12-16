@@ -5,8 +5,8 @@ import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
 import org.github.telegabots.annotation.CommandHandler
 import org.github.telegabots.error.CommandInvokeException
-import org.github.telegabots.test.assertNotCalled
-import org.github.telegabots.test.assertWasCalled
+import org.github.telegabots.test.CommandAssert.assertNotCalled
+import org.github.telegabots.test.CommandAssert.assertWasCalled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.text.ParseException
@@ -35,11 +35,11 @@ class CommandHandlerTests : BaseTests() {
         val executor = createExecutor(SimpleCommandWithoutBoolReturn::class.java)
         val update = createAnyMessage()
 
-        SimpleCommandWithoutBoolReturn::class.assertNotCalled()
+        assertNotCalled<SimpleCommandWithoutBoolReturn>()
 
         val success = executor.handle(update)
 
-        SimpleCommandWithoutBoolReturn::class.assertWasCalled()
+        assertWasCalled<SimpleCommandWithoutBoolReturn>()
         assertTrue(success)
     }
 
@@ -48,11 +48,11 @@ class CommandHandlerTests : BaseTests() {
         val executor = createExecutor(SimpleCommandReturnsBool::class.java)
         val update = createAnyMessage()
 
-        SimpleCommandReturnsBool::class.assertNotCalled()
+        assertNotCalled<SimpleCommandReturnsBool>()
 
         val success = executor.handle(update)
 
-        SimpleCommandReturnsBool::class.assertWasCalled()
+        assertWasCalled<SimpleCommandReturnsBool>()
         assertFalse(success)
     }
 
@@ -61,11 +61,11 @@ class CommandHandlerTests : BaseTests() {
         val executor = createExecutor(InheritSimpleCommand::class.java)
         val update = createAnyMessage()
 
-        InheritSimpleCommand::class.assertNotCalled()
+        assertNotCalled<InheritSimpleCommand>()
 
         val success = executor.handle(update)
 
-        InheritSimpleCommand::class.assertWasCalled()
+        assertWasCalled<InheritSimpleCommand>()
         assertFalse(success)
     }
 

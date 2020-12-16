@@ -5,8 +5,8 @@ import org.github.telegabots.BaseTests
 import org.github.telegabots.Service
 import org.github.telegabots.annotation.CommandHandler
 import org.github.telegabots.error.CommandInvokeException
-import org.github.telegabots.test.assertNotCalled
-import org.github.telegabots.test.assertWasCalled
+import org.github.telegabots.test.CommandAssert.assertNotCalled
+import org.github.telegabots.test.CommandAssert.assertWasCalled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
@@ -18,11 +18,11 @@ class ServiceParamTests : BaseTests() {
         val update = createAnyMessage(messageText = "Hello from client!")
         executor.addService(SimpleTestService::class.java, SimpleTestService())
 
-        CommandWithServiceParam::class.assertNotCalled()
+        assertNotCalled<CommandWithServiceParam>()
 
         executor.handle(update)
 
-        CommandWithServiceParam::class.assertWasCalled()
+        assertWasCalled<CommandWithServiceParam>()
     }
 
     @Test
