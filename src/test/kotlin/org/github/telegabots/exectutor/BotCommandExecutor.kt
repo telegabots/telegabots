@@ -2,7 +2,9 @@ package org.github.telegabots.exectutor
 
 import org.github.telegabots.*
 import org.github.telegabots.service.JsonService
+import org.github.telegabots.service.UserLocalizationFactory
 import org.github.telegabots.state.MemoryStateDbProvider
+import org.github.telegabots.test.TestUserLocalizationProvider
 import org.github.telegabots.test.call
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
@@ -19,15 +21,25 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     private val serviceProvider = mock(ServiceProvider::class.java)
     private val dbProvider = MemoryStateDbProvider()
     private val jsonService = JsonService()
-    private val telegaBot = TelegaBot(
-        messageSender = this,
-        serviceProvider = serviceProvider,
-        adminChatId = 0,
-        dbProvider = dbProvider,
-        jsonService = jsonService,
-        rootCommand = rootCommand,
-        commandInterceptor = this
-    )
+    private val userLocalizationFactory = mock(UserLocalizationFactory::class.java)
+    private val telegaBot: TelegaBot
+
+    init {
+        Mockito.`when`(serviceProvider.tryGetService(UserLocalizationFactory::class.java))
+            .thenReturn(userLocalizationFactory)
+        Mockito.`when`(serviceProvider.getService(UserLocalizationFactory::class.java))
+            .thenReturn(userLocalizationFactory)
+
+        telegaBot = TelegaBot(
+            messageSender = this,
+            serviceProvider = serviceProvider,
+            adminChatId = 0,
+            dbProvider = dbProvider,
+            jsonService = jsonService,
+            rootCommand = rootCommand,
+            commandInterceptor = this
+        )
+    }
 
     fun handle(update: Update): Boolean {
         return telegaBot.handle(update)
@@ -35,6 +47,11 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
 
     fun addService(service: Class<out Service>, instance: Service) {
         Mockito.`when`(serviceProvider.getService(service)).thenReturn(instance)
+    }
+
+    fun addLocalization(userId: Int, vararg localPairs: Pair<String, String>) {
+        Mockito.`when`(userLocalizationFactory.getProvider(userId))
+            .thenReturn(TestUserLocalizationProvider(*localPairs))
     }
 
     override fun sendMessage(

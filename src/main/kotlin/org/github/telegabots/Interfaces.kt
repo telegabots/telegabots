@@ -148,6 +148,18 @@ interface MessageSender {
 
 interface ServiceProvider {
     fun <T : Service> getService(clazz: Class<T>): T
+
+    fun <T : Service> tryGetService(clazz: Class<T>): T?
+}
+
+/**
+ * Specific language related Localization provider
+ */
+interface LocalizeProvider {
+    /**
+     * Returns localized string of key itself
+     */
+    fun getString(key: String): String
 }
 
 interface State<T> {

@@ -4,48 +4,58 @@ import org.github.telegabots.*
 import org.github.telegabots.state.UserStateService
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 import java.util.function.Consumer
 
-class CommandContextImpl(private val blockId: Long,
-                         private val input: InputMessage,
-                         private val command: BaseCommand,
-                         private val commandHandlers: CommandHandlers,
-                         private val userState: UserStateService,
-                         private val serviceProvider: ServiceProvider,
-                         private val messageSender: MessageSender
+class CommandContextImpl(
+    private val blockId: Long,
+    private val input: InputMessage,
+    private val command: BaseCommand,
+    private val commandHandlers: CommandHandlers,
+    private val userState: UserStateService,
+    private val serviceProvider: ServiceProvider,
+    private val localizeProvider: LocalizeProvider,
+    private val messageSender: MessageSender
 ) : CommandContext {
-    override fun sendMessage(message: String,
-                             contentType: ContentType,
-                             messageType: MessageType,
-                             disablePreview: Boolean,
-                             subCommands: List<List<SubCommand>>,
-                             handler: Class<out BaseCommand>?) {
+    override fun sendMessage(
+        message: String,
+        contentType: ContentType,
+        messageType: MessageType,
+        disablePreview: Boolean,
+        subCommands: List<List<SubCommand>>,
+        handler: Class<out BaseCommand>?
+    ) {
         val messageId = messageSender.sendMessage(chatId = input.chatId.toString(),
-                contentType = contentType,
-                disablePreview = disablePreview,
-                message = message,
-                preSendHandler = Consumer { msg ->
-                    applyButtons(msg, messageType, subCommands)
-                })
+            contentType = contentType,
+            disablePreview = disablePreview,
+            message = message,
+            preSendHandler = Consumer { msg ->
+                applyButtons(msg, messageType, subCommands)
+            })
 
         val finalBlockId = if (blockId > 0) blockId
         else {
-            val block = userState.saveBlock(messageId = messageId,
-                    messageType = input.type)
+            val block = userState.saveBlock(
+                messageId = messageId,
+                messageType = input.type
+            )
             block.id
         }
 
         userState.savePage(finalBlockId, handler = handler ?: command::class.java, subCommands = subCommands)
     }
 
-    override fun updateMessage(messageId: Int,
-                               message: String,
-                               contentType: ContentType,
-                               updateType: UpdateType,
-                               disablePreview: Boolean,
-                               subCommands: List<List<SubCommand>>,
-                               handler: Class<out BaseCommand>?) {
+    override fun updateMessage(
+        messageId: Int,
+        message: String,
+        contentType: ContentType,
+        updateType: UpdateType,
+        disablePreview: Boolean,
+        subCommands: List<List<SubCommand>>,
+        handler: Class<out BaseCommand>?
+    ) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -80,10 +90,10 @@ class CommandContextImpl(private val blockId: Long,
         val context = createCommandContext(blockId = 0, command = handler.command, input = newInput)
 
         val callContext = CommandCallContext(commandHandler = handler,
-                input = newInput,
-                states = states,
-                commandContext = context,
-                defaultContext = { null })
+            input = newInput,
+            states = states,
+            commandContext = context,
+            defaultContext = { null })
 
         return callContext.execute()
     }
@@ -100,10 +110,10 @@ class CommandContextImpl(private val blockId: Long,
         val context = createCommandContext(blockId = 0, command = handler.command, input = newInput)
 
         val callContext = CommandCallContext(commandHandler = handler,
-                input = newInput,
-                states = states,
-                commandContext = context,
-                defaultContext = { null })
+            input = newInput,
+            states = states,
+            commandContext = context,
+            defaultContext = { null })
 
         return callContext.execute()
     }
@@ -115,18 +125,23 @@ class CommandContextImpl(private val blockId: Long,
     override fun isAdmin(): Boolean = input.isAdmin
 
     private fun createCommandContext(blockId: Long, command: BaseCommand, input: InputMessage): CommandContext {
-        return CommandContextImpl(blockId = blockId,
-                command = command,
-                input = input,
-                commandHandlers = commandHandlers,
-                messageSender = messageSender,
-                serviceProvider = serviceProvider,
-                userState = userState)
+        return CommandContextImpl(
+            blockId = blockId,
+            command = command,
+            input = input,
+            commandHandlers = commandHandlers,
+            messageSender = messageSender,
+            serviceProvider = serviceProvider,
+            localizeProvider = localizeProvider,
+            userState = userState
+        )
     }
 
-    private fun applyButtons(msg: SendMessage,
-                             messageType: MessageType,
-                             subCommands: List<List<SubCommand>>) {
+    private fun applyButtons(
+        msg: SendMessage,
+        messageType: MessageType,
+        subCommands: List<List<SubCommand>>
+    ) {
         when (messageType) {
             MessageType.TEXT -> applyTextButtons(msg, subCommands)
             MessageType.CALLBACK -> applyCallbackButtons(msg, subCommands)
@@ -136,24 +151,34 @@ class CommandContextImpl(private val blockId: Long,
     private fun applyCallbackButtons(msg: SendMessage, subCommands: List<List<SubCommand>>) {
         val keyboardMarkup = InlineKeyboardMarkup()
         msg.replyMarkup = keyboardMarkup
-        keyboardMarkup.keyboard = mapButtons(subCommands)
+        keyboardMarkup.keyboard = mapCallbackButtons(subCommands)
     }
 
     private fun applyTextButtons(msg: SendMessage, subCommands: List<List<SubCommand>>) {
-        val keyboardMarkup = InlineKeyboardMarkup()
+        val keyboardMarkup = ReplyKeyboardMarkup()
         msg.replyMarkup = keyboardMarkup
-        keyboardMarkup.keyboard = mapButtons(subCommands)
+        keyboardMarkup.keyboard = mapTextButtons(subCommands)
     }
 
-    private fun mapButtons(subCommands: List<List<SubCommand>>): MutableList<MutableList<InlineKeyboardButton>> =
-            subCommands.map { mapButtons2(it) }
-                    .filter { it.isNotEmpty() }
-                    .toMutableList()
+    private fun mapTextButtons(subCommands: List<List<SubCommand>>): MutableList<KeyboardRow> =
+        subCommands.map { mapTextButtonsRow(it) }
+            .filter { it.isNotEmpty() }
+            .toMutableList()
 
-    private fun mapButtons2(cmds: List<SubCommand>): MutableList<InlineKeyboardButton> =
-            cmds.map {
-                InlineKeyboardButton()
-                        .setText(it.titleId) // TODO: get localized text
-                        .setCallbackData(it.titleId)
-            }.toMutableList()
+    private fun mapCallbackButtons(subCommands: List<List<SubCommand>>): MutableList<MutableList<InlineKeyboardButton>> =
+        subCommands.map { mapCallbackButtonsRow(it) }
+            .filter { it.isNotEmpty() }
+            .toMutableList()
+
+    private fun mapTextButtonsRow(cmds: List<SubCommand>): KeyboardRow =
+        KeyboardRow().apply {
+            cmds.forEach { cmd -> add(localizeProvider.getString(cmd.titleId)) }
+        }
+
+    private fun mapCallbackButtonsRow(cmds: List<SubCommand>): MutableList<InlineKeyboardButton> =
+        cmds.map { cmd ->
+            InlineKeyboardButton()
+                .setText(localizeProvider.getString(cmd.titleId))
+                .setCallbackData(cmd.titleId)
+        }.toMutableList()
 }

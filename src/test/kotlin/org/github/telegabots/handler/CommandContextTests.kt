@@ -8,10 +8,15 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class CommandContextTests : BaseTests() {
+    companion object {
+        const val USER_ID: Int = 55998866
+    }
+
     @Test
     fun testInnerCommand() {
         val executor = createExecutor(CommandWithCommandContext::class.java)
-        val update1 = createAnyMessage()
+        val update1 = createAnyMessage(userId = USER_ID)
+        executor.addLocalization(USER_ID, "commandId1" to "Command Id Title")
 
         assertNotCalled<CommandWithCommandContext>()
 
@@ -20,7 +25,7 @@ class CommandContextTests : BaseTests() {
         assertWasCalled<CommandWithCommandContext>()
         assertTrue(success1)
 
-        val update2 = createAnyMessage("Command Id Title")
+        val update2 = createAnyMessage(messageText = "Command Id Title", userId = USER_ID)
 
         assertNotCalled<AnotherCommand>()
 

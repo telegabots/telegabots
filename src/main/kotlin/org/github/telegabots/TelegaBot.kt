@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.github.telegabots.service.CallContextManager
 import org.github.telegabots.service.CommandHandlers
 import org.github.telegabots.service.JsonService
+import org.github.telegabots.service.UserLocalizationFactory
 import org.github.telegabots.state.StateDbProvider
 import org.github.telegabots.state.UsersStatesManager
 import org.telegram.telegrambots.meta.api.objects.Update
@@ -23,8 +24,9 @@ class TelegaBot(
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
     private val commandHandlers = CommandHandlers(commandInterceptor)
     private val usersStatesManager = UsersStatesManager(dbProvider, jsonService)
+    private val userLocalizationFactory = serviceProvider.tryGetService(UserLocalizationFactory::class.java) ?: UserLocalizationFactory()
     private val callContextManager = CallContextManager(
-        messageSender, serviceProvider, commandHandlers, usersStatesManager, rootCommand
+        messageSender, serviceProvider, commandHandlers, usersStatesManager, userLocalizationFactory, rootCommand
     )
 
     fun handle(update: Update): Boolean {
