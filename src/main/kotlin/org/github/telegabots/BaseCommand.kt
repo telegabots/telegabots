@@ -3,9 +3,12 @@ package org.github.telegabots
 import org.slf4j.LoggerFactory
 import org.github.telegabots.annotation.CallbackHandler
 import org.github.telegabots.annotation.CommandHandler
+import org.github.telegabots.context.CommandContextSupport
 
 abstract class BaseCommand {
     protected val log = LoggerFactory.getLogger(javaClass)!!
+    @JvmField
+    protected val context: CommandContext = CommandContextSupport
 
     open fun suppressCommonCommands(): Boolean = false
 

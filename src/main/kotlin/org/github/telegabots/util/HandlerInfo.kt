@@ -4,6 +4,7 @@ import org.github.telegabots.*
 import org.github.telegabots.error.CommandInvokeException
 import org.github.telegabots.state.StateKey
 import org.github.telegabots.state.States
+import java.lang.IllegalStateException
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
@@ -69,7 +70,7 @@ data class HandlerInfo(
         }
 
         if (param.isContext()) {
-            return context
+            throw IllegalStateException("CommandContext can not be used as handler parameter. Use \"context\" field instead")
         }
 
         if (param.isService()) {
