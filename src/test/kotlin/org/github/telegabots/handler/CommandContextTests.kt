@@ -41,7 +41,7 @@ internal class CommandWithCommandContext : BaseCommand() {
     fun handle(msg: String, context: CommandContext) {
         context.sendMessage(
             "Choose menu:",
-            contentType = ContentType.Simple,
+            contentType = ContentType.Plain,
             messageType = MessageType.CALLBACK,
             subCommands = listOf(listOf(SubCommand("commandId1", handler = AnotherCommand::class.java)))
         )

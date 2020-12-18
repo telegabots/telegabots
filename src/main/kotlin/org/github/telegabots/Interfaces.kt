@@ -105,7 +105,7 @@ interface UserStateServiceFactory : Service {
 }
 
 enum class ContentType {
-    Simple,
+    Plain,
 
     Markdown,
 
