@@ -7,6 +7,7 @@ import org.github.telegabots.state.MemoryStateDbProvider
 import org.github.telegabots.test.TestUserLocalizationProvider
 import org.github.telegabots.test.call
 import org.mockito.Mockito
+import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
@@ -22,6 +23,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     private val dbProvider = MemoryStateDbProvider()
     private val jsonService = JsonService()
     private val userLocalizationFactory = mock(UserLocalizationFactory::class.java)
+    private val localProviders = mutableMapOf<Int, TestUserLocalizationProvider>()
     private val telegaBot: TelegaBot
 
     init {
@@ -29,6 +31,8 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
             .thenReturn(userLocalizationFactory)
         Mockito.`when`(serviceProvider.getService(UserLocalizationFactory::class.java))
             .thenReturn(userLocalizationFactory)
+        Mockito.`when`(userLocalizationFactory.getProvider(anyInt()))
+            .thenAnswer { mock -> getLocalizationProvider(mock.arguments[0] as Int) }
 
         telegaBot = TelegaBot(
             messageSender = this,
@@ -50,8 +54,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     }
 
     fun addLocalization(userId: Int, vararg localPairs: Pair<String, String>) {
-        Mockito.`when`(userLocalizationFactory.getProvider(userId))
-            .thenReturn(TestUserLocalizationProvider(*localPairs))
+        getLocalizationProvider(userId).addLocalization(*localPairs)
     }
 
     override fun sendMessage(
@@ -81,4 +84,9 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     override fun executed(command: BaseCommand, messageType: MessageType) {
         command::class.call()
     }
+
+    private fun getLocalizationProvider(userId: Int): TestUserLocalizationProvider =
+        localProviders.computeIfAbsent(userId) {
+            TestUserLocalizationProvider(userId)
+        }
 }
