@@ -6,21 +6,24 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.User
+import java.time.LocalDateTime
+import java.util.*
 
 abstract class BaseTests {
     protected fun createExecutor(clazz: Class<out BaseCommand>) = BotCommandExecutor(rootCommand = clazz)
+    private val random = Random()
 
     protected fun createAnyMessage(
-        messageText: String = "Message does not matter",
-        chatId: Long = -123456L,
-        userId: Int = 66642555
+        messageText: String = "Message does not matter " + LocalDateTime.now(),
+        chatId: Long = random.nextLong(),
+        userId: Int = random.nextInt()
     ): Update = createMessage(messageText, chatId, userId)
 
     protected fun createAnyCallbackMessage(
-        messageId: Int = 987654321,
-        callbackData: String = "make_jvm_great_again",
-        chatId: Long = -55776699,
-        userId: Int = 456999777
+        messageId: Int = random.nextInt(),
+        callbackData: String = "make_jvm_great_again_" + System.currentTimeMillis(),
+        chatId: Long = random.nextLong(),
+        userId: Int = random.nextInt()
     ): Update = createCallbackMessage(messageId, callbackData, chatId, userId)
 
     private fun createMessage(messageText: String, chatId: Long, userId: Int): Update {

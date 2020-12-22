@@ -1,7 +1,8 @@
 package org.github.telegabots.java
 
 import org.github.telegabots.BaseTests
-import org.github.telegabots.test.CommandAssert
+import org.github.telegabots.test.CommandAssert.assertNotCalled
+import org.github.telegabots.test.CommandAssert.assertWasCalled
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
 
@@ -11,11 +12,11 @@ class JavaCommandTests : BaseTests() {
         val executor = createExecutor(JavaSimpleCommand::class.java)
         val update = createAnyMessage()
 
-        CommandAssert.assertNotCalled<JavaSimpleCommand>()
+        assertNotCalled<JavaSimpleCommand>()
 
         val success = executor.handle(update)
 
-        CommandAssert.assertWasCalled<JavaSimpleCommand>()
+        assertWasCalled<JavaSimpleCommand>()
         assertTrue(success)
     }
 }
