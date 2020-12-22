@@ -106,7 +106,7 @@ internal class CommandUsesCommandContext : BaseCommand() {
         context.sendMessage(
             "Choose menu:",
             contentType = ContentType.Plain,
-            messageType = MessageType.Callback,
+            messageType = MessageType.Text,
             subCommands = listOf(listOf(SubCommand.of<AnotherCommand>(titleId = "commandId1")))
         )
     }

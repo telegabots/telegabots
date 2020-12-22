@@ -13,6 +13,10 @@ abstract class BaseTests {
     protected fun createExecutor(clazz: Class<out BaseCommand>) = BotCommandExecutor(rootCommand = clazz)
     private val random = Random()
 
+    protected fun nextRandomInt(): Int = random.nextInt()
+
+    protected fun nextRandomLong(): Long = random.nextLong()
+
     protected fun createAnyMessage(
         messageText: String = "Message does not matter " + LocalDateTime.now(),
         chatId: Long = random.nextLong(),

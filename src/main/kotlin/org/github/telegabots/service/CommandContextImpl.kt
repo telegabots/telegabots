@@ -26,7 +26,7 @@ class CommandContextImpl(
         disablePreview: Boolean,
         subCommands: List<List<SubCommand>>,
         handler: Class<out BaseCommand>?
-    ) {
+    ): Int {
         val messageId = messageSender.sendMessage(chatId = input.chatId.toString(),
             contentType = contentType,
             disablePreview = disablePreview,
@@ -39,12 +39,14 @@ class CommandContextImpl(
         else {
             val block = userState.saveBlock(
                 messageId = messageId,
-                messageType = input.type
+                messageType = messageType
             )
             block.id
         }
 
         userState.savePage(finalBlockId, handler = handler ?: command::class.java, subCommands = subCommands)
+
+        return messageId
     }
 
     override fun updateMessage(
@@ -62,7 +64,7 @@ class CommandContextImpl(
     override fun currentCommand(): BaseCommand = command
 
 
-    override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean) {
+    override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

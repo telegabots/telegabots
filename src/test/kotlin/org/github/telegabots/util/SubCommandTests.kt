@@ -13,6 +13,12 @@ class SubCommandTests {
     }
 
     @Test
+    fun testTitleIdByCommandWithDigits() {
+        assertEquals("FOO_BAR_COMMAND1", SubCommand.titleIdOf(FooBarCommand1::class.java))
+        assertEquals("FOO_BAR1", SubCommand.titleIdOf(FooBar1Command::class.java))
+    }
+
+    @Test
     fun testCreateSubCommandByCommandClass() {
         val expected = SubCommand(handler = FooBarCommand::class.java, titleId = "FOO_BAR", state = null)
 
@@ -41,3 +47,7 @@ class SubCommandTests {
 }
 
 internal class FooBarCommand : BaseCommand()
+
+internal class FooBarCommand1 : BaseCommand()
+
+internal class FooBar1Command : BaseCommand()

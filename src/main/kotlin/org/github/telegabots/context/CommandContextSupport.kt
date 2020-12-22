@@ -25,8 +25,8 @@ object CommandContextSupport : CommandContext {
         disablePreview: Boolean,
         subCommands: List<List<SubCommand>>,
         handler: Class<out BaseCommand>?
-    ) {
-        current().sendMessage(message, contentType, messageType, disablePreview, subCommands, handler)
+    ) : Int {
+        return current().sendMessage(message, contentType, messageType, disablePreview, subCommands, handler)
     }
 
     override fun updateMessage(

@@ -19,7 +19,7 @@ interface CommandContext : UserContext, CommandExecutor {
         disablePreview: Boolean = true,
         subCommands: List<List<SubCommand>> = emptyList(),
         handler: Class<out BaseCommand>? = null
-    )
+    ) : Int
 
     fun updateMessage(
         messageId: Int,
@@ -35,7 +35,7 @@ interface CommandContext : UserContext, CommandExecutor {
         message: String,
         contentType: ContentType,
         disablePreview: Boolean = true
-    )
+    ) : Int
 
     fun sendHtmlMessage(
         message: String,
@@ -43,7 +43,7 @@ interface CommandContext : UserContext, CommandExecutor {
         disablePreview: Boolean = true,
         subCommands: List<List<SubCommand>> = emptyList(),
         handler: Class<out BaseCommand>? = null
-    ) =
+    ): Int =
         sendMessage(
             message,
             contentType = ContentType.Html,
@@ -142,7 +142,7 @@ data class SubCommand(
                 .let { if (it.endsWith(PREFIX)) it.substring(0, it.length - PREFIX.length) else it }
 
         private const val PREFIX = "_COMMAND"
-        private val CAMEL_CASE_PAT = Pattern.compile("([a-z])([A-Z]+)")
+        private val CAMEL_CASE_PAT = Pattern.compile("([a-z\\d])([A-Z]+)")
     }
 }
 
