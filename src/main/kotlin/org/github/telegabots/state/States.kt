@@ -29,7 +29,12 @@ interface StateProvider {
     fun canFlush(): Boolean
 }
 
-data class State(val items: List<StateItem>)
+data class State(val items: List<StateItem>) {
+    companion object {
+        @JvmField
+        val Empty = State(emptyList())
+    }
+}
 
 data class StateItem(val key: StateKey,
                      val value: Any) {

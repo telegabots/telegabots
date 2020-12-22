@@ -4,6 +4,7 @@ import org.github.telegabots.state.State
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import java.util.function.Consumer
+import java.util.regex.Pattern
 
 /**
  * Context used by a command
@@ -122,7 +123,28 @@ data class SubCommand(
     val titleId: String,
     val handler: Class<out BaseCommand>? = null,
     val state: State? = null
-)
+) {
+    companion object {
+        inline fun <reified T : BaseCommand> of(state: State? = null, titleId: String = "") =
+            of(T::class.java, state, titleId)
+
+        @JvmStatic
+        fun of(handler: Class<out BaseCommand>, state: State? = null, titleId: String = ""): SubCommand =
+            SubCommand(
+                titleId = if (titleId.isNotBlank()) titleId else titleIdOf(handler),
+                handler = handler,
+                state = state
+            )
+
+        @JvmStatic
+        fun titleIdOf(handler: Class<out BaseCommand>): String =
+            CAMEL_CASE_PAT.matcher(handler.simpleName).replaceAll("$1_$2").toUpperCase()
+                .let { if (it.endsWith(PREFIX)) it.substring(0, it.length - PREFIX.length) else it }
+
+        private const val PREFIX = "_COMMAND"
+        private val CAMEL_CASE_PAT = Pattern.compile("([a-z])([A-Z]+)")
+    }
+}
 
 interface MessageSender {
     /**

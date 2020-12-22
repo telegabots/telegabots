@@ -64,7 +64,7 @@ internal class CommandUsesCommandContext : BaseCommand() {
             "Choose menu:",
             contentType = ContentType.Plain,
             messageType = MessageType.CALLBACK,
-            subCommands = listOf(listOf(SubCommand("commandId1", handler = AnotherCommand::class.java)))
+            subCommands = listOf(listOf(SubCommand.of<AnotherCommand>(titleId = "commandId1")))
         )
     }
 }
