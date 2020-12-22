@@ -33,6 +33,12 @@ fun <T : BaseCommand> KClass<T>.called(): Int {
     }
 }
 
+fun <T : BaseCommand> KClass<T>.resetCalled(): Int {
+    synchronized(calledCommands) {
+        return calledCommands.remove(this) ?: 0
+    }
+}
+
 fun <T : BaseCommand> KClass<T>.assertWasCalled(expected: Int = 1) =
     assertEquals(
         expected,
@@ -53,6 +59,11 @@ object CommandAssert {
      * Returns command's call counter
      */
     inline fun <reified T : BaseCommand> called(): Int = T::class.called()
+
+    /**
+     * Resets command call counter
+     */
+    inline fun <reified T : BaseCommand> resetCalled() = T::class.resetCalled()
 
     /**
      * Asserts that command was called expected times
