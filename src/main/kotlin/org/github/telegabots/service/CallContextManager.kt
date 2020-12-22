@@ -19,8 +19,8 @@ class CallContextManager(
 
     fun get(input: InputMessage): CommandCallContext {
         return when (input.type) {
-            MessageType.TEXT -> getSimpleMessageContext(input)
-            MessageType.CALLBACK -> getCallbackMessageContext(input)
+            MessageType.Text -> getSimpleMessageContext(input)
+            MessageType.Callback -> getCallbackMessageContext(input)
         }
     }
 
@@ -134,9 +134,9 @@ class CallContextManager(
             val localizeProvider = userLocalizationFactory.getProvider(input.userId)
 
             return when (lastBlock.messageType) {
-                MessageType.TEXT -> lastCommand.subCommands.flatten()
+                MessageType.Text -> lastCommand.subCommands.flatten()
                     .find { localizeProvider.getString(it.titleId) == input.query }
-                MessageType.CALLBACK -> lastCommand.subCommands.flatten().find { it.titleId == input.query }
+                MessageType.Callback -> lastCommand.subCommands.flatten().find { it.titleId == input.query }
             }
         }
 

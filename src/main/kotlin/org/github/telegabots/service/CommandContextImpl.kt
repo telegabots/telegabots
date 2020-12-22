@@ -84,7 +84,7 @@ class CommandContextImpl(
      * TODO: providing local state from caller
      */
     override fun executeCommand(clazz: Class<out BaseCommand>, text: String): Boolean {
-        val newInput = input.copy(query = text, messageId = null, type = MessageType.TEXT)
+        val newInput = input.copy(query = text, messageId = null, type = MessageType.Text)
         val handler = commandHandlers.getCommandHandler(clazz)
         val states = userState.getStates()
         val context = createCommandContext(blockId = 0, command = handler.command, input = newInput)
@@ -104,7 +104,7 @@ class CommandContextImpl(
      * TODO: providing local state from caller
      */
     override fun executeCallback(clazz: Class<out BaseCommand>, messageId: Int, query: String): Boolean {
-        val newInput = input.copy(query = query, messageId = messageId, type = MessageType.CALLBACK)
+        val newInput = input.copy(query = query, messageId = messageId, type = MessageType.Callback)
         val handler = commandHandlers.getCommandHandler(clazz.name)
         val states = userState.getStates()
         val context = createCommandContext(blockId = 0, command = handler.command, input = newInput)
@@ -143,8 +143,8 @@ class CommandContextImpl(
         subCommands: List<List<SubCommand>>
     ) {
         when (messageType) {
-            MessageType.TEXT -> applyTextButtons(msg, subCommands)
-            MessageType.CALLBACK -> applyCallbackButtons(msg, subCommands)
+            MessageType.Text -> applyTextButtons(msg, subCommands)
+            MessageType.Callback -> applyCallbackButtons(msg, subCommands)
         }
     }
 

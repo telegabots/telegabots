@@ -15,8 +15,8 @@ class CommandHandler(
     private val handlers: List<HandlerInfo>,
     private val commandInterceptor: CommandInterceptor
 ) {
-    private val executeHandler = handlers.find { p -> p.messageType == MessageType.TEXT }
-    private val executeCallbackHandler = handlers.find { p -> p.messageType == MessageType.CALLBACK }
+    private val executeHandler = handlers.find { p -> p.messageType == MessageType.Text }
+    private val executeCallbackHandler = handlers.find { p -> p.messageType == MessageType.Callback }
 
     fun execute(text: String, states: States, context: CommandContext): Boolean {
         checkNotNull(executeHandler) { "Method execute not implemented for ${command.javaClass.name}" }
@@ -26,7 +26,7 @@ class CommandHandler(
             val result = executeHandler.execute(text, states, context)
 
             try {
-                commandInterceptor.executed(command, MessageType.TEXT)
+                commandInterceptor.executed(command, MessageType.Text)
             } catch (ex: Exception) {
                 log.error(
                     "Interceptor call failed on command {} with error: {}",
@@ -50,7 +50,7 @@ class CommandHandler(
             executeCallbackHandler.executeCallback(messageId, data, states, context)
 
             try {
-                commandInterceptor.executed(command, MessageType.CALLBACK)
+                commandInterceptor.executed(command, MessageType.Callback)
             } catch (ex: Exception) {
                 log.error(
                     "Interceptor call failed on command {} with error: {}",
@@ -66,8 +66,8 @@ class CommandHandler(
 
     fun canHandle(messageType: MessageType): Boolean =
         when (messageType) {
-            MessageType.TEXT -> executeHandler != null
-            MessageType.CALLBACK -> executeCallbackHandler != null
+            MessageType.Text -> executeHandler != null
+            MessageType.Callback -> executeCallbackHandler != null
         }
 
     override fun toString(): String {

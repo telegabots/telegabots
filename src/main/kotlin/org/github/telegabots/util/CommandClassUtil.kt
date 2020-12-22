@@ -20,8 +20,8 @@ object CommandClassUtil {
 
     private fun checkHandler(handler: HandlerInfo): HandlerInfo {
         when (handler.messageType) {
-            MessageType.TEXT -> checkTextHandler(handler)
-            MessageType.CALLBACK -> checkCallbackHandler(handler)
+            MessageType.Text -> checkTextHandler(handler)
+            MessageType.Callback -> checkCallbackHandler(handler)
         }
 
         return handler
@@ -63,9 +63,9 @@ object CommandClassUtil {
 
     private fun getMessageType(method: Method): MessageType? {
         return if (method.annotations.any { it.annotationClass == CommandHandler::class }) {
-            MessageType.TEXT
+            MessageType.Text
         } else if (method.annotations.any { it.annotationClass == CallbackHandler::class }) {
-            MessageType.CALLBACK
+            MessageType.Callback
         } else {
             null
         }

@@ -39,7 +39,7 @@ interface CommandContext : UserContext, CommandExecutor {
 
     fun sendHtmlMessage(
         message: String,
-        messageType: MessageType = MessageType.TEXT,
+        messageType: MessageType = MessageType.Text,
         disablePreview: Boolean = true,
         subCommands: List<List<SubCommand>> = emptyList(),
         handler: Class<out BaseCommand>? = null
@@ -204,9 +204,9 @@ interface State<T> {
 interface Service
 
 enum class MessageType {
-    TEXT,
+    Text,
 
-    CALLBACK
+    Callback
 }
 
 data class InputMessage(
