@@ -3,82 +3,80 @@ package org.github.telegabots.handler
 import org.github.telegabots.*
 import org.github.telegabots.annotation.CallbackHandler
 import org.github.telegabots.annotation.CommandHandler
-import org.github.telegabots.test.CommandAssert.assertNotCalled
-import org.github.telegabots.test.CommandAssert.assertWasCalled
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.github.telegabots.test.Page
+import org.github.telegabots.test.Page.Companion.page
+import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 class MultiSubCommandTests : BaseTests() {
     @Test
     fun testMultipleSubcommands() {
-        val userId = nextRandomInt()
-        val executor = createExecutor(CommandRoot::class.java)
-        val update1 = createAnyMessage(userId = userId)
+        scenario<CommandRoot> {
+            assertThat {
+                rootNotCalled()
+                userMessageNotSentYet()
+                blocksCountEmpty()
+            }
 
-        assertNotCalled<CommandRoot>()
-        assertNull(CommandRoot.lastMessageId)
+            user {
+                sendTextMessage("/start")
+            }
 
-        val success1 = executor.handle(update1)
+            assertThat {
+                userMessageWasSent()
+                rootWasCalled()
+                notCalled<SubMenu1Command>()
+                blocksCount(1)
+            }
 
-        assertWasCalled<CommandRoot>()
-        assertTrue(success1)
+            val messageId = lastUserMessageId()
 
-        //--------
-        val update2 = createAnyMessage(messageText = "SUB_MENU1", userId = userId)
+            user {
+                sendTextMessage("SUB_MENU1")
+            }
 
-        assertNotCalled<SubMenu1Command>()
-        assertNotNull(CommandRoot.lastMessageId)
-        val messageId = CommandRoot.lastMessageId!!
+            assertThat {
+                notCalled<SubMenu1Command>()
+                rootWasCalled(2)
+                blocksCount(1)
+            }
 
-        val success2 = executor.handle(update2)
+            user {
+                sendCallbackMessage(messageId = messageId, callbackData = "SUB_MENU1")
+            }
 
-        assertWasCalled<CommandRoot>(2)
-        assertTrue(success2)
-        assertNotCalled<SubMenu1Command>()
-        assertEquals(messageId, CommandRoot.lastMessageId)
+            assertThat {
+                wasCalled<SubMenu1Command>()
+                notCalled<SubMenu2Command>()
+                rootWasCalled(2)
+                blocksCount(1)
+            }
 
-        //--------
-        val update3 = createAnyCallbackMessage(messageId = messageId, callbackData = "SUB_MENU1", userId = userId)
+            user {
+                sendCallbackMessage(messageId = messageId, callbackData = "SUB_MENU2")
+            }
 
-        assertNotCalled<SubMenu1Command>()
-
-        val success3 = executor.handle(update3)
-
-        assertWasCalled<CommandRoot>(2)
-        assertTrue(success3)
-        assertWasCalled<SubMenu1Command>()
-
-        //--------
-        val update4 = createAnyCallbackMessage(messageId = messageId, callbackData = "SUB_MENU2", userId = userId)
-
-        assertNotCalled<SubMenu2Command>()
-
-        val success4 = executor.handle(update4)
-
-        assertWasCalled<CommandRoot>(2)
-        assertTrue(success4)
-        assertWasCalled<SubMenu2Command>()
+            assertThat {
+                wasCalled<SubMenu1Command>()
+                wasCalled<SubMenu2Command>()
+                rootWasCalled(2)
+                blocksCount(1)
+            }
+        }
     }
 }
 
 internal class CommandRoot : BaseCommand() {
     @CommandHandler
     fun handle(msg: String) {
-        if (lastMessageId == null) {
-            lastMessageId = context.sendMessage(
+        if (msg == "/start") {
+            context.sendMessage(
                 "Choose menu:",
                 contentType = ContentType.Plain,
                 messageType = MessageType.Callback,
                 subCommands = listOf(listOf(SubCommand.of<SubMenu1Command>(), SubCommand.of<SubMenu2Command>()))
             )
         }
-    }
-
-    companion object {
-        var lastMessageId: Int? = null
     }
 }
 

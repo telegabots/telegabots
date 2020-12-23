@@ -30,7 +30,7 @@ class MemoryStateDbProvider : StateDbProvider {
         check(page.isValid()) { "page is invalid: $page" }
 
         val block = commandBlocks.find { it.id == page.blockId }
-                ?: throw IllegalStateException("Block not found: ${page.blockId}")
+            ?: throw IllegalStateException("Block not found: ${page.blockId}")
 
         val savedPage = page.copy(id = pageIds.getAndIncrement())
         val pages = commandPages.getOrPut(block.id) { mutableListOf() }
@@ -72,7 +72,7 @@ class MemoryStateDbProvider : StateDbProvider {
     @Synchronized
     override fun saveSharedState(userId: Int, messageId: Int, state: StateDef) {
         val block = findBlockByMessageId(userId, messageId)
-                ?: throw IllegalStateException("Block not found by messageId: $messageId and userId: $userId")
+            ?: throw IllegalStateException("Block not found by messageId: $messageId and userId: $userId")
 
         sharedStates[block.id] = state
     }
@@ -80,7 +80,7 @@ class MemoryStateDbProvider : StateDbProvider {
     @Synchronized
     override fun getSharedState(userId: Int, messageId: Int): StateDef {
         val block = findBlockByMessageId(userId, messageId)
-                ?: throw IllegalStateException("Block not found by messageId: $messageId and userId: $userId")
+            ?: throw IllegalStateException("Block not found by messageId: $messageId and userId: $userId")
 
         return sharedStates[block.id] ?: StateDef.Empty
     }
@@ -104,4 +104,10 @@ class MemoryStateDbProvider : StateDbProvider {
     override fun saveGlobalState(state: StateDef) {
         globalState = state
     }
+
+    @Synchronized
+    fun getUserBlocks(userId: Int): List<CommandBlock> = commandBlocks.filter { it.userId == userId }
+
+    @Synchronized
+    fun getBlockPages(blockId: Long): List<CommandPage> = commandPages[blockId] ?: emptyList()
 }

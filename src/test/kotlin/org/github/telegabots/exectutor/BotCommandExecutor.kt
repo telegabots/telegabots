@@ -25,6 +25,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     private val userLocalizationFactory = mock(UserLocalizationFactory::class.java)
     private val localProviders = mutableMapOf<Int, TestUserLocalizationProvider>()
     private val telegaBot: TelegaBot
+    private val sentMessages = mutableMapOf<Int, String>()
 
     init {
         Mockito.`when`(serviceProvider.tryGetService(UserLocalizationFactory::class.java))
@@ -57,6 +58,15 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
         getLocalizationProvider(userId).addLocalization(*localPairs)
     }
 
+    fun lastUserMessageId(): Int? = sentMessages.keys.lastOrNull()
+
+    fun getUserBlocks(userId: Int) = dbProvider.getUserBlocks(userId)
+
+    fun getBlockPages(blockId: Long) = dbProvider.getBlockPages(blockId)
+
+    fun getLastBlockPages(userId: Int) = dbProvider.findLastBlockByUserId(userId)
+        ?.let { dbProvider.getBlockPages(it.id) } ?: emptyList()
+
     override fun sendMessage(
         chatId: String,
         message: String,
@@ -66,7 +76,11 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     ): Int {
         // TODO: check method was called
         log.info("sendMessage: chatId: $chatId, message: $message")
-        return messageIdCounter.incrementAndGet()
+
+        val messageId = messageIdCounter.incrementAndGet()
+        sentMessages[messageId] = message
+
+        return messageId
     }
 
     override fun updateMessage(
