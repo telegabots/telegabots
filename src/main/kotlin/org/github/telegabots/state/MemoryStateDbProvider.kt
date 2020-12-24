@@ -32,11 +32,21 @@ class MemoryStateDbProvider : StateDbProvider {
         val block = commandBlocks.find { it.id == page.blockId }
             ?: throw IllegalStateException("Block not found: ${page.blockId}")
 
-        val savedPage = page.copy(id = pageIds.getAndIncrement())
-        val pages = commandPages.getOrPut(block.id) { mutableListOf() }
-        pages.add(savedPage)
+        if (page.id > 0) {
+            val pages = commandPages.getOrPut(block.id) { mutableListOf() }
+            val index = pages.indexOfFirst { it.id == page.id }
+            check(index >= 0) { "Page not found by id: ${page.id}, blockId: ${page.blockId}" }
+            pages.removeAt(index)
+            pages.add(index, page)
 
-        return savedPage
+            return page
+        } else {
+            val savedPage = page.copy(id = pageIds.getAndIncrement())
+            val pages = commandPages.getOrPut(block.id) { mutableListOf() }
+            pages.add(savedPage)
+
+            return savedPage
+        }
     }
 
     override fun removePage(pageId: Long): CommandPage? {
@@ -106,8 +116,8 @@ class MemoryStateDbProvider : StateDbProvider {
     }
 
     @Synchronized
-    fun getUserBlocks(userId: Int): List<CommandBlock> = commandBlocks.filter { it.userId == userId }
+    override fun getBlockPages(blockId: Long): List<CommandPage> = commandPages[blockId] ?: emptyList()
 
     @Synchronized
-    fun getBlockPages(blockId: Long): List<CommandPage> = commandPages[blockId] ?: emptyList()
+    fun getUserBlocks(userId: Int): List<CommandBlock> = commandBlocks.filter { it.userId == userId }
 }

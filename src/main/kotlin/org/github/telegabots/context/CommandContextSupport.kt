@@ -18,28 +18,11 @@ object CommandContextSupport : CommandContext {
 
     override fun currentCommand(): BaseCommand = current().currentCommand()
 
-    override fun sendMessage(
-        message: String,
-        contentType: ContentType,
-        messageType: MessageType,
-        disablePreview: Boolean,
-        subCommands: List<List<SubCommand>>,
-        handler: Class<out BaseCommand>?
-    ) : Int {
-        return current().sendMessage(message, contentType, messageType, disablePreview, subCommands, handler)
-    }
+    override fun createPage(page: Page): Long = current().createPage(page)
 
-    override fun updateMessage(
-        messageId: Int,
-        message: String,
-        contentType: ContentType,
-        updateType: UpdateType,
-        disablePreview: Boolean,
-        subCommands: List<List<SubCommand>>,
-        handler: Class<out BaseCommand>?
-    ) {
-        current().updateMessage(messageId, message, contentType, updateType, disablePreview, subCommands, handler)
-    }
+    override fun addPage(page: Page): Long = current().addPage(page)
+
+    override fun updatePage(page: Page): Long = current().updatePage(page)
 
     override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean) =
         current().sendAdminMessage(message, contentType, disablePreview)

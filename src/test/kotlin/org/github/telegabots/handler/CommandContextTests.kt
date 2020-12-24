@@ -103,11 +103,13 @@ class CommandContextTests : BaseTests() {
 internal class CommandUsesCommandContext : BaseCommand() {
     @CommandHandler
     fun handle(msg: String) {
-        context.sendMessage(
-            "Choose menu:",
-            contentType = ContentType.Plain,
-            messageType = MessageType.Text,
-            subCommands = listOf(listOf(SubCommand.of<AnotherCommand>(titleId = "commandId1")))
+        context.createPage(
+            Page(
+                message = "Choose menu:",
+                contentType = ContentType.Plain,
+                messageType = MessageType.Text,
+                subCommands = listOf(listOf(SubCommand.of<AnotherCommand>(titleId = "commandId1")))
+            )
         )
     }
 }

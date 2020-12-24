@@ -28,6 +28,10 @@ class UserStateService(
 
     fun getLastPage(blockId: Long): CommandPage? = dbProvider.findLastPageByBlockId(userId, blockId)
 
+    fun getPages(blockId: Long): List<CommandPage> = dbProvider.getBlockPages(blockId)
+
+    fun removePage(pageId: Long) = dbProvider.removePage(pageId)
+
     fun saveBlock(messageId: Int, messageType: MessageType): CommandBlock =
         dbProvider.saveBlock(
             CommandBlock(
@@ -38,9 +42,15 @@ class UserStateService(
             )
         )
 
-    fun savePage(blockId: Long, handler: Class<out BaseCommand>, subCommands: List<List<SubCommand>>) =
+    fun savePage(
+        blockId: Long,
+        handler: Class<out BaseCommand>,
+        subCommands: List<List<SubCommand>> = emptyList(),
+        pageId: Long = 0
+    ): CommandPage =
         dbProvider.savePage(
             CommandPage(
+                id = pageId,
                 blockId = blockId,
                 handler = handler.name,
                 subCommands = toSubCommands(subCommands)
@@ -55,9 +65,9 @@ class UserStateService(
             globalState = globalState
         )
 
-    fun getStates(messageId: Int, state: StateDef?): States =
+    fun getStates(messageId: Int, state: StateDef?, pageId: Long = 0): States =
         StatesImpl(
-            localState = LocalTempStateProvider(state, jsonService),
+            localState = if (pageId > 0) getLocalState(pageId, state) else LocalTempStateProvider(state, jsonService),
             sharedState = getSharedState(messageId),
             userState = userState,
             globalState = globalState
@@ -84,9 +94,9 @@ class UserStateService(
         }
     }
 
-    private fun getLocalState(pageId: Long): StateProvider {
+    private fun getLocalState(pageId: Long, state: StateDef? = null): StateProvider {
         return synchronized(localStates) {
-            localStates.getOrPut(pageId) { LocalStateProvider(pageId, dbProvider, jsonService) }
+            localStates.getOrPut(pageId) { LocalStateProvider(pageId, state, dbProvider, jsonService) }
         }
     }
 

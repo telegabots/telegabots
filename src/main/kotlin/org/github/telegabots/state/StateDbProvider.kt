@@ -35,4 +35,6 @@ interface StateDbProvider {
     fun getGlobalState(): StateDef
 
     fun saveGlobalState(state: StateDef)
+
+    fun getBlockPages(blockId: Long): List<CommandPage>
 }

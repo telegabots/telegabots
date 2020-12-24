@@ -3,14 +3,12 @@ package org.github.telegabots.handler
 import org.github.telegabots.*
 import org.github.telegabots.annotation.CallbackHandler
 import org.github.telegabots.annotation.CommandHandler
-import org.github.telegabots.test.Page
-import org.github.telegabots.test.Page.Companion.page
 import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Test
 
 class MultiSubCommandTests : BaseTests() {
     @Test
-    fun testMultipleSubcommands() {
+    fun testMultipleSubCommands() {
         scenario<CommandRoot> {
             assertThat {
                 rootNotCalled()
@@ -27,6 +25,7 @@ class MultiSubCommandTests : BaseTests() {
                 rootWasCalled()
                 notCalled<SubMenu1Command>()
                 blocksCount(1)
+                lastBlockPagesCount(1)
             }
 
             val messageId = lastUserMessageId()
@@ -39,6 +38,7 @@ class MultiSubCommandTests : BaseTests() {
                 notCalled<SubMenu1Command>()
                 rootWasCalled(2)
                 blocksCount(1)
+                lastBlockPagesCount(1)
             }
 
             user {
@@ -50,6 +50,19 @@ class MultiSubCommandTests : BaseTests() {
                 notCalled<SubMenu2Command>()
                 rootWasCalled(2)
                 blocksCount(1)
+                lastBlockPagesCount(2)
+            }
+
+            user {
+                sendCallbackMessage(messageId = messageId, callbackData = SystemCommands.BACK)
+            }
+
+            assertThat {
+                wasCalled<SubMenu1Command>(2)
+                notCalled<SubMenu2Command>()
+                rootWasCalled(2)
+                blocksCount(1)
+                lastBlockPagesCount(1)
             }
 
             user {
@@ -61,6 +74,7 @@ class MultiSubCommandTests : BaseTests() {
                 wasCalled<SubMenu2Command>()
                 rootWasCalled(2)
                 blocksCount(1)
+                lastBlockPagesCount(1)
             }
         }
     }
@@ -70,11 +84,13 @@ internal class CommandRoot : BaseCommand() {
     @CommandHandler
     fun handle(msg: String) {
         if (msg == "/start") {
-            context.sendMessage(
-                "Choose menu:",
-                contentType = ContentType.Plain,
-                messageType = MessageType.Callback,
-                subCommands = listOf(listOf(SubCommand.of<SubMenu1Command>(), SubCommand.of<SubMenu2Command>()))
+            context.createPage(
+                Page(
+                    message = "Choose menu:",
+                    contentType = ContentType.Plain,
+                    messageType = MessageType.Callback,
+                    subCommands = listOf(listOf(SubCommand.of<SubMenu1Command>(), SubCommand.of<SubMenu2Command>()))
+                )
             )
         }
     }

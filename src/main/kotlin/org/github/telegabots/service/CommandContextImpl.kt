@@ -2,7 +2,9 @@ package org.github.telegabots.service
 
 import org.github.telegabots.*
 import org.github.telegabots.state.UserStateService
+import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
@@ -11,6 +13,7 @@ import java.util.function.Consumer
 
 class CommandContextImpl(
     private val blockId: Long,
+    private val pageId: Long,
     private val input: InputMessage,
     private val command: BaseCommand,
     private val commandHandlers: CommandHandlers,
@@ -19,50 +22,88 @@ class CommandContextImpl(
     private val localizeProvider: LocalizeProvider,
     private val messageSender: MessageSender
 ) : CommandContext {
-    override fun sendMessage(
-        message: String,
-        contentType: ContentType,
-        messageType: MessageType,
-        disablePreview: Boolean,
-        subCommands: List<List<SubCommand>>,
-        handler: Class<out BaseCommand>?
-    ): Int {
-        val messageId = messageSender.sendMessage(chatId = input.chatId.toString(),
-            contentType = contentType,
-            disablePreview = disablePreview,
-            message = message,
-            preSendHandler = Consumer { msg ->
-                applyButtons(msg, messageType, subCommands)
-            })
-
-        val finalBlockId = if (blockId > 0) blockId
-        else {
-            val block = userState.saveBlock(
-                messageId = messageId,
-                messageType = messageType
-            )
-            block.id
-        }
-
-        userState.savePage(finalBlockId, handler = handler ?: command::class.java, subCommands = subCommands)
-
-        return messageId
-    }
-
-    override fun updateMessage(
-        messageId: Int,
-        message: String,
-        contentType: ContentType,
-        updateType: UpdateType,
-        disablePreview: Boolean,
-        subCommands: List<List<SubCommand>>,
-        handler: Class<out BaseCommand>?
-    ) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
+    private val log = LoggerFactory.getLogger(CommandContextImpl::class.java)!!
     override fun currentCommand(): BaseCommand = command
 
+    override fun createPage(page: Page): Long {
+        log.debug("Create page: {} by input: {}, blockId: {}", page, input, blockId)
+
+        val messageId = messageSender.sendMessage(chatId = input.chatId.toString(),
+            contentType = page.contentType,
+            disablePreview = page.disablePreview,
+            message = page.message,
+            preSendHandler = Consumer { msg ->
+                applyTextButtons(msg, page.subCommands)
+            })
+
+        val block = userState.saveBlock(
+            messageId = messageId,
+            messageType = page.messageType
+        )
+
+        val savedPage = userState.savePage(
+            block.id,
+            handler = page.handler ?: command::class.java,
+            subCommands = page.subCommands
+        )
+
+        return savedPage.id
+    }
+
+    override fun addPage(page: Page): Long {
+        if (blockId <= 0) {
+            return createPage(page)
+        }
+
+        log.debug("Add page: {} by input: {}, blockId: {}", page, input, blockId)
+
+        val messageId: Int = checkNotNull(input.messageId) { "Input message id cannot be null. Input: $input" }
+
+        messageSender.updateMessage(chatId = input.chatId.toString(),
+            messageId = messageId,
+            contentType = page.contentType,
+            disablePreview = page.disablePreview,
+            message = page.message,
+            preSendHandler = Consumer { msg ->
+                TODO("applyCallbackButtons()")
+            })
+
+        val savedPage = userState.savePage(
+            blockId,
+            handler = page.handler ?: command::class.java,
+            subCommands = page.subCommands
+        )
+
+        return savedPage.id
+    }
+
+    override fun updatePage(page: Page): Long {
+        if (blockId <= 0) {
+            return createPage(page)
+        }
+
+        log.debug("Update page: {} by input: {}, blockId: {}", page, input, blockId)
+
+        val messageId: Int = checkNotNull(input.messageId) { "Input message id cannot be null. Input: $input" }
+
+        messageSender.updateMessage(chatId = input.chatId.toString(),
+            messageId = messageId,
+            contentType = page.contentType,
+            disablePreview = page.disablePreview,
+            message = page.message,
+            preSendHandler = Consumer { msg ->
+                TODO("applyCallbackButtons()")
+            })
+
+        val savedPage = userState.savePage(
+            blockId,
+            pageId = if (page.id > 0) page.id else pageId,
+            handler = page.handler ?: command::class.java,
+            subCommands = page.subCommands
+        )
+
+        return savedPage.id
+    }
 
     override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -126,9 +167,10 @@ class CommandContextImpl(
 
     override fun isAdmin(): Boolean = input.isAdmin
 
-    private fun createCommandContext(blockId: Long, command: BaseCommand, input: InputMessage): CommandContext {
+    private fun createCommandContext(blockId: Long, command: BaseCommand, input: InputMessage, pageId: Long = 0): CommandContext {
         return CommandContextImpl(
             blockId = blockId,
+            pageId = pageId,
             command = command,
             input = input,
             commandHandlers = commandHandlers,
@@ -139,18 +181,7 @@ class CommandContextImpl(
         )
     }
 
-    private fun applyButtons(
-        msg: SendMessage,
-        messageType: MessageType,
-        subCommands: List<List<SubCommand>>
-    ) {
-        when (messageType) {
-            MessageType.Text -> applyTextButtons(msg, subCommands)
-            MessageType.Callback -> applyCallbackButtons(msg, subCommands)
-        }
-    }
-
-    private fun applyCallbackButtons(msg: SendMessage, subCommands: List<List<SubCommand>>) {
+    private fun applyCallbackButtons(msg: EditMessageText, subCommands: List<List<SubCommand>>) {
         val keyboardMarkup = InlineKeyboardMarkup()
         msg.replyMarkup = keyboardMarkup
         keyboardMarkup.keyboard = mapCallbackButtons(subCommands)

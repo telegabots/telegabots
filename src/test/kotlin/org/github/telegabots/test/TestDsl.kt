@@ -46,6 +46,12 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>) : BaseTes
             assertEquals(expected, blocksCount) { "Command blocks count expected to be $blocksCount" }
         }
 
+        fun lastBlockPagesCount(expected: Int) {
+            val lastPages = executor.getLastBlockPages(userId).map { Page.from(it) }
+
+            assertEquals(expected, lastPages.size) { "Pages of last block expected to be $expected, but found ${lastPages.size}. Last pages: $lastPages" }
+        }
+
         fun lastBlockPages(vararg pages: Page) {
             val lastPages = executor.getLastBlockPages(userId).map { Page.from(it) }
 

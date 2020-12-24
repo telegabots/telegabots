@@ -12,65 +12,32 @@ import java.util.regex.Pattern
 interface CommandContext : UserContext, CommandExecutor {
     fun currentCommand(): BaseCommand
 
-    fun sendMessage(
-        message: String,
-        contentType: ContentType,
-        messageType: MessageType,
-        disablePreview: Boolean = true,
-        subCommands: List<List<SubCommand>> = emptyList(),
-        handler: Class<out BaseCommand>? = null
-    ) : Int
+    /**
+     * Creates new page into new block
+     *
+     * Returns created page id
+     */
+    fun createPage(page: Page): Long
 
-    fun updateMessage(
-        messageId: Int,
-        message: String,
-        contentType: ContentType,
-        updateType: UpdateType,
-        disablePreview: Boolean = true,
-        subCommands: List<List<SubCommand>> = emptyList(),
-        handler: Class<out BaseCommand>? = null
-    )
+    /**
+     * Creates new page into existing (current) block. If block not exists creates new
+     *
+     * Returns created page id
+     */
+    fun addPage(page: Page): Long
+
+    /**
+     * Updates current page. If page/block not exists creates new
+     *
+     * Returns updated/created page id
+     */
+    fun updatePage(page: Page): Long
 
     fun sendAdminMessage(
         message: String,
         contentType: ContentType,
         disablePreview: Boolean = true
-    ) : Int
-
-    fun sendHtmlMessage(
-        message: String,
-        messageType: MessageType = MessageType.Text,
-        disablePreview: Boolean = true,
-        subCommands: List<List<SubCommand>> = emptyList(),
-        handler: Class<out BaseCommand>? = null
-    ): Int =
-        sendMessage(
-            message,
-            contentType = ContentType.Html,
-            messageType = messageType,
-            disablePreview = disablePreview,
-            subCommands = subCommands,
-            handler = handler
-        )
-
-    fun updateHtmlMessage(
-        messageId: Int,
-        message: String,
-        updateType: UpdateType,
-        disablePreview: Boolean = true,
-        subCommands: List<List<SubCommand>> = emptyList(),
-        handler: Class<out BaseCommand>? = null
-    ) =
-        updateMessage(
-            messageId,
-            message,
-            contentType = ContentType.Html,
-            updateType = updateType,
-            disablePreview = disablePreview,
-            subCommands = subCommands,
-            handler = handler
-        )
-
+    ): Int
 
     fun enterCommand(command: BaseCommand)
 
@@ -113,11 +80,15 @@ enum class ContentType {
     Html
 }
 
-enum class UpdateType {
-    UpdateLastPage,
-
-    NewPage
-}
+data class Page(
+    val message: String,
+    val id: Long = 0L,
+    val contentType: ContentType = ContentType.Plain,
+    val messageType: MessageType = MessageType.Text,
+    val disablePreview: Boolean = true,
+    val subCommands: List<List<SubCommand>> = emptyList(),
+    val handler: Class<out BaseCommand>? = null
+)
 
 data class SubCommand(
     val titleId: String,
@@ -220,6 +191,8 @@ data class InputMessage(
     init {
         check(userId != 0) { "UserId cannot be $userId" }
     }
+
+    fun toInputRefresh() = this.copy(query = SystemCommands.REFRESH)
 }
 
 /**

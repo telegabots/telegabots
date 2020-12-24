@@ -15,6 +15,7 @@ class CommandHandler(
     private val handlers: List<HandlerInfo>,
     private val commandInterceptor: CommandInterceptor
 ) {
+    val commandClass: Class<out BaseCommand> get() = command.javaClass
     private val executeHandler = handlers.find { p -> p.messageType == MessageType.Text }
     private val executeCallbackHandler = handlers.find { p -> p.messageType == MessageType.Callback }
 
