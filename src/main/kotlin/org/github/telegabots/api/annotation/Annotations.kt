@@ -1,4 +1,4 @@
-package org.github.telegabots.annotation
+package org.github.telegabots.api.annotation
 
 /**
  * Mark method if one must be called when simple text message come

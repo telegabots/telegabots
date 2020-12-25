@@ -1,6 +1,6 @@
 package org.github.telegabots.exectutor
 
-import org.github.telegabots.*
+import org.github.telegabots.api.*
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.service.UserLocalizationFactory
 import org.github.telegabots.state.MemoryStateDbProvider

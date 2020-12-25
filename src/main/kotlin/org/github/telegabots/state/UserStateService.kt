@@ -1,11 +1,11 @@
 package org.github.telegabots.state
 
-import org.github.telegabots.BaseCommand
-import org.github.telegabots.MessageType
-import org.github.telegabots.SubCommand
-import org.github.telegabots.entity.CommandPage
-import org.github.telegabots.entity.CommandBlock
-import org.github.telegabots.entity.CommandDef
+import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.MessageType
+import org.github.telegabots.api.SubCommand
+import org.github.telegabots.api.entity.CommandPage
+import org.github.telegabots.api.entity.CommandBlock
+import org.github.telegabots.api.entity.CommandDef
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 

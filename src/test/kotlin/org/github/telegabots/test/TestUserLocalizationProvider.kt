@@ -1,6 +1,6 @@
 package org.github.telegabots.test
 
-import org.github.telegabots.LocalizeProvider
+import org.github.telegabots.api.LocalizeProvider
 import org.slf4j.LoggerFactory
 
 class TestUserLocalizationProvider(private val userId: Int) : LocalizeProvider {

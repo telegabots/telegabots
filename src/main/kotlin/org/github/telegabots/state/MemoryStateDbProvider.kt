@@ -1,7 +1,7 @@
 package org.github.telegabots.state
 
-import org.github.telegabots.entity.CommandBlock
-import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.api.entity.CommandBlock
+import org.github.telegabots.api.entity.CommandPage
 import org.github.telegabots.entity.StateDef
 import java.util.concurrent.atomic.AtomicLong
 
@@ -50,7 +50,15 @@ class MemoryStateDbProvider : StateDbProvider {
     }
 
     override fun removePage(pageId: Long): CommandPage? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        // TODO: optimize
+        commandPages.forEach { (_, pages) ->
+            val index = pages.indexOfFirst { it.id == pageId }
+            if (index >= 0) {
+                return pages.removeAt(index)
+            }
+        }
+
+        return null
     }
 
     @Synchronized

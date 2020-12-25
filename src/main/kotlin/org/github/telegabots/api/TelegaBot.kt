@@ -1,4 +1,4 @@
-package org.github.telegabots
+package org.github.telegabots.api
 
 import org.slf4j.LoggerFactory
 import org.github.telegabots.service.CallContextManager
@@ -24,7 +24,8 @@ class TelegaBot(
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
     private val commandHandlers = CommandHandlers(commandInterceptor)
     private val usersStatesManager = UsersStatesManager(dbProvider, jsonService)
-    private val userLocalizationFactory = serviceProvider.tryGetService(UserLocalizationFactory::class.java) ?: UserLocalizationFactory()
+    private val userLocalizationFactory =
+        serviceProvider.tryGetService(UserLocalizationFactory::class.java) ?: UserLocalizationFactory()
     private val callContextManager = CallContextManager(
         messageSender, serviceProvider, commandHandlers, usersStatesManager, userLocalizationFactory, rootCommand
     )

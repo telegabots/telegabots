@@ -1,9 +1,9 @@
 package org.github.telegabots.util
 
-import org.github.telegabots.BaseCommand
-import org.github.telegabots.MessageType
-import org.github.telegabots.State
-import org.github.telegabots.annotation.*
+import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.MessageType
+import org.github.telegabots.api.State
+import org.github.telegabots.api.annotation.*
 import org.github.telegabots.state.StateKind
 import java.lang.reflect.Method
 import java.lang.reflect.Parameter

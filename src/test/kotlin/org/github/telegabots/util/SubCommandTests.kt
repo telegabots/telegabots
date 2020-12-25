@@ -1,7 +1,7 @@
 package org.github.telegabots.util
 
-import org.github.telegabots.BaseCommand
-import org.github.telegabots.SubCommand
+import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.SubCommand
 import org.github.telegabots.state.State
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

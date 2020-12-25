@@ -1,7 +1,8 @@
 package org.github.telegabots.handler
 
 import org.github.telegabots.*
-import org.github.telegabots.annotation.CommandHandler
+import org.github.telegabots.api.annotation.CommandHandler
+import org.github.telegabots.api.*
 import org.github.telegabots.error.CommandInvokeException
 import org.github.telegabots.test.CommandAssert.assertNotCalled
 import org.github.telegabots.test.CommandAssert.assertWasCalled

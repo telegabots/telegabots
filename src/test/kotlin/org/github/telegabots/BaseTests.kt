@@ -1,5 +1,6 @@
 package org.github.telegabots
 
+import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.exectutor.BotCommandExecutor
 import org.mockito.Mockito
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery

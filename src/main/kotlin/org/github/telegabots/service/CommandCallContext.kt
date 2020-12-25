@@ -1,9 +1,8 @@
 package org.github.telegabots.service
 
-import org.github.telegabots.CommandContext
-import org.github.telegabots.CommandHandler
-import org.github.telegabots.InputMessage
-import org.github.telegabots.MessageType
+import org.github.telegabots.api.CommandContext
+import org.github.telegabots.api.InputMessage
+import org.github.telegabots.api.MessageType
 import org.github.telegabots.state.States
 import org.slf4j.LoggerFactory
 

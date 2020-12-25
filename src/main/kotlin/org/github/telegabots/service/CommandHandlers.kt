@@ -1,9 +1,8 @@
 package org.github.telegabots.service
 
 import org.slf4j.LoggerFactory
-import org.github.telegabots.BaseCommand
-import org.github.telegabots.CommandHandler
-import org.github.telegabots.CommandInterceptor
+import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.CommandInterceptor
 import org.github.telegabots.util.CommandClassUtil
 import java.util.concurrent.ConcurrentHashMap
 

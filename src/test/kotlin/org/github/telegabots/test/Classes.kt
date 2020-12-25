@@ -1,6 +1,6 @@
 package org.github.telegabots.test
 
-import org.github.telegabots.BaseCommand
+import org.github.telegabots.api.BaseCommand
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock

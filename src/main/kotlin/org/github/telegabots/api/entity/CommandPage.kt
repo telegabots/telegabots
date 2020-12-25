@@ -1,4 +1,4 @@
-package org.github.telegabots.entity
+package org.github.telegabots.api.entity
 
 /**
  * Entity related with block and concrete command page

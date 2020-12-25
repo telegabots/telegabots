@@ -1,6 +1,6 @@
 package org.github.telegabots.service
 
-import org.github.telegabots.*
+import org.github.telegabots.api.*
 import org.github.telegabots.state.UserStateService
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage

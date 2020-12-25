@@ -1,8 +1,8 @@
 package org.github.telegabots.util
 
-import org.github.telegabots.CommandContext
-import org.github.telegabots.Service
-import org.github.telegabots.State
+import org.github.telegabots.api.CommandContext
+import org.github.telegabots.api.Service
+import org.github.telegabots.api.State
 import org.github.telegabots.state.StateKind
 import kotlin.reflect.full.isSuperclassOf
 

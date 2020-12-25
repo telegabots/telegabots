@@ -1,4 +1,4 @@
-package org.github.telegabots
+package org.github.telegabots.api
 
 import org.github.telegabots.state.State
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage

@@ -1,6 +1,6 @@
-package org.github.telegabots.entity
+package org.github.telegabots.api.entity
 
-import org.github.telegabots.MessageType
+import org.github.telegabots.api.MessageType
 
 /**
  * Entity related with message and user

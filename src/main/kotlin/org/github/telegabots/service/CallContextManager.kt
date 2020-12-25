@@ -1,9 +1,9 @@
 package org.github.telegabots.service
 
-import org.github.telegabots.*
-import org.github.telegabots.entity.CommandBlock
-import org.github.telegabots.entity.CommandDef
-import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.api.*
+import org.github.telegabots.api.entity.CommandBlock
+import org.github.telegabots.api.entity.CommandDef
+import org.github.telegabots.api.entity.CommandPage
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.state.UserStateService
 import org.github.telegabots.state.UsersStatesManager
@@ -123,8 +123,8 @@ class CallContextManager(
             val pages = userState.getPages(block.id)
             // remove last page of the block if the page not first page
             if (pages.size > 1) {
-                userState.removePage(lastPage.id)
                 val prevPage = pages[pages.size - 2]
+                userState.removePage(lastPage.id)
 
                 return createCallContext(
                     block,
@@ -208,21 +208,37 @@ class CallContextManager(
     }
 
     private fun findCommandDef(block: CommandBlock, page: CommandPage, input: InputMessage): CommandDef? {
-        if (block.messageType == input.type) {
+        val commandDef = if (block.messageType == input.type) {
             val localizeProvider = userLocalizationFactory.getProvider(input.userId)
 
-            return when (block.messageType) {
+            when (block.messageType) {
                 MessageType.Text -> page.subCommands.flatten()
                     .find { localizeProvider.getString(it.titleId) == input.query }
                 MessageType.Callback -> page.subCommands.flatten().find { it.titleId == input.query }
-            } ?: parseSysCommand(block.messageType, input.query)
-        }
+            } ?: parseSysCommand(block.messageType, input.query, localizeProvider)
+        } else null
 
-        return null
+        log.debug("Parsed commandDef: {} by input: {}", commandDef, input)
+
+        return commandDef
     }
 
-    private fun parseSysCommand(messageType: MessageType, query: String): CommandDef? {
-        TODO("Not yet implemented")
+    private fun parseSysCommand(
+        messageType: MessageType,
+        query: String,
+        localizeProvider: LocalizeProvider
+    ): CommandDef? {
+        return when (messageType) {
+            MessageType.Callback -> when (query) {
+                SystemCommands.REFRESH, SystemCommands.GO_BACK -> CommandDef(query, null, null)
+                else -> null
+            }
+            MessageType.Text -> when (query) {
+                localizeProvider.getString(SystemCommands.REFRESH) -> CommandDef(SystemCommands.REFRESH, null, null)
+                localizeProvider.getString(SystemCommands.GO_BACK) -> CommandDef(SystemCommands.GO_BACK, null, null)
+                else -> null
+            }
+        }
     }
 
     private fun createCommandContext(

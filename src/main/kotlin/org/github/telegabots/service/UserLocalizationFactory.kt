@@ -1,7 +1,7 @@
 package org.github.telegabots.service
 
-import org.github.telegabots.LocalizeProvider
-import org.github.telegabots.Service
+import org.github.telegabots.api.LocalizeProvider
+import org.github.telegabots.api.Service
 
 open class UserLocalizationFactory : Service {
     /**

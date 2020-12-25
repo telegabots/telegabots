@@ -1,7 +1,7 @@
 package org.github.telegabots.java;
 
-import org.github.telegabots.BaseCommand;
-import org.github.telegabots.annotation.CommandHandler;
+import org.github.telegabots.api.BaseCommand;
+import org.github.telegabots.api.annotation.CommandHandler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

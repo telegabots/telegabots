@@ -1,8 +1,9 @@
 package org.github.telegabots.handler
 
 import org.github.telegabots.*
-import org.github.telegabots.annotation.CallbackHandler
-import org.github.telegabots.annotation.CommandHandler
+import org.github.telegabots.api.annotation.CallbackHandler
+import org.github.telegabots.api.annotation.CommandHandler
+import org.github.telegabots.api.*
 import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Test
 
@@ -54,7 +55,7 @@ class MultiSubCommandTests : BaseTests() {
             }
 
             user {
-                sendCallbackMessage(messageId = messageId, callbackData = SystemCommands.BACK)
+                sendCallbackMessage(messageId = messageId, callbackData = SystemCommands.GO_BACK)
             }
 
             assertThat {
@@ -99,11 +100,17 @@ internal class CommandRoot : BaseCommand() {
 internal class SubMenu1Command : BaseCommand() {
     @CallbackHandler
     fun handle(message: String, messageId: Int) {
+        if (message == SystemCommands.REFRESH) {
+            context.updatePage(Page("SubMenu1Command"))
+        }
     }
 }
 
 internal class SubMenu2Command : BaseCommand() {
     @CallbackHandler
     fun handle(message: String, messageId: Int) {
+        if (message == SystemCommands.REFRESH) {
+            context.updatePage(Page("SubMenu2Command"))
+        }
     }
 }

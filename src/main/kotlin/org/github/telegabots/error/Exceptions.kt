@@ -1,6 +1,6 @@
 package org.github.telegabots.error
 
-import org.github.telegabots.BaseCommand
+import org.github.telegabots.api.BaseCommand
 import java.lang.RuntimeException
 
 /**

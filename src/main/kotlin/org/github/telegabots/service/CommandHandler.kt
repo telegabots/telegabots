@@ -1,5 +1,9 @@
-package org.github.telegabots
+package org.github.telegabots.service
 
+import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.CommandContext
+import org.github.telegabots.api.CommandInterceptor
+import org.github.telegabots.api.MessageType
 import org.github.telegabots.context.CommandContextSupport
 import org.github.telegabots.state.States
 import org.github.telegabots.util.HandlerInfo

@@ -1,10 +1,10 @@
 package org.github.telegabots.handler
 
-import org.github.telegabots.BaseCommand
+import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.BaseTests
-import org.github.telegabots.State
-import org.github.telegabots.annotation.CallbackHandler
-import org.github.telegabots.annotation.CommandHandler
+import org.github.telegabots.api.State
+import org.github.telegabots.api.annotation.CallbackHandler
+import org.github.telegabots.api.annotation.CommandHandler
 import org.junit.jupiter.api.Test
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertEquals

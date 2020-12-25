@@ -1,9 +1,9 @@
 package org.github.telegabots.handler
 
-import org.github.telegabots.BaseCommand
+import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
-import org.github.telegabots.annotation.CallbackHandler
+import org.github.telegabots.api.annotation.CallbackHandler
 import org.github.telegabots.test.CommandAssert.assertNotCalled
 import org.github.telegabots.test.CommandAssert.assertWasCalled
 import org.junit.jupiter.api.Test

@@ -1,6 +1,6 @@
 package org.github.telegabots.util
 
-import org.github.telegabots.*
+import org.github.telegabots.api.*
 import org.github.telegabots.error.CommandInvokeException
 import org.github.telegabots.state.StateKey
 import org.github.telegabots.state.States
