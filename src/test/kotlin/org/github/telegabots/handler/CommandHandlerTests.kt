@@ -3,7 +3,7 @@ package org.github.telegabots.handler
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
-import org.github.telegabots.api.annotation.CommandHandler
+import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.error.CommandInvokeException
 import org.github.telegabots.test.CommandAssert.assertNotCalled
 import org.github.telegabots.test.CommandAssert.assertWasCalled
@@ -21,7 +21,7 @@ class CommandHandlerTests : BaseTests() {
     @Test
     fun testCommand_Fail_WhenTextHandlerHasNotStringParam() {
         val executor = createExecutor(InvalidCommandWithoutStringParam::class.java)
-        val update = createAnyMessage()
+        val update = createAnyTextMessage()
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
         assertEquals(
@@ -33,7 +33,7 @@ class CommandHandlerTests : BaseTests() {
     @Test
     fun testCommand_Success_WhenHandlerNotReturnsBool() {
         val executor = createExecutor(SimpleCommandWithoutBoolReturn::class.java)
-        val update = createAnyMessage()
+        val update = createAnyTextMessage()
 
         assertNotCalled<SimpleCommandWithoutBoolReturn>()
 
@@ -46,7 +46,7 @@ class CommandHandlerTests : BaseTests() {
     @Test
     fun testCommand_Success_WhenHandlerReturnsBool() {
         val executor = createExecutor(SimpleCommandReturnsBool::class.java)
-        val update = createAnyMessage()
+        val update = createAnyTextMessage()
 
         assertNotCalled<SimpleCommandReturnsBool>()
 
@@ -59,7 +59,7 @@ class CommandHandlerTests : BaseTests() {
     @Test
     fun testCommand_Success_WhenHandlerInherited() {
         val executor = createExecutor(InheritSimpleCommand::class.java)
-        val update = createAnyMessage()
+        val update = createAnyTextMessage()
 
         assertNotCalled<InheritSimpleCommand>()
 
@@ -72,7 +72,7 @@ class CommandHandlerTests : BaseTests() {
     @Test
     fun testCommand_Fail_WhenHandlerWithoutParams() {
         val executor = createExecutor(InvalidCommandWithoutAnyParam::class.java)
-        val update = createAnyMessage()
+        val update = createAnyTextMessage()
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
         assertEquals(
@@ -84,7 +84,7 @@ class CommandHandlerTests : BaseTests() {
     @Test
     fun testCommand_Fail_WhenHandlerReturnsNonBool() {
         val executor = createExecutor(InvalidCommandReturnNonBoolParam::class.java)
-        val update = createAnyMessage()
+        val update = createAnyTextMessage()
         val ex = assertThrows<IllegalStateException> { executor.handle(update) }
 
         assertEquals(
@@ -96,7 +96,7 @@ class CommandHandlerTests : BaseTests() {
     @Test
     fun testCommand_WhenHandlerThrowsError() {
         val executor = createExecutor(SimpleCommandThrowsError::class.java)
-        val update = createAnyMessage()
+        val update = createAnyTextMessage()
         val ex = assertThrows<CommandInvokeException> { executor.handle(update) }
 
         assertEquals(ParseException::class.java, ex.cause!!::class.java)
@@ -106,41 +106,41 @@ class CommandHandlerTests : BaseTests() {
 }
 
 internal class InvalidCommandWithoutStringParam : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun execute(mustBeString: Int) {
         CODE_NOT_REACHED()
     }
 }
 
 internal class InvalidCommandWithoutAnyParam : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun execute(): Boolean {
         CODE_NOT_REACHED()
     }
 }
 
 internal class InvalidCommandReturnNonBoolParam : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun execute(text: String): Int {
         CODE_NOT_REACHED()
     }
 }
 
 internal class SimpleCommandThrowsError : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun execute(text: String): Nothing {
         throw ParseException("Command must throw error", 0)
     }
 }
 
 internal class SimpleCommandWithoutBoolReturn : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun execute(text: String) {
     }
 }
 
 internal open class SimpleCommandReturnsBool : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun execute(text: String): Boolean = false
 }
 

@@ -39,9 +39,9 @@ object CommandContextSupport : CommandContext {
 
     override fun isAdmin(): Boolean = current().isAdmin()
 
-    override fun executeCommand(handler: Class<out BaseCommand>, text: String): Boolean =
-        current().executeCommand(handler, text)
+    override fun executeTextCommand(handler: Class<out BaseCommand>, text: String): Boolean =
+        current().executeTextCommand(handler, text)
 
-    override fun executeCallback(handler: Class<out BaseCommand>, messageId: Int, query: String): Boolean =
-        current().executeCallback(handler, messageId, query)
+    override fun executeInlineCommand(handler: Class<out BaseCommand>, messageId: Int, query: String): Boolean =
+        current().executeInlineCommand(handler, messageId, query)
 }

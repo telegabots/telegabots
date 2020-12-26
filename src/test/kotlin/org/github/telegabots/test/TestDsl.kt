@@ -85,13 +85,13 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>) : BaseTes
 
     inner class UserBuilder {
         fun sendTextMessage(messageText: String = "Message sent at " + LocalDateTime.now()): Int? {
-            val message = createAnyMessage(userId = userId, chatId = chatId, messageText = messageText)
+            val message = createAnyTextMessage(userId = userId, chatId = chatId, messageText = messageText)
             lastHandleResult = executor.handle(message)
             return executor.lastUserMessageId()
         }
 
-        fun sendCallbackMessage(messageId: Int, callbackData: String): Int? {
-            val message = createAnyCallbackMessage(
+        fun sendInlineMessage(messageId: Int, callbackData: String): Int? {
+            val message = createAnyInlineMessage(
                 userId = userId,
                 chatId = chatId,
                 messageId = messageId,

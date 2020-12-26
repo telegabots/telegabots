@@ -16,7 +16,7 @@ data class HandlerInfo(
     val retType: Class<*>,
     val command: BaseCommand
 ) {
-    fun execute(text: String, states: States, context: CommandContext): Boolean {
+    fun executeText(text: String, states: States, context: CommandContext): Boolean {
         check(messageType == MessageType.Text) { "Invalid message type: $messageType" }
 
         try {
@@ -32,8 +32,8 @@ data class HandlerInfo(
         }
     }
 
-    fun executeCallback(messageId: Int, query: String, states: States, context: CommandContext) {
-        check(messageType == MessageType.Callback) { "Invalid message type: $messageType" }
+    fun executeInline(messageId: Int, query: String, states: States, context: CommandContext) {
+        check(messageType == MessageType.Inline) { "Invalid message type: $messageType" }
 
         try {
             val args = toArgs(messageId, query, states, context)

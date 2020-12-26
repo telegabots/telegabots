@@ -20,15 +20,15 @@ class CommandHandler(
     private val commandInterceptor: CommandInterceptor
 ) {
     val commandClass: Class<out BaseCommand> get() = command.javaClass
-    private val executeHandler = handlers.find { p -> p.messageType == MessageType.Text }
-    private val executeCallbackHandler = handlers.find { p -> p.messageType == MessageType.Callback }
+    private val textHandler = handlers.find { p -> p.messageType == MessageType.Text }
+    private val inlineHandler = handlers.find { p -> p.messageType == MessageType.Inline }
 
-    fun execute(text: String, states: States, context: CommandContext): Boolean {
-        checkNotNull(executeHandler) { "Method execute not implemented for ${command.javaClass.name}" }
+    fun executeText(text: String, states: States, context: CommandContext): Boolean {
+        checkNotNull(textHandler) { "Text message handler not implemented in ${command.javaClass.name}. Annotate method with @TextHandler" }
 
         try {
             setContext(context)
-            val result = executeHandler.execute(text, states, context)
+            val result = textHandler.executeText(text, states, context)
 
             try {
                 commandInterceptor.executed(command, MessageType.Text)
@@ -47,15 +47,15 @@ class CommandHandler(
         }
     }
 
-    fun executeCallback(messageId: Int, data: String, states: States, context: CommandContext) {
-        checkNotNull(executeCallbackHandler) { "Method executeCallback not implemented for ${command.javaClass.name}" }
+    fun executeInline(messageId: Int, data: String, states: States, context: CommandContext) {
+        checkNotNull(inlineHandler) { "Inline message handler not implemented in ${command.javaClass.name}. Annotate method with @InlineHandler" }
 
         try {
             setContext(context)
-            executeCallbackHandler.executeCallback(messageId, data, states, context)
+            inlineHandler.executeInline(messageId, data, states, context)
 
             try {
-                commandInterceptor.executed(command, MessageType.Callback)
+                commandInterceptor.executed(command, MessageType.Inline)
             } catch (ex: Exception) {
                 log.error(
                     "Interceptor call failed on command {} with error: {}",
@@ -71,8 +71,8 @@ class CommandHandler(
 
     fun canHandle(messageType: MessageType): Boolean =
         when (messageType) {
-            MessageType.Text -> executeHandler != null
-            MessageType.Callback -> executeCallbackHandler != null
+            MessageType.Text -> textHandler != null
+            MessageType.Inline -> inlineHandler != null
         }
 
     override fun toString(): String {

@@ -64,7 +64,7 @@ class TelegaBot(
             val userId = message.from.id
 
             InputMessage(
-                type = MessageType.Callback,
+                type = MessageType.Inline,
                 query = callbackQuery.data ?: "",
                 chatId = message.chatId,
                 userId = userId,

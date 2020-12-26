@@ -10,7 +10,7 @@ class JavaCommandTests : BaseTests() {
     @Test
     fun testCommand_Success_JavaCommandCall() {
         val executor = createExecutor(JavaSimpleCommand::class.java)
-        val update = createAnyMessage()
+        val update = createAnyTextMessage()
 
         assertNotCalled<JavaSimpleCommand>()
 

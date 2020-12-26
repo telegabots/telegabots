@@ -1,7 +1,7 @@
 package org.github.telegabots.api
 
-import org.github.telegabots.api.annotation.CallbackHandler
-import org.github.telegabots.api.annotation.CommandHandler
+import org.github.telegabots.api.annotation.InlineHandler
+import org.github.telegabots.api.annotation.TextHandler
 
 /**
  * All system commands ids
@@ -19,15 +19,15 @@ object SystemCommands {
 }
 
 class EmptyCommand : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun execute(text: String): Boolean {
         log.warn("Empty command executed: $text")
         return true
     }
 
-    @CallbackHandler
-    fun executeCallback(text: String): Boolean {
-        log.warn("Empty command callback executed: $text")
+    @InlineHandler
+    fun executeInline(text: String): Boolean {
+        log.warn("Empty command inline executed: $text")
         return true
     }
 }

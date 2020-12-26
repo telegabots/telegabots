@@ -6,15 +6,15 @@ package org.github.telegabots.api.annotation
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-annotation class CommandHandler
+annotation class TextHandler
 
 /**
- * Mark method if one must be called when callback query come
+ * Mark method if one must be called when inline (callback) query come
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-annotation class CallbackHandler
+annotation class InlineHandler
 
 /**
  * Default. Mark method parameter for local state of a command. Used when state must be named

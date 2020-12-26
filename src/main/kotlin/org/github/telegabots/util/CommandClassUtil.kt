@@ -21,13 +21,13 @@ object CommandClassUtil {
     private fun checkHandler(handler: HandlerInfo): HandlerInfo {
         when (handler.messageType) {
             MessageType.Text -> checkTextHandler(handler)
-            MessageType.Callback -> checkCallbackHandler(handler)
+            MessageType.Inline -> checkInlineHandler(handler)
         }
 
         return handler
     }
 
-    private fun checkCallbackHandler(handler: HandlerInfo) {
+    private fun checkInlineHandler(handler: HandlerInfo) {
         check(handler.params.size >= 2) { "Handler must contains at least two parameters: ${handler.method}" }
 
         val firstParam = handler.params[0]
@@ -62,10 +62,10 @@ object CommandClassUtil {
     }
 
     private fun getMessageType(method: Method): MessageType? {
-        return if (method.annotations.any { it.annotationClass == CommandHandler::class }) {
+        return if (method.annotations.any { it.annotationClass == TextHandler::class }) {
             MessageType.Text
-        } else if (method.annotations.any { it.annotationClass == CallbackHandler::class }) {
-            MessageType.Callback
+        } else if (method.annotations.any { it.annotationClass == InlineHandler::class }) {
+            MessageType.Inline
         } else {
             null
         }

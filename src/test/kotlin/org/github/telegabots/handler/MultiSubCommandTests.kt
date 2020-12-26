@@ -1,8 +1,8 @@
 package org.github.telegabots.handler
 
 import org.github.telegabots.*
-import org.github.telegabots.api.annotation.CallbackHandler
-import org.github.telegabots.api.annotation.CommandHandler
+import org.github.telegabots.api.annotation.InlineHandler
+import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.api.*
 import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Test
@@ -43,7 +43,7 @@ class MultiSubCommandTests : BaseTests() {
             }
 
             user {
-                sendCallbackMessage(messageId = messageId, callbackData = "SUB_MENU1")
+                sendInlineMessage(messageId = messageId, callbackData = "SUB_MENU1")
             }
 
             assertThat {
@@ -55,7 +55,7 @@ class MultiSubCommandTests : BaseTests() {
             }
 
             user {
-                sendCallbackMessage(messageId = messageId, callbackData = SystemCommands.GO_BACK)
+                sendInlineMessage(messageId = messageId, callbackData = SystemCommands.GO_BACK)
             }
 
             assertThat {
@@ -67,7 +67,7 @@ class MultiSubCommandTests : BaseTests() {
             }
 
             user {
-                sendCallbackMessage(messageId = messageId, callbackData = "SUB_MENU2")
+                sendInlineMessage(messageId = messageId, callbackData = "SUB_MENU2")
             }
 
             assertThat {
@@ -82,14 +82,14 @@ class MultiSubCommandTests : BaseTests() {
 }
 
 internal class CommandRoot : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun handle(msg: String) {
         if (msg == "/start") {
             context.createPage(
                 Page(
                     message = "Choose menu:",
                     contentType = ContentType.Plain,
-                    messageType = MessageType.Callback,
+                    messageType = MessageType.Inline,
                     subCommands = listOf(listOf(SubCommand.of<SubMenu1Command>(), SubCommand.of<SubMenu2Command>()))
                 )
             )
@@ -98,7 +98,7 @@ internal class CommandRoot : BaseCommand() {
 }
 
 internal class SubMenu1Command : BaseCommand() {
-    @CallbackHandler
+    @InlineHandler
     fun handle(message: String, messageId: Int) {
         if (message == SystemCommands.REFRESH) {
             context.updatePage(Page("SubMenu1Command"))
@@ -107,7 +107,7 @@ internal class SubMenu1Command : BaseCommand() {
 }
 
 internal class SubMenu2Command : BaseCommand() {
-    @CallbackHandler
+    @InlineHandler
     fun handle(message: String, messageId: Int) {
         if (message == SystemCommands.REFRESH) {
             context.updatePage(Page("SubMenu2Command"))

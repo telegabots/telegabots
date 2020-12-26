@@ -49,9 +49,9 @@ interface CommandContext : UserContext, CommandExecutor {
 }
 
 interface CommandExecutor {
-    fun executeCommand(handler: Class<out BaseCommand>, text: String): Boolean
+    fun executeTextCommand(handler: Class<out BaseCommand>, text: String): Boolean
 
-    fun executeCallback(handler: Class<out BaseCommand>, messageId: Int, query: String): Boolean
+    fun executeInlineCommand(handler: Class<out BaseCommand>, messageId: Int, query: String): Boolean
 }
 
 interface UserContext {
@@ -177,7 +177,7 @@ interface Service
 enum class MessageType {
     Text,
 
-    Callback
+    Inline
 }
 
 data class InputMessage(

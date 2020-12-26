@@ -22,9 +22,9 @@ class CommandCallContext(private val commandHandler: CommandHandler,
         }
 
         val success = when (input.type) {
-            MessageType.Text -> commandHandler.execute(input.query, states, commandContext)
-            MessageType.Callback -> {
-                commandHandler.executeCallback(input.messageId!!, input.query, states, commandContext)
+            MessageType.Text -> commandHandler.executeText(input.query, states, commandContext)
+            MessageType.Inline -> {
+                commandHandler.executeInline(input.messageId!!, input.query, states, commandContext)
                 true
             }
         }

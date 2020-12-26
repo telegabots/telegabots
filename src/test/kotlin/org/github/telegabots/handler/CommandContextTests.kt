@@ -1,7 +1,7 @@
 package org.github.telegabots.handler
 
 import org.github.telegabots.*
-import org.github.telegabots.api.annotation.CommandHandler
+import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.api.*
 import org.github.telegabots.error.CommandInvokeException
 import org.github.telegabots.test.CommandAssert.assertNotCalled
@@ -19,7 +19,7 @@ class CommandContextTests : BaseTests() {
     @Test
     fun testWhenInnerCommandInvoked() {
         val executor = createExecutor(CommandUsesCommandContext::class.java)
-        val update1 = createAnyMessage(userId = USER_ID)
+        val update1 = createAnyTextMessage(userId = USER_ID)
         executor.addLocalization(USER_ID, "commandId1" to "Command Id Title")
 
         resetCalled<CommandUsesCommandContext>()
@@ -29,7 +29,7 @@ class CommandContextTests : BaseTests() {
         assertWasCalled<CommandUsesCommandContext>()
         assertTrue(success1)
 
-        val update2 = createAnyMessage(messageText = "Command Id Title", userId = USER_ID)
+        val update2 = createAnyTextMessage(messageText = "Command Id Title", userId = USER_ID)
 
         assertNotCalled<AnotherCommand>()
 
@@ -43,7 +43,7 @@ class CommandContextTests : BaseTests() {
     @Test
     fun testWhenInnerCommandNotInvoked() {
         val executor = createExecutor(CommandUsesCommandContext::class.java)
-        val update1 = createAnyMessage(userId = USER_ID)
+        val update1 = createAnyTextMessage(userId = USER_ID)
         executor.addLocalization(USER_ID, "commandId1" to "Command Id Title")
 
         resetCalled<CommandUsesCommandContext>()
@@ -53,7 +53,7 @@ class CommandContextTests : BaseTests() {
         assertWasCalled<CommandUsesCommandContext>()
         assertTrue(success1)
 
-        val update2 = createAnyMessage(messageText = "Command Id Title 2", userId = USER_ID)
+        val update2 = createAnyTextMessage(messageText = "Command Id Title 2", userId = USER_ID)
 
         assertNotCalled<AnotherCommand>()
 
@@ -67,7 +67,7 @@ class CommandContextTests : BaseTests() {
     @Test
     fun testCommand_Fail_WhenHandlerUseCommandContextAsParam() {
         val executor = createExecutor(CommandWithCommandContextParam::class.java)
-        val update = createAnyMessage()
+        val update = createAnyTextMessage()
 
         assertNotCalled<CommandWithCommandContextParam>()
 
@@ -85,7 +85,7 @@ class CommandContextTests : BaseTests() {
     @Test
     fun testCommandContextNotAccessibleAfterHandler() {
         val executor = createExecutor(CommandContextHolder::class.java)
-        val update1 = createAnyMessage()
+        val update1 = createAnyTextMessage()
 
         assertNotCalled<CommandContextHolder>()
         assertNull(CommandContextHolder.usedContext)
@@ -102,7 +102,7 @@ class CommandContextTests : BaseTests() {
 }
 
 internal class CommandUsesCommandContext : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun handle(msg: String) {
         context.createPage(
             Page(
@@ -116,7 +116,7 @@ internal class CommandUsesCommandContext : BaseCommand() {
 }
 
 internal class AnotherCommand : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun handle(message: String) {
     }
 }
@@ -125,14 +125,14 @@ internal class CommandWithCommandContextParam : BaseCommand() {
     /**
      * Command can not use CommandContext as handler's parameter
      */
-    @CommandHandler
+    @TextHandler
     fun handle(msg: String, context: CommandContext) {
         CODE_NOT_REACHED()
     }
 }
 
 internal class CommandContextHolder : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun handle(msg: String) {
         usedContext = context
     }

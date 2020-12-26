@@ -65,7 +65,7 @@ class CommandContextImpl(
             disablePreview = page.disablePreview,
             message = page.message,
             preSendHandler = Consumer { msg ->
-                TODO("applyCallbackButtons()")
+                TODO("applyInlineButtons()")
             })
 
         val savedPage = userState.savePage(
@@ -92,7 +92,7 @@ class CommandContextImpl(
             disablePreview = page.disablePreview,
             message = page.message,
             preSendHandler = Consumer { msg ->
-                TODO("applyCallbackButtons()")
+                TODO("applyInlineButtons()")
             })
 
         val savedPage = userState.savePage(
@@ -126,7 +126,7 @@ class CommandContextImpl(
      *
      * TODO: providing local state from caller
      */
-    override fun executeCommand(clazz: Class<out BaseCommand>, text: String): Boolean {
+    override fun executeTextCommand(clazz: Class<out BaseCommand>, text: String): Boolean {
         val newInput = input.copy(query = text, messageId = null, type = MessageType.Text)
         val handler = commandHandlers.getCommandHandler(clazz)
         val states = userState.getStates()
@@ -146,8 +146,8 @@ class CommandContextImpl(
      *
      * TODO: providing local state from caller
      */
-    override fun executeCallback(clazz: Class<out BaseCommand>, messageId: Int, query: String): Boolean {
-        val newInput = input.copy(query = query, messageId = messageId, type = MessageType.Callback)
+    override fun executeInlineCommand(clazz: Class<out BaseCommand>, messageId: Int, query: String): Boolean {
+        val newInput = input.copy(query = query, messageId = messageId, type = MessageType.Inline)
         val handler = commandHandlers.getCommandHandler(clazz.name)
         val states = userState.getStates()
         val context = createCommandContext(blockId = 0, command = handler.command, input = newInput)
@@ -181,10 +181,10 @@ class CommandContextImpl(
         )
     }
 
-    private fun applyCallbackButtons(msg: EditMessageText, subCommands: List<List<SubCommand>>) {
+    private fun applyInlineButtons(msg: EditMessageText, subCommands: List<List<SubCommand>>) {
         val keyboardMarkup = InlineKeyboardMarkup()
         msg.replyMarkup = keyboardMarkup
-        keyboardMarkup.keyboard = mapCallbackButtons(subCommands)
+        keyboardMarkup.keyboard = mapInlineButtons(subCommands)
     }
 
     private fun applyTextButtons(msg: SendMessage, subCommands: List<List<SubCommand>>) {
@@ -198,8 +198,8 @@ class CommandContextImpl(
             .filter { it.isNotEmpty() }
             .toMutableList()
 
-    private fun mapCallbackButtons(subCommands: List<List<SubCommand>>): MutableList<MutableList<InlineKeyboardButton>> =
-        subCommands.map { mapCallbackButtonsRow(it) }
+    private fun mapInlineButtons(subCommands: List<List<SubCommand>>): MutableList<MutableList<InlineKeyboardButton>> =
+        subCommands.map { mapInlineButtonsRow(it) }
             .filter { it.isNotEmpty() }
             .toMutableList()
 
@@ -208,7 +208,7 @@ class CommandContextImpl(
             cmds.forEach { cmd -> add(localizeProvider.getString(cmd.titleId)) }
         }
 
-    private fun mapCallbackButtonsRow(cmds: List<SubCommand>): MutableList<InlineKeyboardButton> =
+    private fun mapInlineButtonsRow(cmds: List<SubCommand>): MutableList<InlineKeyboardButton> =
         cmds.map { cmd ->
             InlineKeyboardButton()
                 .setText(localizeProvider.getString(cmd.titleId))

@@ -21,12 +21,12 @@ class CallContextManager(
 
     fun get(input: InputMessage): CommandCallContext {
         return when (input.type) {
-            MessageType.Text -> getSimpleMessageContext(input)
-            MessageType.Callback -> getCallbackMessageContext(input)
+            MessageType.Text -> getTextMessageContext(input)
+            MessageType.Inline -> getInlineMessageContext(input)
         }
     }
 
-    private fun getSimpleMessageContext(input: InputMessage): CommandCallContext {
+    private fun getTextMessageContext(input: InputMessage): CommandCallContext {
         val userState = usersStatesManager.get(input.userId)
         val lastBlock = userState.getLastBlock()
 
@@ -75,7 +75,7 @@ class CallContextManager(
         return getRootCallContext(userState, input)
     }
 
-    private fun getCallbackMessageContext(input: InputMessage): CommandCallContext {
+    private fun getInlineMessageContext(input: InputMessage): CommandCallContext {
         val messageId = input.messageId!!
         val userState = usersStatesManager.get(input.userId)
         val block = userState.getBlock(messageId)
@@ -214,7 +214,7 @@ class CallContextManager(
             when (block.messageType) {
                 MessageType.Text -> page.subCommands.flatten()
                     .find { localizeProvider.getString(it.titleId) == input.query }
-                MessageType.Callback -> page.subCommands.flatten().find { it.titleId == input.query }
+                MessageType.Inline -> page.subCommands.flatten().find { it.titleId == input.query }
             } ?: parseSysCommand(block.messageType, input.query, localizeProvider)
         } else null
 
@@ -229,7 +229,7 @@ class CallContextManager(
         localizeProvider: LocalizeProvider
     ): CommandDef? {
         return when (messageType) {
-            MessageType.Callback -> when (query) {
+            MessageType.Inline -> when (query) {
                 SystemCommands.REFRESH, SystemCommands.GO_BACK -> CommandDef(query, null, null)
                 else -> null
             }

@@ -3,7 +3,7 @@ package org.github.telegabots.handler
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.BaseTests
 import org.github.telegabots.api.Service
-import org.github.telegabots.api.annotation.CommandHandler
+import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.error.CommandInvokeException
 import org.github.telegabots.test.CommandAssert.assertNotCalled
 import org.github.telegabots.test.CommandAssert.assertWasCalled
@@ -15,7 +15,7 @@ class ServiceParamTests : BaseTests() {
     @Test
     fun testServiceCall_Success_WhenServiceRegistered() {
         val executor = createExecutor(CommandWithServiceParam::class.java)
-        val update = createAnyMessage(messageText = "Hello from client!")
+        val update = createAnyTextMessage(messageText = "Hello from client!")
         executor.addService(SimpleTestService::class.java, SimpleTestService())
 
         assertNotCalled<CommandWithServiceParam>()
@@ -28,7 +28,7 @@ class ServiceParamTests : BaseTests() {
     @Test
     fun testServiceCall_Fail_WhenServiceNotRegistered() {
         val executor = createExecutor(CommandWithServiceParam::class.java)
-        val update = createAnyMessage(messageText = "Hello from client!")
+        val update = createAnyTextMessage(messageText = "Hello from client!")
 
         val ex = assertThrows<CommandInvokeException> { executor.handle(update) }
 
@@ -39,7 +39,7 @@ class ServiceParamTests : BaseTests() {
 }
 
 internal class CommandWithServiceParam : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun handle(msg: String, service: SimpleTestService) {
         assertEquals("Hello from client!", msg)
         assertEquals("Hello from service, Ruslan", service.greet("Ruslan"))

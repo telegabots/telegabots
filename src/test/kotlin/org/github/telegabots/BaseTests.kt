@@ -18,13 +18,13 @@ abstract class BaseTests {
 
     protected fun nextRandomLong(): Long = random.nextLong()
 
-    protected fun createAnyMessage(
+    protected fun createAnyTextMessage(
         messageText: String = "Message does not matter " + LocalDateTime.now(),
         chatId: Long = random.nextLong(),
         userId: Int = random.nextInt()
     ): Update = createMessage(messageText, chatId, userId)
 
-    protected fun createAnyCallbackMessage(
+    protected fun createAnyInlineMessage(
         messageId: Int = random.nextInt(),
         callbackData: String = "make_jvm_great_again_" + System.currentTimeMillis(),
         chatId: Long = random.nextLong(),

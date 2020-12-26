@@ -3,7 +3,7 @@ package org.github.telegabots.util
 import org.junit.jupiter.api.Test
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.State
-import org.github.telegabots.api.annotation.CommandHandler
+import org.github.telegabots.api.annotation.TextHandler
 import java.io.Serializable
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -37,7 +37,7 @@ class ClassUtilTest {
 }
 
 class TestCommand : BaseCommand() {
-    @CommandHandler
+    @TextHandler
     fun handleCommand(
         text: String,
         stateStr: State<String>,
