@@ -10,6 +10,20 @@ import java.util.regex.Pattern
  * Context used by a command
  */
 interface CommandContext : UserContext, CommandExecutor {
+    /**
+     * Returns current block's id
+     *
+     * Can be 0 if not associated with a block
+     */
+    fun blockId(): Long
+
+    /**
+     * Returns current page's id.
+     *
+     * Can be 0 if not associated with a page
+     */
+    fun pageId(): Long
+
     fun currentCommand(): BaseCommand
 
     /**

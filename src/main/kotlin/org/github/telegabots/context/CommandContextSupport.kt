@@ -16,6 +16,10 @@ object CommandContextSupport : CommandContext {
             ?: throw IllegalStateException("Command context not initialized for current command")
     }
 
+    override fun blockId(): Long = current().blockId()
+
+    override fun pageId(): Long = current().pageId()
+
     override fun currentCommand(): BaseCommand = current().currentCommand()
 
     override fun createPage(page: Page): Long = current().createPage(page)

@@ -1,7 +1,7 @@
 package org.github.telegabots.test
 
-import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.BaseTests
+import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.entity.CommandDef
 import org.github.telegabots.api.entity.CommandPage
 import org.junit.jupiter.api.Assertions.*
@@ -27,6 +27,8 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>) : BaseTes
         userBuilder.apply(action)
     }
 
+    fun resetRootCall() = rootCommand.kotlin.resetCalled()
+
     inner class AssertBuilder {
         fun rootNotCalled() {
             rootCommand.kotlin.assertNotCalled()
@@ -49,7 +51,10 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>) : BaseTes
         fun lastBlockPagesCount(expected: Int) {
             val lastPages = executor.getLastBlockPages(userId).map { Page.from(it) }
 
-            assertEquals(expected, lastPages.size) { "Pages of last block expected to be $expected, but found ${lastPages.size}. Last pages: $lastPages" }
+            assertEquals(
+                expected,
+                lastPages.size
+            ) { "Pages of last block expected to be $expected, but found ${lastPages.size}. Last pages: $lastPages" }
         }
 
         fun lastBlockPages(vararg pages: Page) {
@@ -59,7 +64,10 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>) : BaseTes
                 assertEquals(pages[idx], lastPages[idx])
             }
 
-            assertEquals(pages.size, lastPages.size) { "Pages of last command expected to be ${pages.size}, but found ${lastPages.size}. Last pages: $lastPages" }
+            assertEquals(
+                pages.size,
+                lastPages.size
+            ) { "Pages of last command expected to be ${pages.size}, but found ${lastPages.size}. Last pages: $lastPages" }
         }
 
         fun assertReturnSuccess() {

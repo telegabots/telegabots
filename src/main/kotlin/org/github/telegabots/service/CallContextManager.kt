@@ -30,49 +30,7 @@ class CallContextManager(
         val userState = usersStatesManager.get(input.userId)
         val lastBlock = userState.getLastBlock()
 
-        if (lastBlock != null) {
-            val lastPage = userState.getLastPage(lastBlock.id)
-
-            if (lastPage != null) {
-                val commandDef = findCommandDef(lastBlock, lastPage, input)
-
-                if (commandDef != null) {
-                    if (commandDef.isBackCommand()) {
-                        TODO()
-                    }
-
-                    if (commandDef.isRefreshCommand()) {
-                        TODO()
-                    }
-
-                    if (commandDef.handler != null && commandDef.handler.isNotBlank()) {
-                        val handler = commandHandlers.getCommandHandler(commandDef.handler)
-                        val states = userState.getStates(lastBlock.messageId, commandDef.state)
-                        val context = createCommandContext(lastBlock.id, handler.command, input)
-
-                        return CommandCallContext(commandHandler = handler,
-                            input = input,
-                            states = states,
-                            commandContext = context,
-                            defaultContext = { getRootCallContext(userState, input) })
-                    }
-                }
-
-                val handler = commandHandlers.getCommandHandler(lastPage.handler)
-                val states = userState.getStates(lastBlock.messageId, lastPage.blockId)
-                val context = createCommandContext(lastBlock.id, handler.command, input)
-
-                return CommandCallContext(commandHandler = handler,
-                    input = input,
-                    states = states,
-                    commandContext = context,
-                    defaultContext = { getRootCallContext(userState, input) })
-            } else {
-                log.warn("Last page not found. Input: {}", input)
-            }
-        }
-
-        return getRootCallContext(userState, input)
+        return getCommonCallContext(lastBlock, input, userState)
     }
 
     private fun getInlineMessageContext(input: InputMessage): CommandCallContext {
@@ -80,6 +38,12 @@ class CallContextManager(
         val userState = usersStatesManager.get(input.userId)
         val block = userState.getBlock(messageId)
 
+        return getCommonCallContext(block, input, userState)
+    }
+
+    private fun getCommonCallContext(
+        block: CommandBlock?, input: InputMessage, userState: UserStateService
+    ): CommandCallContext {
         if (block != null) {
             val lastPage = userState.getLastPage(block.id)
 
@@ -106,7 +70,7 @@ class CallContextManager(
                 log.warn("Last command not found. Input: {}", input)
             }
         } else {
-            log.warn("Last block not found by messageId: {}. Input: {}", messageId, input)
+            log.warn("Last block not found by input: {}", input)
         }
 
         return getRootCallContext(userState, input)
@@ -193,8 +157,7 @@ class CallContextManager(
     }
 
     private fun getRootCallContext(
-        userState: org.github.telegabots.state.UserStateService,
-        input: InputMessage
+        userState: UserStateService, input: InputMessage
     ): CommandCallContext {
         val handler = commandHandlers.getCommandHandler(rootCommand)
         val states = userState.getStates()

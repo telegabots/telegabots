@@ -23,10 +23,16 @@ class CommandContextImpl(
     private val messageSender: MessageSender
 ) : CommandContext {
     private val log = LoggerFactory.getLogger(CommandContextImpl::class.java)!!
+    override fun blockId(): Long = blockId
+
+    override fun pageId(): Long = pageId
+
     override fun currentCommand(): BaseCommand = command
 
     override fun createPage(page: Page): Long {
         log.debug("Create page: {} by input: {}, blockId: {}", page, input, blockId)
+
+        validatePage(page)
 
         val messageId = messageSender.sendMessage(chatId = input.chatId.toString(),
             contentType = page.contentType,
@@ -43,7 +49,7 @@ class CommandContextImpl(
 
         val savedPage = userState.savePage(
             block.id,
-            handler = page.handler ?: command::class.java,
+            handler = page.handler ?: command.javaClass,
             subCommands = page.subCommands
         )
 
@@ -56,6 +62,8 @@ class CommandContextImpl(
         }
 
         log.debug("Add page: {} by input: {}, blockId: {}", page, input, blockId)
+
+        validatePage(page)
 
         val messageId: Int = checkNotNull(input.messageId) { "Input message id cannot be null. Input: $input" }
 
@@ -70,7 +78,7 @@ class CommandContextImpl(
 
         val savedPage = userState.savePage(
             blockId,
-            handler = page.handler ?: command::class.java,
+            handler = page.handler ?: command.javaClass,
             subCommands = page.subCommands
         )
 
@@ -83,6 +91,8 @@ class CommandContextImpl(
         }
 
         log.debug("Update page: {} by input: {}, blockId: {}", page, input, blockId)
+
+        validatePage(page)
 
         val messageId: Int = checkNotNull(input.messageId) { "Input message id cannot be null. Input: $input" }
 
@@ -98,7 +108,7 @@ class CommandContextImpl(
         val savedPage = userState.savePage(
             blockId,
             pageId = if (page.id > 0) page.id else pageId,
-            handler = page.handler ?: command::class.java,
+            handler = page.handler ?: command.javaClass,
             subCommands = page.subCommands
         )
 
@@ -167,7 +177,12 @@ class CommandContextImpl(
 
     override fun isAdmin(): Boolean = input.isAdmin
 
-    private fun createCommandContext(blockId: Long, command: BaseCommand, input: InputMessage, pageId: Long = 0): CommandContext {
+    private fun createCommandContext(
+        blockId: Long,
+        command: BaseCommand,
+        input: InputMessage,
+        pageId: Long = 0
+    ): CommandContext {
         return CommandContextImpl(
             blockId = blockId,
             pageId = pageId,
@@ -180,6 +195,25 @@ class CommandContextImpl(
             userState = userState
         )
     }
+
+    private fun validatePage(page: Page) {
+        val handler = page.handler ?: command.javaClass
+        val cmdHandler = commandHandlers.getCommandHandler(handler)
+
+        check(cmdHandler.canHandle(page.messageType)) {
+            "Message handler for type ${page.messageType} in ${handler.name} not found. Use annotation @${
+                annotationNameByType(
+                    page.messageType
+                )
+            }"
+        }
+    }
+
+    private fun annotationNameByType(messageType: MessageType) =
+        when (messageType) {
+            MessageType.Text -> "TextHandler"
+            MessageType.Inline -> "InlineHandler"
+        }
 
     private fun applyInlineButtons(msg: EditMessageText, subCommands: List<List<SubCommand>>) {
         val keyboardMarkup = InlineKeyboardMarkup()
