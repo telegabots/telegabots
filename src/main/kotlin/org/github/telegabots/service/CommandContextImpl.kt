@@ -30,7 +30,7 @@ class CommandContextImpl(
     override fun currentCommand(): BaseCommand = command
 
     override fun createPage(page: Page): Long {
-        log.debug("Create page: {} by input: {}, blockId: {}", page, input, blockId)
+        log.debug("Create page. blockId: {}, pageId: {}, input: {}, page: {}", blockId, pageId, input, page)
 
         validatePage(page)
 
@@ -61,7 +61,7 @@ class CommandContextImpl(
             return createPage(page)
         }
 
-        log.debug("Add page: {} by input: {}, blockId: {}", page, input, blockId)
+        log.debug("Add page. blockId: {}, pageId: {}, input: {}, page: {}", blockId, pageId, input, page)
 
         validatePage(page)
 
@@ -90,7 +90,7 @@ class CommandContextImpl(
             return createPage(page)
         }
 
-        log.debug("Update page: {} by input: {}, blockId: {}", page, input, blockId)
+        log.debug("Update page. blockId: {}, pageId: {}, input: {}, page: {}", blockId, pageId, input, page)
 
         validatePage(page)
 

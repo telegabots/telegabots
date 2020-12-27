@@ -16,6 +16,8 @@ object SystemCommands {
      * Refresh content of current page
      */
     const val REFRESH = "_REFRESH"
+
+    val ALL = listOf(GO_BACK, REFRESH)
 }
 
 class EmptyCommand : BaseCommand() {

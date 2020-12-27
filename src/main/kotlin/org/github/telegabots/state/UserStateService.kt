@@ -1,6 +1,7 @@
 package org.github.telegabots.state
 
 import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.LocalizeProvider
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.SubCommand
 import org.github.telegabots.api.entity.CommandPage
@@ -15,6 +16,7 @@ import org.github.telegabots.service.JsonService
 class UserStateService(
     private val userId: Int,
     private val dbProvider: StateDbProvider,
+    private val localizeProvider: LocalizeProvider,
     private val jsonService: JsonService,
     private val globalState: StateProvider
 ) {
@@ -53,7 +55,7 @@ class UserStateService(
                 id = pageId,
                 blockId = blockId,
                 handler = handler.name,
-                subCommands = toSubCommands(subCommands)
+                commandDefs = toCommandDefs(subCommands)
             )
         )
 
@@ -100,12 +102,13 @@ class UserStateService(
         }
     }
 
-    private fun toSubCommands(subCommands: List<List<SubCommand>>): List<List<CommandDef>> =
-        subCommands.map { it.map { cmd -> toSubcommand(cmd) } }
+    private fun toCommandDefs(subCommands: List<List<SubCommand>>): List<List<CommandDef>> =
+        subCommands.map { it.map { cmd -> toCommandDef(cmd) } }
 
-    private fun toSubcommand(cmd: SubCommand): CommandDef =
+    private fun toCommandDef(cmd: SubCommand): CommandDef =
         CommandDef(
             titleId = cmd.titleId,
+            title = localizeProvider.getString(cmd.titleId),
             handler = cmd.handler?.name,
             state = jsonService.toStateDef(cmd.state)
         )

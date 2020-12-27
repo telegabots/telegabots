@@ -117,10 +117,10 @@ inline fun <reified T : BaseCommand> scenario(init: ScenarioBuilder.() -> Unit) 
 
 data class Page(
     val handler: String,
-    val subCommands: List<List<CommandDef>> = emptyList()
+    val commandDefs: List<List<CommandDef>> = emptyList()
 ) {
     companion object {
-        fun from(page: CommandPage): Page = Page(page.handler, page.subCommands)
+        fun from(page: CommandPage): Page = Page(page.handler, page.commandDefs)
 
         fun page(
             handler: String,

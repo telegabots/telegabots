@@ -23,9 +23,9 @@ class TelegaBot(
 ) {
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
     private val commandHandlers = CommandHandlers(commandInterceptor)
-    private val usersStatesManager = UsersStatesManager(dbProvider, jsonService)
     private val userLocalizationFactory =
         serviceProvider.tryGetService(UserLocalizationFactory::class.java) ?: UserLocalizationFactory()
+    private val usersStatesManager = UsersStatesManager(dbProvider, userLocalizationFactory, jsonService)
     private val callContextManager = CallContextManager(
         messageSender, serviceProvider, commandHandlers, usersStatesManager, userLocalizationFactory, rootCommand
     )

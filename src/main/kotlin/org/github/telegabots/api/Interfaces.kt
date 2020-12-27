@@ -106,6 +106,7 @@ data class Page(
 
 data class SubCommand(
     val titleId: String,
+    val title: String? = null,
     val handler: Class<out BaseCommand>? = null,
     val state: State? = null
 ) {

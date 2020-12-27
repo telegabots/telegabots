@@ -1,13 +1,17 @@
 package org.github.telegabots.state
 
 import org.github.telegabots.service.JsonService
+import org.github.telegabots.service.UserLocalizationFactory
 
 
 /**
  * States manager used by all users
  */
-class UsersStatesManager(private val dbProvider: StateDbProvider,
-                         private val jsonService: JsonService) {
+class UsersStatesManager(
+    private val dbProvider: StateDbProvider,
+    private val localizationFactory: UserLocalizationFactory,
+    private val jsonService: JsonService
+) {
     private val userStatesServices: MutableMap<Int, UserStateService> = mutableMapOf()
     private val globalState: GlobalStateProvider = GlobalStateProvider(dbProvider, jsonService)
 
@@ -16,7 +20,17 @@ class UsersStatesManager(private val dbProvider: StateDbProvider,
      */
     fun get(userId: Int): UserStateService {
         return synchronized(userStatesServices) {
-            userStatesServices.getOrPut(userId) { UserStateService(userId, dbProvider, jsonService, globalState) }
+            val localizeProvider = localizationFactory.getProvider(userId)
+
+            userStatesServices.getOrPut(userId) {
+                UserStateService(
+                    userId,
+                    dbProvider,
+                    localizeProvider,
+                    jsonService,
+                    globalState
+                )
+            }
         }
     }
 }

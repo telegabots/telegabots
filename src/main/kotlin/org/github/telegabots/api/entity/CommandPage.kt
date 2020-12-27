@@ -6,6 +6,6 @@ package org.github.telegabots.api.entity
 data class CommandPage(val id: Long = 0,
                        val blockId: Long,
                        val handler: String,
-                       val subCommands: List<List<CommandDef>>) {
+                       val commandDefs: List<List<CommandDef>>) {
     fun isValid(): Boolean = blockId != 0L && handler.isNotBlank()
 }

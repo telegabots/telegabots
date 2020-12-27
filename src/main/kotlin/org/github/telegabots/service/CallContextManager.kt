@@ -175,9 +175,8 @@ class CallContextManager(
             val localizeProvider = userLocalizationFactory.getProvider(input.userId)
 
             when (block.messageType) {
-                MessageType.Text -> page.subCommands.flatten()
-                    .find { localizeProvider.getString(it.titleId) == input.query }
-                MessageType.Inline -> page.subCommands.flatten().find { it.titleId == input.query }
+                MessageType.Text -> page.commandDefs.flatten().find { it.title == input.query }
+                MessageType.Inline -> page.commandDefs.flatten().find { it.titleId == input.query }
             } ?: parseSysCommand(block.messageType, input.query, localizeProvider)
         } else null
 
@@ -192,15 +191,13 @@ class CallContextManager(
         localizeProvider: LocalizeProvider
     ): CommandDef? {
         return when (messageType) {
-            MessageType.Inline -> when (query) {
-                SystemCommands.REFRESH, SystemCommands.GO_BACK -> CommandDef(query, null, null)
-                else -> null
-            }
-            MessageType.Text -> when (query) {
-                localizeProvider.getString(SystemCommands.REFRESH) -> CommandDef(SystemCommands.REFRESH, null, null)
-                localizeProvider.getString(SystemCommands.GO_BACK) -> CommandDef(SystemCommands.GO_BACK, null, null)
-                else -> null
-            }
+            MessageType.Inline -> SystemCommands.ALL.filter { it == query }
+                .map { CommandDef(it, localizeProvider.getString(it), null, null) }
+                .firstOrNull()
+            MessageType.Text -> SystemCommands.ALL.map { it to localizeProvider.getString(it) }
+                .filter { it.second == query }
+                .map { CommandDef(it.first, it.second, null, null) }
+                .firstOrNull()
         }
     }
 
