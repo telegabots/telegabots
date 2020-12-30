@@ -3,26 +3,42 @@ package org.github.telegabots.handler
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
+import org.github.telegabots.api.InputMessage
+import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.error.CommandInvokeException
 import org.github.telegabots.test.CommandAssert.assertNotCalled
 import org.github.telegabots.test.CommandAssert.assertWasCalled
+import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.text.ParseException
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 /**
- * Tests related with annotation CommandHandler
+ * Tests related with annotation TextHandler
  */
-class CommandHandlerTests : BaseTests() {
+class TextHandlerTests : BaseTests() {
+    @Test
+    fun testCommand_Fail_WhenCommandWithoutAnyHandler() {
+        val ex = assertThrows<IllegalStateException> {
+            scenario<InvalidRootCommandWithoutTextHandler> { }
+        }
+
+        assertEquals(
+            "Root command (org.github.telegabots.handler.InvalidRootCommandWithoutTextHandler) have to implement text handler. Annotate method with @TextHandler",
+            ex.message
+        )
+    }
+
     @Test
     fun testCommand_Fail_WhenTextHandlerHasNotStringParam() {
-        val executor = createExecutor(InvalidCommandWithoutStringParam::class.java)
-        val update = createAnyTextMessage()
-        val ex = assertThrows<IllegalStateException> { executor.handle(update) }
+        val ex = assertThrows<IllegalStateException> {
+            scenario<InvalidCommandWithoutStringParam> { }
+        }
 
         assertEquals(
             "First parameter must be String but found int in handler public final void org.github.telegabots.handler.InvalidCommandWithoutStringParam.execute(int)",
@@ -71,9 +87,9 @@ class CommandHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Fail_WhenHandlerWithoutParams() {
-        val executor = createExecutor(InvalidCommandWithoutAnyParam::class.java)
-        val update = createAnyTextMessage()
-        val ex = assertThrows<IllegalStateException> { executor.handle(update) }
+        val ex = assertThrows<IllegalStateException> {
+            scenario<InvalidCommandWithoutAnyParam> { }
+        }
 
         assertEquals(
             "Handler must contains at least one parameter: public final boolean org.github.telegabots.handler.InvalidCommandWithoutAnyParam.execute()",
@@ -83,9 +99,9 @@ class CommandHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Fail_WhenHandlerReturnsNonBool() {
-        val executor = createExecutor(InvalidCommandReturnNonBoolParam::class.java)
-        val update = createAnyTextMessage()
-        val ex = assertThrows<IllegalStateException> { executor.handle(update) }
+        val ex = assertThrows<IllegalStateException> {
+            scenario<InvalidCommandReturnNonBoolParam> { }
+        }
 
         assertEquals(
             "Handler must return bool or void but it returns int in method public final int org.github.telegabots.handler.InvalidCommandReturnNonBoolParam.execute(java.lang.String)",
@@ -102,6 +118,13 @@ class CommandHandlerTests : BaseTests() {
         assertEquals(ParseException::class.java, ex.cause!!::class.java)
         assertEquals("Command must throw error", ex.cause?.message)
         assertEquals(SimpleCommandThrowsError::class.java, ex.command)
+    }
+}
+
+internal class InvalidRootCommandWithoutTextHandler : BaseCommand() {
+    @InlineHandler
+    fun handle(msg: String, messageId: Int) {
+
     }
 }
 

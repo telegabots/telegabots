@@ -19,6 +19,12 @@ class CallContextManager(
 ) {
     private val log = LoggerFactory.getLogger(CallContextManager::class.java)
 
+    init {
+        val rootHandler = commandHandlers.getCommandHandler(rootCommand)
+
+        check(rootHandler.canHandle(MessageType.Text)) { "Root command (${rootCommand.name}) have to implement text handler. Annotate method with @TextHandler" }
+    }
+
     fun get(input: InputMessage): CommandCallContext {
         return when (input.type) {
             MessageType.Text -> getTextMessageContext(input)
@@ -36,7 +42,7 @@ class CallContextManager(
     private fun getInlineMessageContext(input: InputMessage): CommandCallContext {
         val messageId = input.messageId!!
         val userState = usersStatesManager.get(input.userId)
-        val block = userState.getBlock(messageId)
+        val block = userState.getBlockByMessageId(messageId)
 
         return getCommonCallContext(block, input, userState)
     }

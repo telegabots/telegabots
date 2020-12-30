@@ -59,7 +59,7 @@ interface CommandContext : UserContext, CommandExecutor {
 
     fun clearCommands()
 
-    fun <T : Service> getService(clazz: Class<T>): T
+    fun <T : Service> getService(clazz: Class<T>): T?
 }
 
 interface CommandExecutor {
@@ -96,12 +96,12 @@ enum class ContentType {
 
 data class Page(
     val message: String,
-    val id: Long = 0L,
     val contentType: ContentType = ContentType.Plain,
     val messageType: MessageType = MessageType.Text,
     val disablePreview: Boolean = true,
     val subCommands: List<List<SubCommand>> = emptyList(),
-    val handler: Class<out BaseCommand>? = null
+    val handler: Class<out BaseCommand>? = null,
+    val id: Long = 0L
 )
 
 data class SubCommand(
@@ -111,6 +111,8 @@ data class SubCommand(
     val state: State? = null
 ) {
     companion object {
+        fun of(titleId: String): SubCommand = SubCommand(titleId = titleId)
+
         inline fun <reified T : BaseCommand> of(state: State? = null, titleId: String = "") =
             of(T::class.java, state, titleId)
 
@@ -132,9 +134,12 @@ data class SubCommand(
     }
 }
 
+/**
+ * Message sender of Telegram
+ */
 interface MessageSender {
     /**
-     * Sends message to telegram chat
+     * Sends new message
      */
     fun sendMessage(
         chatId: String,
@@ -144,6 +149,9 @@ interface MessageSender {
         preSendHandler: Consumer<SendMessage> = Consumer { }
     ): Int
 
+    /**
+     * Updates existing message
+     */
     fun updateMessage(
         chatId: String,
         messageId: Int,
@@ -155,9 +163,7 @@ interface MessageSender {
 }
 
 interface ServiceProvider {
-    fun <T : Service> getService(clazz: Class<T>): T
-
-    fun <T : Service> tryGetService(clazz: Class<T>): T?
+    fun <T : Service> getService(clazz: Class<T>): T?
 }
 
 /**

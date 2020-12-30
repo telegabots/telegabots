@@ -1,12 +1,12 @@
 package org.github.telegabots.api
 
-import org.slf4j.LoggerFactory
 import org.github.telegabots.service.CallContextManager
 import org.github.telegabots.service.CommandHandlers
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.service.UserLocalizationFactory
 import org.github.telegabots.state.StateDbProvider
 import org.github.telegabots.state.UsersStatesManager
+import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.objects.Update
 
 /**
@@ -17,14 +17,14 @@ class TelegaBot(
     private val serviceProvider: ServiceProvider,
     private val adminChatId: Long = 0L,
     private val dbProvider: StateDbProvider,
-    private val jsonService: JsonService,
     private val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java,
     private val commandInterceptor: CommandInterceptor = CommandInterceptorEmpty
 ) {
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
+    private val jsonService: JsonService = JsonService()
     private val commandHandlers = CommandHandlers(commandInterceptor)
     private val userLocalizationFactory =
-        serviceProvider.tryGetService(UserLocalizationFactory::class.java) ?: UserLocalizationFactory()
+        serviceProvider.getService(UserLocalizationFactory::class.java) ?: UserLocalizationFactory()
     private val usersStatesManager = UsersStatesManager(dbProvider, userLocalizationFactory, jsonService)
     private val callContextManager = CallContextManager(
         messageSender, serviceProvider, commandHandlers, usersStatesManager, userLocalizationFactory, rootCommand

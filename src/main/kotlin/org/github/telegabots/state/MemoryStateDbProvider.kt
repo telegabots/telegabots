@@ -72,6 +72,11 @@ class MemoryStateDbProvider : StateDbProvider {
     }
 
     @Synchronized
+    override fun findBlockById(blockId: Long): CommandBlock? {
+        return commandBlocks.find { it.id == blockId }
+    }
+
+    @Synchronized
     override fun findLastPageByBlockId(userId: Int, blockId: Long): CommandPage? {
         return commandPages[blockId]?.lastOrNull()
     }

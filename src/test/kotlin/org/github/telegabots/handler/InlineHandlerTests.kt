@@ -4,8 +4,10 @@ import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
 import org.github.telegabots.api.annotation.InlineHandler
+import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.test.CommandAssert.assertNotCalled
 import org.github.telegabots.test.CommandAssert.assertWasCalled
+import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
@@ -13,9 +15,9 @@ import kotlin.test.assertEquals
 class InlineHandlerTests : BaseTests() {
     @Test
     fun testCommand_Fail_WhenHandlerWithoutParams() {
-        val executor = createExecutor(InvalidInlineCommandWithoutAnyParam::class.java)
-        val update = createAnyTextMessage()
-        val ex = assertThrows<IllegalStateException> { executor.handle(update) }
+        val ex = assertThrows<IllegalStateException> {
+            scenario<InvalidInlineCommandWithoutAnyParam> { }
+        }
 
         assertEquals(
             "Handler must contains at least two parameters: public final void org.github.telegabots.handler.InvalidInlineCommandWithoutAnyParam.handle()",
@@ -25,9 +27,9 @@ class InlineHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Fail_WhenHandlerWithOnlyIntParam() {
-        val executor = createExecutor(InvalidInlineCommandWithOnlyIntParam::class.java)
-        val update = createAnyTextMessage()
-        val ex = assertThrows<IllegalStateException> { executor.handle(update) }
+        val ex = assertThrows<IllegalStateException> {
+            scenario<InvalidInlineCommandWithOnlyIntParam> { }
+        }
 
         assertEquals(
             "Handler must contains at least two parameters: public final void org.github.telegabots.handler.InvalidInlineCommandWithOnlyIntParam.handle(int)",
@@ -37,9 +39,9 @@ class InlineHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Fail_WhenHandlerWithOnlyTwoIntParams() {
-        val executor = createExecutor(InvalidInlineCommandWithTwoIntParams::class.java)
-        val update = createAnyTextMessage()
-        val ex = assertThrows<IllegalStateException> { executor.handle(update) }
+        val ex = assertThrows<IllegalStateException> {
+            scenario<InvalidInlineCommandWithTwoIntParams> { }
+        }
 
         assertEquals(
             "First two parameters must be Integer and String (or vice versa) in handler public final void org.github.telegabots.handler.InvalidInlineCommandWithTwoIntParams.handle(int,int)",
@@ -49,10 +51,9 @@ class InlineHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_Fail_WhenHandlerWithOnlyTwoStringParams() {
-        val executor = createExecutor(InvalidInlineCommandWithTwoStringParams::class.java)
-        val update = createAnyTextMessage()
-        val ex = assertThrows<IllegalStateException> { executor.handle(update) }
-
+        val ex = assertThrows<IllegalStateException> {
+            scenario<InvalidInlineCommandWithTwoStringParams> { }
+        }
         assertEquals(
             "First two parameters must be Integer and String (or vice versa) in handler public final void org.github.telegabots.handler.InvalidInlineCommandWithTwoStringParams.handle(java.lang.String,java.lang.String)",
             ex.message
@@ -118,6 +119,10 @@ internal class ValidInlineCommandIntString() : BaseCommand() {
         assertEquals(4273, messageId)
         assertEquals("IntString", message)
     }
+
+    @TextHandler
+    fun handle(message: String) {
+    }
 }
 
 internal class ValidInlineCommandStringInt() : BaseCommand() {
@@ -125,5 +130,9 @@ internal class ValidInlineCommandStringInt() : BaseCommand() {
     fun handle(message: String, messageId: Int) {
         assertEquals(55557, messageId)
         assertEquals("StringInt", message)
+    }
+
+    @TextHandler
+    fun handle(message: String) {
     }
 }

@@ -37,7 +37,7 @@ object CommandContextSupport : CommandContext {
 
     override fun clearCommands() = current().clearCommands()
 
-    override fun <T : Service> getService(clazz: Class<T>): T = current().getService(clazz)
+    override fun <T : Service> getService(clazz: Class<T>): T? = current().getService(clazz)
 
     override fun userId(): Int = current().userId()
 

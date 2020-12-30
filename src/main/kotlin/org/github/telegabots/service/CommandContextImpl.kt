@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
+import java.lang.IllegalStateException
 import java.util.function.Consumer
 
 class CommandContextImpl(
@@ -32,7 +33,7 @@ class CommandContextImpl(
     override fun createPage(page: Page): Long {
         log.debug("Create page. blockId: {}, pageId: {}, input: {}, page: {}", blockId, pageId, input, page)
 
-        validatePage(page)
+        validatePageHandler(page)
 
         val messageId = messageSender.sendMessage(chatId = input.chatId.toString(),
             contentType = page.contentType,
@@ -50,7 +51,11 @@ class CommandContextImpl(
         val savedPage = userState.savePage(
             block.id,
             handler = page.handler ?: command.javaClass,
-            subCommands = page.subCommands
+            subCommands = page.subCommands,
+            messageId = when (page.messageType) {
+                MessageType.Text -> messageId
+                MessageType.Inline -> null
+            }
         )
 
         return savedPage.id
@@ -63,21 +68,39 @@ class CommandContextImpl(
 
         log.debug("Add page. blockId: {}, pageId: {}, input: {}, page: {}", blockId, pageId, input, page)
 
-        validatePage(page)
+        validatePageHandler(page)
+        val block = userState.getBlockById(blockId) ?: throw IllegalStateException("Block by id not found: $blockId")
+        check(page.messageType == block.messageType) { "Adding page message type mismatch block's type. Expected: ${block.messageType}" }
 
-        val messageId: Int = checkNotNull(input.messageId) { "Input message id cannot be null. Input: $input" }
+        val resultMessageId = when (page.messageType) {
+            MessageType.Text -> {
+                messageSender.sendMessage(chatId = input.chatId.toString(),
+                    contentType = page.contentType,
+                    disablePreview = page.disablePreview,
+                    message = page.message,
+                    preSendHandler = Consumer { msg ->
+                        applyTextButtons(msg, page.subCommands)
+                    })
+            }
+            MessageType.Inline -> {
+                val messageId: Int = checkNotNull(input.messageId) { "Input message id cannot be null. Input: $input" }
 
-        messageSender.updateMessage(chatId = input.chatId.toString(),
-            messageId = messageId,
-            contentType = page.contentType,
-            disablePreview = page.disablePreview,
-            message = page.message,
-            preSendHandler = Consumer { msg ->
-                TODO("applyInlineButtons()")
-            })
+                messageSender.updateMessage(chatId = input.chatId.toString(),
+                    messageId = messageId,
+                    contentType = page.contentType,
+                    disablePreview = page.disablePreview,
+                    message = page.message,
+                    preSendHandler = Consumer { msg ->
+                        TODO("applyInlineButtons()")
+                    })
+
+                null
+            }
+        }
 
         val savedPage = userState.savePage(
             blockId,
+            messageId = resultMessageId,
             handler = page.handler ?: command.javaClass,
             subCommands = page.subCommands
         )
@@ -92,21 +115,38 @@ class CommandContextImpl(
 
         log.debug("Update page. blockId: {}, pageId: {}, input: {}, page: {}", blockId, pageId, input, page)
 
-        validatePage(page)
+        validatePageHandler(page)
+        val block = userState.getBlockById(blockId) ?: throw IllegalStateException("Block by id not found: $blockId")
+        check(page.messageType == block.messageType) { "Adding page message type mismatch block's type. Expected: ${block.messageType}" }
 
-        val messageId: Int = checkNotNull(input.messageId) { "Input message id cannot be null. Input: $input" }
+        val resultMessageId = when (page.messageType) {
+            MessageType.Text -> {
+                messageSender.sendMessage(chatId = input.chatId.toString(),
+                    contentType = page.contentType,
+                    disablePreview = page.disablePreview,
+                    message = page.message,
+                    preSendHandler = Consumer { msg ->
+                        applyTextButtons(msg, page.subCommands)
+                    })
+            }
+            MessageType.Inline -> {
+                val messageId: Int = checkNotNull(input.messageId) { "Input message id cannot be null. Input: $input" }
 
-        messageSender.updateMessage(chatId = input.chatId.toString(),
-            messageId = messageId,
-            contentType = page.contentType,
-            disablePreview = page.disablePreview,
-            message = page.message,
-            preSendHandler = Consumer { msg ->
-                TODO("applyInlineButtons()")
-            })
+                messageSender.updateMessage(chatId = input.chatId.toString(),
+                    messageId = messageId,
+                    contentType = page.contentType,
+                    disablePreview = page.disablePreview,
+                    message = page.message,
+                    preSendHandler = Consumer { msg ->
+                        TODO("applyInlineButtons()")
+                    })
+                null
+            }
+        }
 
         val savedPage = userState.savePage(
             blockId,
+            messageId = resultMessageId,
             pageId = if (page.id > 0) page.id else pageId,
             handler = page.handler ?: command.javaClass,
             subCommands = page.subCommands
@@ -171,7 +211,7 @@ class CommandContextImpl(
         return callContext.execute()
     }
 
-    override fun <T : Service> getService(clazz: Class<T>): T = serviceProvider.getService(clazz)
+    override fun <T : Service> getService(clazz: Class<T>): T? = serviceProvider.getService(clazz)
 
     override fun userId(): Int = input.userId
 
@@ -196,7 +236,7 @@ class CommandContextImpl(
         )
     }
 
-    private fun validatePage(page: Page) {
+    private fun validatePageHandler(page: Page) {
         val handler = page.handler ?: command.javaClass
         val cmdHandler = commandHandlers.getCommandHandler(handler)
 

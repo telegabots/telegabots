@@ -28,8 +28,6 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     private val sentMessages = mutableMapOf<Int, String>()
 
     init {
-        Mockito.`when`(serviceProvider.tryGetService(UserLocalizationFactory::class.java))
-            .thenReturn(userLocalizationFactory)
         Mockito.`when`(serviceProvider.getService(UserLocalizationFactory::class.java))
             .thenReturn(userLocalizationFactory)
         Mockito.`when`(userLocalizationFactory.getProvider(anyInt()))
@@ -40,7 +38,6 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
             serviceProvider = serviceProvider,
             adminChatId = 0,
             dbProvider = dbProvider,
-            jsonService = jsonService,
             rootCommand = rootCommand,
             commandInterceptor = this
         )

@@ -24,7 +24,9 @@ class UserStateService(
     private val localStates: MutableMap<Long, StateProvider> = mutableMapOf()
     private val userState = UserStateProvider(userId, dbProvider, jsonService)
 
-    fun getBlock(messageId: Int): CommandBlock? = dbProvider.findBlockByMessageId(userId, messageId)
+    fun getBlockByMessageId(messageId: Int): CommandBlock? = dbProvider.findBlockByMessageId(userId, messageId)
+
+    fun getBlockById(blockId: Long) :CommandBlock? = dbProvider.findBlockById(blockId)
 
     fun getLastBlock(): CommandBlock? = dbProvider.findLastBlockByUserId(userId)
 
@@ -48,13 +50,15 @@ class UserStateService(
         blockId: Long,
         handler: Class<out BaseCommand>,
         subCommands: List<List<SubCommand>> = emptyList(),
-        pageId: Long = 0
+        pageId: Long = 0,
+        messageId: Int? = null
     ): CommandPage =
         dbProvider.savePage(
             CommandPage(
                 id = pageId,
                 blockId = blockId,
                 handler = handler.name,
+                messageId = messageId,
                 commandDefs = toCommandDefs(subCommands)
             )
         )
