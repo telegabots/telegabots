@@ -40,7 +40,7 @@ class CommandContextImpl(
             disablePreview = page.disablePreview,
             message = page.message,
             preSendHandler = Consumer { msg ->
-                applyTextButtons(msg, page.subCommands)
+                applyMessageButtons(msg, page.subCommands, page.messageType)
             })
 
         val block = userState.saveBlock(
@@ -79,7 +79,7 @@ class CommandContextImpl(
                     disablePreview = page.disablePreview,
                     message = page.message,
                     preSendHandler = Consumer { msg ->
-                        applyTextButtons(msg, page.subCommands)
+                        applyMessageButtons(msg, page.subCommands, page.messageType)
                     })
             }
             MessageType.Inline -> {
@@ -91,7 +91,7 @@ class CommandContextImpl(
                     disablePreview = page.disablePreview,
                     message = page.message,
                     preSendHandler = Consumer { msg ->
-                        TODO("applyInlineButtons()")
+                        applyMessageButtons(msg, page.subCommands)
                     })
 
                 null
@@ -126,7 +126,7 @@ class CommandContextImpl(
                     disablePreview = page.disablePreview,
                     message = page.message,
                     preSendHandler = Consumer { msg ->
-                        applyTextButtons(msg, page.subCommands)
+                        applyMessageButtons(msg, page.subCommands, page.messageType)
                     })
             }
             MessageType.Inline -> {
@@ -138,7 +138,7 @@ class CommandContextImpl(
                     disablePreview = page.disablePreview,
                     message = page.message,
                     preSendHandler = Consumer { msg ->
-                        TODO("applyInlineButtons()")
+                        applyMessageButtons(msg, page.subCommands)
                     })
                 null
             }
@@ -154,6 +154,7 @@ class CommandContextImpl(
 
         return savedPage.id
     }
+
 
     override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -255,27 +256,27 @@ class CommandContextImpl(
             MessageType.Inline -> "InlineHandler"
         }
 
-    private fun applyInlineButtons(msg: EditMessageText, subCommands: List<List<SubCommand>>) {
-        val keyboardMarkup = InlineKeyboardMarkup()
-        msg.replyMarkup = keyboardMarkup
-        keyboardMarkup.keyboard = mapInlineButtons(subCommands)
+    private fun applyMessageButtons(msg: SendMessage, subCommands: List<List<SubCommand>>, messageType: MessageType) {
+        msg.replyMarkup = when (messageType) {
+            MessageType.Inline -> mapInlineKeyboardMarkup(subCommands)
+            MessageType.Text -> mapReplyKeyboardMarkup(subCommands)
+        }
     }
 
-    private fun applyTextButtons(msg: SendMessage, subCommands: List<List<SubCommand>>) {
-        val keyboardMarkup = ReplyKeyboardMarkup()
-        msg.replyMarkup = keyboardMarkup
-        keyboardMarkup.keyboard = mapTextButtons(subCommands)
+    private fun applyMessageButtons(msg: EditMessageText, subCommands: List<List<SubCommand>>) {
+        msg.replyMarkup = mapInlineKeyboardMarkup(subCommands)
     }
 
-    private fun mapTextButtons(subCommands: List<List<SubCommand>>): MutableList<KeyboardRow> =
-        subCommands.map { mapTextButtonsRow(it) }
+    private fun mapInlineKeyboardMarkup(subCommands: List<List<SubCommand>>): InlineKeyboardMarkup =
+        InlineKeyboardMarkup().setKeyboard(subCommands.map { mapInlineButtonsRow(it) }
             .filter { it.isNotEmpty() }
-            .toMutableList()
+            .toMutableList())
 
-    private fun mapInlineButtons(subCommands: List<List<SubCommand>>): MutableList<MutableList<InlineKeyboardButton>> =
-        subCommands.map { mapInlineButtonsRow(it) }
-            .filter { it.isNotEmpty() }
-            .toMutableList()
+    private fun mapReplyKeyboardMarkup(subCommands: List<List<SubCommand>>): ReplyKeyboardMarkup =
+        ReplyKeyboardMarkup()
+            .setKeyboard(subCommands.map { mapTextButtonsRow(it) }
+                .filter { it.isNotEmpty() }
+                .toMutableList())
 
     private fun mapTextButtonsRow(cmds: List<SubCommand>): KeyboardRow =
         KeyboardRow().apply {

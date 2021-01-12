@@ -63,9 +63,13 @@ class AllFeaturedBot(private val config: BotConfig) : TelegramLongPollingBot(), 
 
         log.info("send (length: {}): {}", message.length, message)
 
-        val resp = execute<Message, SendMessage>(sendMessage)
-
-        return resp.messageId
+        try {
+            val resp = execute<Message, SendMessage>(sendMessage)
+            return resp.messageId
+        } catch (e: Exception) {
+            log.error("send message failed: {}, message: {}", e.message, sendMessage)
+            throw e
+        }
     }
 
     override fun updateMessage(
@@ -95,7 +99,12 @@ class AllFeaturedBot(private val config: BotConfig) : TelegramLongPollingBot(), 
 
         log.debug("update message, messageId: {}, (length: {}): {}", messageId, message.length, message)
 
-        execute<Serializable, EditMessageText>(editMessageText)
+        try {
+            execute<Serializable, EditMessageText>(editMessageText)
+        } catch (e: Exception) {
+            log.error("edit message failed: {}, message: {}", e.message, editMessageText)
+            throw e
+        }
     }
 
     override fun <T : Service> getService(clazz: Class<T>): T? = null

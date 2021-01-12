@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.github.telegabots.context.CommandContextSupport
 
 abstract class BaseCommand {
+    @JvmField
     protected val log = LoggerFactory.getLogger(javaClass)!!
     @JvmField
     protected val context: CommandContext = CommandContextSupport

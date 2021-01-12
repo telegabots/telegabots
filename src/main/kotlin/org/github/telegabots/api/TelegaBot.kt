@@ -61,7 +61,7 @@ class TelegaBot(
         } else if (update.hasCallbackQuery()) {
             val callbackQuery = update.callbackQuery
             val message = callbackQuery.message
-            val userId = message.from.id
+            val userId = callbackQuery.from.id
 
             InputMessage(
                 type = MessageType.Inline,
