@@ -4,9 +4,9 @@ import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.LocalizeProvider
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.SubCommand
-import org.github.telegabots.api.entity.CommandPage
-import org.github.telegabots.api.entity.CommandBlock
-import org.github.telegabots.api.entity.CommandDef
+import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.entity.CommandBlock
+import org.github.telegabots.entity.CommandDef
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 
@@ -26,7 +26,7 @@ class UserStateService(
 
     fun getBlockByMessageId(messageId: Int): CommandBlock? = dbProvider.findBlockByMessageId(userId, messageId)
 
-    fun getBlockById(blockId: Long) :CommandBlock? = dbProvider.findBlockById(blockId)
+    fun getBlockById(blockId: Long): CommandBlock? = dbProvider.findBlockById(blockId)
 
     fun getLastBlock(): CommandBlock? = dbProvider.findLastBlockByUserId(userId)
 
@@ -112,8 +112,9 @@ class UserStateService(
     private fun toCommandDef(cmd: SubCommand): CommandDef =
         CommandDef(
             titleId = cmd.titleId,
-            title = localizeProvider.getString(cmd.titleId),
+            title = cmd.title ?: localizeProvider.getString(cmd.titleId),
             handler = cmd.handler?.name,
-            state = jsonService.toStateDef(cmd.state)
+            state = jsonService.toStateDef(cmd.state),
+            behaviour = cmd.behaviour
         )
 }

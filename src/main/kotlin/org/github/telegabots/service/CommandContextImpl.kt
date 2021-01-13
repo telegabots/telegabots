@@ -155,6 +155,16 @@ class CommandContextImpl(
         return savedPage.id
     }
 
+    override fun sendDocument(document: Document) {
+        val chatId = if (document.chatId.isNotBlank()) document.chatId else input.chatId.toString()
+
+        messageSender.sendDocument(
+            chatId, file = document.file,
+            caption = document.caption,
+            captionContentType = document.captionContentType,
+            disableNotification = document.disableNotification
+        )
+    }
 
     override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -280,13 +290,15 @@ class CommandContextImpl(
 
     private fun mapTextButtonsRow(cmds: List<SubCommand>): KeyboardRow =
         KeyboardRow().apply {
-            cmds.forEach { cmd -> add(localizeProvider.getString(cmd.titleId)) }
+            cmds.forEach { cmd -> add(getTitle(cmd)) }
         }
 
     private fun mapInlineButtonsRow(cmds: List<SubCommand>): MutableList<InlineKeyboardButton> =
         cmds.map { cmd ->
             InlineKeyboardButton()
-                .setText(localizeProvider.getString(cmd.titleId))
+                .setText(getTitle(cmd))
                 .setCallbackData(cmd.titleId)
         }.toMutableList()
+
+    private fun getTitle(cmd: SubCommand) = cmd.title ?: localizeProvider.getString(cmd.titleId)
 }

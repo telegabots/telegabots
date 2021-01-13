@@ -2,8 +2,8 @@ package org.github.telegabots.test
 
 import org.github.telegabots.BaseTests
 import org.github.telegabots.api.BaseCommand
-import org.github.telegabots.api.entity.CommandDef
-import org.github.telegabots.api.entity.CommandPage
+import org.github.telegabots.entity.CommandDef
+import org.github.telegabots.entity.CommandPage
 import org.junit.jupiter.api.Assertions.*
 import java.time.LocalDateTime
 

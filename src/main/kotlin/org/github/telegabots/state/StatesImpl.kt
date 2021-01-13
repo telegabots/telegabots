@@ -1,5 +1,8 @@
 package org.github.telegabots.state
 
+import org.github.telegabots.api.StateItem
+import org.github.telegabots.api.StateKey
+
 
 internal class StatesImpl(private val localState: StateProvider,
                           private val sharedState: StateProvider,

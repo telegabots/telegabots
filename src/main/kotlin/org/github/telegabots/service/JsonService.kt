@@ -3,10 +3,10 @@ package org.github.telegabots.service
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import org.github.telegabots.api.StateItem
+import org.github.telegabots.api.StateRef
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.entity.StateItemDef
-import org.github.telegabots.state.State
-import org.github.telegabots.state.StateItem
 
 open class JsonService {
     private val objectMapper = ObjectMapper()
@@ -30,9 +30,9 @@ open class JsonService {
     fun toStateItemDef(item: StateItem): StateItemDef =
             StateItemDef(key = item.key, value = toJson(item.value))
 
-    fun toStateDef(state: State?): StateDef? =
+    fun toStateDef(state: StateRef?): StateDef? =
             if (state != null) StateDef(items = state.items.map { toStateItemDef(it) }) else null
 
-    fun toState(stateDef: StateDef?): State? =
-            if (stateDef != null) State(items = stateDef.items.map { toStateItem(it) }) else null
+    fun toState(stateDef: StateDef?): StateRef? =
+            if (stateDef != null) StateRef(items = stateDef.items.map { toStateItem(it) }) else null
 }

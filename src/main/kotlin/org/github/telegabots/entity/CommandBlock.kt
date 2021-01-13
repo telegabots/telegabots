@@ -1,4 +1,4 @@
-package org.github.telegabots.api.entity
+package org.github.telegabots.entity
 
 import org.github.telegabots.api.MessageType
 

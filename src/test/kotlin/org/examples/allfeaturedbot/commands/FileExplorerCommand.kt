@@ -20,7 +20,9 @@ class FileExplorerCommand : BaseCommand() {
 
         if (currentFile.isDirectory) {
             val files = currentFile.listFiles()
-            val allFiles = files.map { SubCommand.of(it.name) }.toMutableList()
+            files.sortBy { it.name }
+            val allFiles = files.map { SubCommand.of(it.name, if (it.isDirectory) "[${it.name}]" else it.name) }
+                .toMutableList()
 
             log.debug("currentPath: {}, nextPath: {}, files count: {}", currentPath, nextPath, allFiles.size)
 
@@ -29,15 +31,19 @@ class FileExplorerCommand : BaseCommand() {
             }
 
             val subCommands = mutableListOf<List<SubCommand>>()
+            val rowSize = 5
 
-            for (i in 0..allFiles.size / 5) {
-                val index = i * 5
-                subCommands.add(allFiles.subList(index, Math.min(index + 5, allFiles.size)))
+            for (i in 0..allFiles.size / rowSize) {
+                val index = i * rowSize
+                subCommands.add(allFiles.subList(index, Math.min(index + rowSize, allFiles.size)))
             }
 
             context.updatePage(
                 Page(
-                    "Files of directory: *$nextPath*",
+                    """
+                        Files of directory: *$nextPath*
+                        Count: ${allFiles.size}
+                    """.trimIndent(),
                     contentType = ContentType.Markdown,
                     messageType = MessageType.Inline,
                     subCommands = subCommands
@@ -55,7 +61,16 @@ class FileExplorerCommand : BaseCommand() {
                     """.trimIndent(),
                     contentType = ContentType.Markdown,
                     messageType = MessageType.Inline,
-                    subCommands = listOf(listOf(SubCommand.of(UP_DIR)))
+                    subCommands = listOf(
+                        listOf(
+                            SubCommand.of(UP_DIR),
+                            SubCommand.of<FileDownloadCommand>(
+                                title = "Download",
+                                state = StateRef.of(nextPath),
+                                behaviour = CommandBehaviour.ParentPage
+                            )
+                        )
+                    )
                 )
             )
         }

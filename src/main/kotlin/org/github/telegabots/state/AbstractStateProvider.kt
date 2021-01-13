@@ -1,5 +1,7 @@
 package org.github.telegabots.state
 
+import org.github.telegabots.api.StateItem
+import org.github.telegabots.api.StateKey
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 

@@ -1,8 +1,8 @@
 package org.github.telegabots.util
 
 import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.StateRef
 import org.github.telegabots.api.SubCommand
-import org.github.telegabots.state.State
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -30,12 +30,12 @@ class SubCommandTests {
 
     @Test
     fun testCreateSubCommandByCommandClassWithEmptyState() {
-        val expected = SubCommand(handler = FooBarCommand::class.java, titleId = "FOO_BAR", state = State.Empty)
+        val expected = SubCommand(handler = FooBarCommand::class.java, titleId = "FOO_BAR", state = StateRef.Empty)
 
-        assertEquals(expected, SubCommand.of(FooBarCommand::class.java, State.Empty))
-        assertEquals(expected, SubCommand.of(FooBarCommand::class.java, titleId = "FOO_BAR", state = State.Empty))
-        assertEquals(expected, SubCommand.of<FooBarCommand>(state = State.Empty))
-        assertEquals(expected, SubCommand.of<FooBarCommand>(titleId = "FOO_BAR", state = State.Empty))
+        assertEquals(expected, SubCommand.of(FooBarCommand::class.java, StateRef.Empty))
+        assertEquals(expected, SubCommand.of(FooBarCommand::class.java, titleId = "FOO_BAR", state = StateRef.Empty))
+        assertEquals(expected, SubCommand.of<FooBarCommand>(state = StateRef.Empty))
+        assertEquals(expected, SubCommand.of<FooBarCommand>(titleId = "FOO_BAR", state = StateRef.Empty))
     }
 
     @Test

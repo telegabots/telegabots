@@ -1,7 +1,7 @@
 package org.github.telegabots.state
 
-import org.github.telegabots.api.entity.CommandBlock
-import org.github.telegabots.api.entity.CommandPage
+import org.github.telegabots.entity.CommandBlock
+import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.StateDef
 import java.util.concurrent.atomic.AtomicLong
 

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Update
+import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
@@ -90,6 +91,66 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     ) {
         // TODO: check method was called
         log.info("updateMessage: chatId: $chatId, messageId: $messageId, message: $message")
+    }
+
+    override fun sendDocument(
+        chatId: String,
+        file: File,
+        caption: String,
+        captionContentType: ContentType,
+        disableNotification: Boolean
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun sendVideo(
+        chatId: String,
+        fileId: String,
+        caption: String,
+        captionContentType: ContentType,
+        disableNotification: Boolean
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun sendVideo(
+        chatId: String,
+        file: File,
+        caption: String,
+        captionContentType: ContentType,
+        disableNotification: Boolean
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun sendImages(
+        chatId: String,
+        files: Array<String>,
+        captionContentType: ContentType,
+        disableNotification: Boolean,
+        caption: String
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun sendImages(
+        chatId: String,
+        files: List<File>,
+        caption: String,
+        captionContentType: ContentType,
+        disableNotification: Boolean
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun sendImage(
+        chatId: String,
+        file: File,
+        caption: String,
+        captionContentType: ContentType,
+        disableNotification: Boolean
+    ) {
+        TODO("Not yet implemented")
     }
 
     override fun executed(command: BaseCommand, messageType: MessageType) {

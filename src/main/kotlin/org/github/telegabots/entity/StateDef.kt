@@ -1,6 +1,7 @@
 package org.github.telegabots.entity
 
-import org.github.telegabots.state.StateKey
+import org.github.telegabots.api.StateKey
+
 
 data class StateDef(val items: List<StateItemDef>) {
     companion object {

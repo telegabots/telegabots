@@ -1,5 +1,8 @@
 package org.github.telegabots.state
 
+import org.github.telegabots.api.StateItem
+import org.github.telegabots.api.StateKey
+
 interface States {
     /**
      * Gets state by type and name
@@ -27,22 +30,6 @@ interface StateProvider {
     fun flush()
 
     fun canFlush(): Boolean
-}
-
-data class State(val items: List<StateItem>) {
-    companion object {
-        @JvmField
-        val Empty = State(emptyList())
-    }
-}
-
-data class StateItem(val key: StateKey,
-                     val value: Any) {
-    fun equals(type: Class<*>, name: String) = key.equals(type, name)
-}
-
-data class StateKey(val type: Class<*>, val name: String) {
-    fun equals(type: Class<*>, name: String) = this.type == type && this.name == name
 }
 
 enum class StateKind {

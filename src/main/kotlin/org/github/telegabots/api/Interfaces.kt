@@ -1,8 +1,8 @@
 package org.github.telegabots.api
 
-import org.github.telegabots.state.State
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
+import java.io.File
 import java.util.function.Consumer
 import java.util.regex.Pattern
 
@@ -46,6 +46,8 @@ interface CommandContext : UserContext, CommandExecutor {
      * Returns updated/created page id
      */
     fun updatePage(page: Page): Long
+
+    fun sendDocument(document: Document)
 
     fun sendAdminMessage(
         message: String,
@@ -104,25 +106,101 @@ data class Page(
     val id: Long = 0L
 )
 
+data class Document(
+    val file: File,
+    val caption: String = "",
+    val captionContentType: ContentType = ContentType.Plain,
+    val disableNotification: Boolean = false,
+    val chatId: String = ""
+) {
+    companion object {
+        @JvmStatic
+        fun of(
+            file: File,
+            caption: String = "",
+            captionContentType: ContentType = ContentType.Plain,
+            disableNotification: Boolean = false,
+            chatId: String = ""
+        ) =
+            Document(
+                file = file,
+                caption = caption,
+                captionContentType = captionContentType,
+                disableNotification = disableNotification,
+                chatId = chatId
+            )
+    }
+}
+
+data class StateRef(val items: List<StateItem>) {
+    companion object {
+        @JvmField
+        val Empty = StateRef(emptyList())
+
+        @JvmStatic
+        fun of(vararg objs: Any): StateRef = StateRef(objs.map { StateItem(key = StateKey.from(it), value = it) })
+    }
+}
+
+data class StateItem(
+    val key: StateKey,
+    val value: Any
+) {
+    fun equals(type: Class<*>, name: String) = key.equals(type, name)
+}
+
+data class StateKey(val type: Class<*>, val name: String) {
+    fun equals(type: Class<*>, name: String) = this.type == type && this.name == name
+
+    companion object {
+        @JvmStatic
+        fun from(obj: Any, name: String = "") = StateKey(type = obj.javaClass, name = name)
+    }
+}
+
 data class SubCommand(
     val titleId: String,
     val title: String? = null,
     val handler: Class<out BaseCommand>? = null,
-    val state: State? = null
+    val state: StateRef? = null,
+    val behaviour: CommandBehaviour = CommandBehaviour.SeparatePage
 ) {
     companion object {
-        fun of(titleId: String): SubCommand = SubCommand(titleId = titleId)
-
-        inline fun <reified T : BaseCommand> of(state: State? = null, titleId: String = "") =
-            of(T::class.java, state, titleId)
+        inline fun <reified T : BaseCommand> of(
+            state: StateRef? = null,
+            titleId: String = "",
+            title: String? = null,
+            behaviour: CommandBehaviour = CommandBehaviour.SeparatePage
+        ) =
+            of(T::class.java, state, titleId, title, behaviour)
 
         @JvmStatic
-        fun of(handler: Class<out BaseCommand>, state: State? = null, titleId: String = ""): SubCommand =
-            SubCommand(
-                titleId = if (titleId.isNotBlank()) titleId else titleIdOf(handler),
-                handler = handler,
-                state = state
-            )
+        fun of(
+            titleId: String,
+            title: String? = null,
+            state: StateRef? = null,
+            behaviour: CommandBehaviour = CommandBehaviour.SeparatePage
+        ): SubCommand = SubCommand(
+            titleId = titleId,
+            title = title,
+            behaviour = behaviour,
+            state = state
+        )
+
+        @JvmStatic
+        fun of(
+            handler: Class<out BaseCommand>,
+            state: StateRef? = null,
+            titleId: String = "",
+            title: String? = null,
+            behaviour: CommandBehaviour = CommandBehaviour.SeparatePage
+        ): SubCommand = SubCommand(
+            titleId = if (titleId.isNotBlank()) titleId else titleIdOf(handler),
+            handler = handler,
+            state = state,
+            title = title,
+            behaviour = behaviour
+        )
 
         @JvmStatic
         fun titleIdOf(handler: Class<out BaseCommand>): String =
@@ -144,8 +222,8 @@ interface MessageSender {
     fun sendMessage(
         chatId: String,
         message: String,
-        contentType: ContentType,
-        disablePreview: Boolean = true,
+        contentType: ContentType = ContentType.Plain,
+        disablePreview: Boolean = false,
         preSendHandler: Consumer<SendMessage> = Consumer { }
     ): Int
 
@@ -156,9 +234,75 @@ interface MessageSender {
         chatId: String,
         messageId: Int,
         message: String,
-        contentType: ContentType,
-        disablePreview: Boolean = true,
+        contentType: ContentType = ContentType.Plain,
+        disablePreview: Boolean = false,
         preSendHandler: Consumer<EditMessageText> = Consumer { }
+    )
+
+    /**
+     * Sends file to the chat
+     */
+    fun sendDocument(
+        chatId: String,
+        file: File,
+        caption: String,
+        captionContentType: ContentType = ContentType.Plain,
+        disableNotification: Boolean = false
+    )
+
+    /**
+     * Sends video to the chat
+     */
+    fun sendVideo(
+        chatId: String,
+        fileId: String,
+        caption: String,
+        captionContentType: ContentType,
+        disableNotification: Boolean
+    )
+
+    /**
+     * Sends video to the chat
+     */
+    fun sendVideo(
+        chatId: String,
+        file: File,
+        caption: String,
+        captionContentType: ContentType,
+        disableNotification: Boolean
+    )
+
+    /**
+     * Sends images to the chat
+     */
+    fun sendImages(
+        chatId: String,
+        files: Array<String>,
+        captionContentType: ContentType,
+        disableNotification: Boolean,
+        caption: String
+    )
+
+    /**
+     * Sends images to the chat
+     */
+    fun sendImages(
+        chatId: String,
+        files: List<File>,
+        caption: String,
+        captionContentType: ContentType,
+        disableNotification: Boolean
+    )
+
+    /**
+     * Sends image to the chat
+     */
+    fun sendImage(
+        chatId: String,
+        file: File,
+        caption: String,
+        captionContentType: ContentType,
+        disableNotification: Boolean
     )
 }
 
@@ -201,6 +345,23 @@ enum class MessageType {
     Inline
 }
 
+enum class CommandBehaviour {
+    /**
+     * Create separate page and separate state for command
+     */
+    SeparatePage,
+
+    /**
+     * Use parent page without parent local state
+     */
+    ParentPage,
+
+    /**
+     * Use parent page and parent local state
+     */
+    ParentPageState,
+}
+
 data class InputMessage(
     val type: MessageType,
     val query: String,
@@ -211,6 +372,7 @@ data class InputMessage(
 ) {
     init {
         check(userId != 0) { "UserId cannot be $userId" }
+        check(chatId != 0L) { "ChatId cannot be $chatId" }
     }
 
     fun toInputRefresh() = this.copy(query = SystemCommands.REFRESH)
