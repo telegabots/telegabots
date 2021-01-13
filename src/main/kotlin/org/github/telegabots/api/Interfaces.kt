@@ -278,9 +278,9 @@ interface MessageSender {
     fun sendImages(
         chatId: String,
         files: Array<String>,
+        caption: String,
         captionContentType: ContentType,
-        disableNotification: Boolean,
-        caption: String
+        disableNotification: Boolean
     )
 
     /**

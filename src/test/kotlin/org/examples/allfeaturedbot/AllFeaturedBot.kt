@@ -173,9 +173,9 @@ class AllFeaturedBot(private val config: BotConfig) : TelegramLongPollingBot(), 
     override fun sendImages(
         chatId: String,
         files: Array<String>,
+        caption: String,
         captionContentType: ContentType,
-        disableNotification: Boolean,
-        caption: String
+        disableNotification: Boolean
     ) {
         val images = SendMediaGroup()
         images.media = files.map { imageIds -> InputMediaPhoto().setMedia(imageIds) }
