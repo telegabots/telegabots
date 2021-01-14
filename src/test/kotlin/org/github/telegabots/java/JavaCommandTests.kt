@@ -1,22 +1,25 @@
 package org.github.telegabots.java
 
 import org.github.telegabots.BaseTests
-import org.github.telegabots.test.CommandAssert.assertNotCalled
-import org.github.telegabots.test.CommandAssert.assertWasCalled
+import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Test
-import kotlin.test.assertTrue
 
 class JavaCommandTests : BaseTests() {
     @Test
     fun testCommand_Success_JavaCommandCall() {
-        val executor = createExecutor(JavaSimpleCommand::class.java)
-        val update = createAnyTextMessage()
+        scenario<JavaSimpleCommand> {
+            assertThat {
+                rootNotCalled()
+            }
 
-        assertNotCalled<JavaSimpleCommand>()
+            user {
+                sendTextMessage("Command in java)")
+            }
 
-        val success = executor.handle(update)
-
-        assertWasCalled<JavaSimpleCommand>()
-        assertTrue(success)
+            assertThat {
+                rootWasCalled(1)
+                commandReturnTrue()
+            }
+        }
     }
 }

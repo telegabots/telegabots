@@ -16,6 +16,8 @@ object CommandContextSupport : CommandContext {
             ?: throw IllegalStateException("Command context not initialized for current command")
     }
 
+    override fun inlineMessageId(): Int? = current().inlineMessageId()
+
     override fun blockId(): Long = current().blockId()
 
     override fun pageId(): Long = current().pageId()
@@ -48,6 +50,6 @@ object CommandContextSupport : CommandContext {
     override fun executeTextCommand(handler: Class<out BaseCommand>, text: String): Boolean =
         current().executeTextCommand(handler, text)
 
-    override fun executeInlineCommand(handler: Class<out BaseCommand>, messageId: Int, query: String): Boolean =
-        current().executeInlineCommand(handler, messageId, query)
+    override fun executeInlineCommand(handler: Class<out BaseCommand>, query: String): Boolean =
+        current().executeInlineCommand(handler, query)
 }

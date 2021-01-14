@@ -1,16 +1,15 @@
 package org.github.telegabots.handler
 
-import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
+import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
-import org.github.telegabots.test.CommandAssert.assertNotCalled
-import org.github.telegabots.test.CommandAssert.assertWasCalled
 import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class InlineHandlerTests : BaseTests() {
     @Test
@@ -20,7 +19,7 @@ class InlineHandlerTests : BaseTests() {
         }
 
         assertEquals(
-            "Handler must contains at least two parameters: public final void org.github.telegabots.handler.InvalidInlineCommandWithoutAnyParam.handle()",
+            "Handler must contains at least one parameter: public final void org.github.telegabots.handler.InvalidInlineCommandWithoutAnyParam.handle()",
             ex.message
         )
     }
@@ -32,7 +31,7 @@ class InlineHandlerTests : BaseTests() {
         }
 
         assertEquals(
-            "Handler must contains at least two parameters: public final void org.github.telegabots.handler.InvalidInlineCommandWithOnlyIntParam.handle(int)",
+            "First parameter must be String but found int in handler public final void org.github.telegabots.handler.InvalidInlineCommandWithOnlyIntParam.handle(int)",
             ex.message
         )
     }
@@ -44,44 +43,41 @@ class InlineHandlerTests : BaseTests() {
         }
 
         assertEquals(
-            "First two parameters must be Integer and String (or vice versa) in handler public final void org.github.telegabots.handler.InvalidInlineCommandWithTwoIntParams.handle(int,int)",
+            "First parameter must be String but found int in handler public final void org.github.telegabots.handler.InvalidInlineCommandWithTwoIntParams.handle(int,int)",
             ex.message
         )
     }
 
     @Test
     fun testCommand_Fail_WhenHandlerWithOnlyTwoStringParams() {
-        val ex = assertThrows<IllegalStateException> {
-            scenario<InvalidInlineCommandWithTwoStringParams> { }
+        scenario<ValidInlineCommandWithTwoStringParams> {
+            assertThat {
+                notCalled<ValidInlineCommandWithTwoStringParams>()
+            }
+
+            user { sendInlineMessage(12357, "XXX") }
+
+            assertThat {
+                wasCalled<ValidInlineCommandWithTwoStringParams>(1)
+            }
         }
-        assertEquals(
-            "First two parameters must be Integer and String (or vice versa) in handler public final void org.github.telegabots.handler.InvalidInlineCommandWithTwoStringParams.handle(java.lang.String,java.lang.String)",
-            ex.message
-        )
-    }
-
-    @Test
-    fun testCommand_Success_WhenHandlerWithIntStringParams() {
-        val executor = createExecutor(ValidInlineCommandIntString::class.java)
-        val update = createAnyInlineMessage(messageId = 4273, callbackData = "IntString")
-
-        assertNotCalled<ValidInlineCommandIntString>()
-
-        executor.handle(update)
-
-        assertWasCalled<ValidInlineCommandIntString>()
     }
 
     @Test
     fun testCommand_Success_WhenHandlerWithStringIntParams() {
-        val executor = createExecutor(ValidInlineCommandStringInt::class.java)
-        val update = createAnyInlineMessage(messageId = 55557, callbackData = "StringInt")
+        scenario<ValidInlineCommandStringInt> {
+            assertThat {
+                notCalled<ValidInlineCommandStringInt>()
+            }
 
-        assertNotCalled<ValidInlineCommandStringInt>()
+            user {
+                sendInlineMessage(messageId = 55557, callbackData = "StringInt")
+            }
 
-        executor.handle(update)
-
-        assertWasCalled<ValidInlineCommandStringInt>()
+            assertThat {
+                wasCalled<ValidInlineCommandStringInt>(1)
+            }
+        }
     }
 }
 
@@ -106,30 +102,26 @@ internal class InvalidInlineCommandWithTwoIntParams() : BaseCommand() {
     }
 }
 
-internal class InvalidInlineCommandWithTwoStringParams() : BaseCommand() {
+internal class ValidInlineCommandWithTwoStringParams() : BaseCommand() {
     @InlineHandler
-    fun handle(first: String, second: String) {
-        CODE_NOT_REACHED()
-    }
-}
-
-internal class ValidInlineCommandIntString() : BaseCommand() {
-    @InlineHandler
-    fun handle(message: String, messageId: Int) {
-        assertEquals(4273, messageId)
-        assertEquals("IntString", message)
+    fun handle(first: String, second: String?) {
+        assertEquals(12357, context.inlineMessageId())
+        assertEquals("XXX", first)
+        assertNull(second)
     }
 
     @TextHandler
     fun handle(message: String) {
+        CODE_NOT_REACHED()
     }
 }
 
 internal class ValidInlineCommandStringInt() : BaseCommand() {
     @InlineHandler
-    fun handle(message: String, messageId: Int) {
-        assertEquals(55557, messageId)
+    fun handleInline(message: String, someInt: Int?) {
+        assertEquals(55557, context.inlineMessageId())
         assertEquals("StringInt", message)
+        assertNull(someInt)
     }
 
     @TextHandler

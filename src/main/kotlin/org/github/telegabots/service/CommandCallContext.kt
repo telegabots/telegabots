@@ -9,11 +9,13 @@ import org.slf4j.LoggerFactory
 /**
  * Composing command handler, input message and state
  */
-class CommandCallContext(private val commandHandler: CommandHandler,
-                         private val input: InputMessage,
-                         private val states: States,
-                         private val commandContext: CommandContext,
-                         private val defaultContext: () -> CommandCallContext?) {
+class CommandCallContext(
+    private val commandHandler: CommandHandler,
+    private val input: InputMessage,
+    private val states: States,
+    private val commandContext: CommandContext,
+    private val defaultContext: () -> CommandCallContext?
+) {
     private val log = LoggerFactory.getLogger(CommandCallContext::class.java)
 
     fun execute(): Boolean {
@@ -24,7 +26,7 @@ class CommandCallContext(private val commandHandler: CommandHandler,
         val success = when (input.type) {
             MessageType.Text -> commandHandler.executeText(input.query, states, commandContext)
             MessageType.Inline -> {
-                commandHandler.executeInline(input.messageId!!, input.query, states, commandContext)
+                commandHandler.executeInline(input.query, states, commandContext)
                 true
             }
         }
@@ -36,8 +38,10 @@ class CommandCallContext(private val commandHandler: CommandHandler,
             val defaultContext = defaultContext()
 
             if (defaultContext != null) {
-                log.warn("Call default context ({}). Because command '{}' cannot handle input message: {}",
-                        defaultContext, commandHandler, input)
+                log.warn(
+                    "Call default context ({}). Because command '{}' cannot handle input message: {}",
+                    defaultContext, commandHandler, input
+                )
                 return defaultContext.execute()
             }
         }

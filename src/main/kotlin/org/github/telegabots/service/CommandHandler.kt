@@ -47,12 +47,12 @@ class CommandHandler(
         }
     }
 
-    fun executeInline(messageId: Int, data: String, states: States, context: CommandContext) {
+    fun executeInline(data: String, states: States, context: CommandContext) {
         checkNotNull(inlineHandler) { "Inline message handler not implemented in ${command.javaClass.name}. Annotate method with @InlineHandler" }
 
         try {
             setContext(context)
-            inlineHandler.executeInline(messageId, data, states, context)
+            inlineHandler.executeInline(data, states, context)
 
             try {
                 commandInterceptor.executed(command, MessageType.Inline)

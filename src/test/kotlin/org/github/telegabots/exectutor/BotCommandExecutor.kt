@@ -22,7 +22,6 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     private val messageIdCounter = AtomicInteger(100_000)
     private val serviceProvider = mock(ServiceProvider::class.java)
     private val dbProvider = MemoryStateDbProvider()
-    private val jsonService = JsonService()
     private val userLocalizationFactory = mock(UserLocalizationFactory::class.java)
     private val localProviders = mutableMapOf<Int, TestUserLocalizationProvider>()
     private val telegaBot: TelegaBot
@@ -126,9 +125,9 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     override fun sendImages(
         chatId: String,
         files: Array<String>,
+        caption: String,
         captionContentType: ContentType,
-        disableNotification: Boolean,
-        caption: String
+        disableNotification: Boolean
     ) {
         TODO("Not yet implemented")
     }

@@ -1,103 +1,99 @@
 package org.github.telegabots.handler
 
-import org.github.telegabots.*
-import org.github.telegabots.api.annotation.TextHandler
+import org.github.telegabots.BaseTests
+import org.github.telegabots.CODE_NOT_REACHED
 import org.github.telegabots.api.*
-import org.github.telegabots.error.CommandInvokeException
+import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.test.CommandAssert.assertNotCalled
-import org.github.telegabots.test.CommandAssert.assertWasCalled
 import org.github.telegabots.test.CommandAssert.resetCalled
+import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class CommandContextTests : BaseTests() {
-    companion object {
-        const val USER_ID: Int = 55998866
-    }
-
     @Test
     fun testWhenInnerCommandInvoked() {
-        val executor = createExecutor(CommandUsesCommandContext::class.java)
-        val update1 = createAnyTextMessage(userId = USER_ID)
-        executor.addLocalization(USER_ID, "commandId1" to "Command Id Title")
+        scenario<CommandUsesCommandContext> {
+            user {
+                resetCalled<CommandUsesCommandContext>()
+                addLocalization("commandId1" to "Command Id Title")
+                sendTextMessage("foo bar 2")
+            }
 
-        resetCalled<CommandUsesCommandContext>()
+            assertThat {
+                wasCalled<CommandUsesCommandContext>(1)
+                notCalled<AnotherCommand>()
+            }
 
-        val success1 = executor.handle(update1)
+            user {
+                sendTextMessage("Command Id Title")
+            }
 
-        assertWasCalled<CommandUsesCommandContext>()
-        assertTrue(success1)
-
-        val update2 = createAnyTextMessage(messageText = "Command Id Title", userId = USER_ID)
-
-        assertNotCalled<AnotherCommand>()
-
-        val success2 = executor.handle(update2)
-
-        assertWasCalled<CommandUsesCommandContext>(1)
-        assertTrue(success2)
-        assertWasCalled<AnotherCommand>()
+            assertThat {
+                wasCalled<CommandUsesCommandContext>(1)
+                wasCalled<AnotherCommand>(1)
+            }
+        }
     }
 
     @Test
     fun testWhenInnerCommandNotInvoked() {
-        val executor = createExecutor(CommandUsesCommandContext::class.java)
-        val update1 = createAnyTextMessage(userId = USER_ID)
-        executor.addLocalization(USER_ID, "commandId1" to "Command Id Title")
+        scenario<CommandUsesCommandContext> {
+            user {
+                resetCalled<CommandUsesCommandContext>()
+                addLocalization("commandId1" to "Command Id Title")
+                sendTextMessage("foo bar 2")
+            }
 
-        resetCalled<CommandUsesCommandContext>()
+            assertThat {
+                wasCalled<CommandUsesCommandContext>(1)
+                notCalled<AnotherCommand>()
+            }
 
-        val success1 = executor.handle(update1)
+            user {
+                sendTextMessage("Command Id Title 2")
+            }
 
-        assertWasCalled<CommandUsesCommandContext>()
-        assertTrue(success1)
-
-        val update2 = createAnyTextMessage(messageText = "Command Id Title 2", userId = USER_ID)
-
-        assertNotCalled<AnotherCommand>()
-
-        val success2 = executor.handle(update2)
-
-        assertWasCalled<CommandUsesCommandContext>(2)
-        assertTrue(success2)
-        assertNotCalled<AnotherCommand>()
+            assertThat {
+                wasCalled<CommandUsesCommandContext>(2)
+                notCalled<AnotherCommand>()
+            }
+        }
     }
 
     @Test
     fun testCommand_Fail_WhenHandlerUseCommandContextAsParam() {
-        val executor = createExecutor(CommandWithCommandContextParam::class.java)
-        val update = createAnyTextMessage()
-
-        assertNotCalled<CommandWithCommandContextParam>()
-
-        val ex = assertThrows<CommandInvokeException> { executor.handle(update) }
+        val ex = assertThrows<IllegalStateException> { scenario<CommandWithCommandContextParam> {}}
 
         assertEquals(
-            "CommandContext can not be used as handler parameter. Use \"context\" field instead",
-            ex.cause!!.message
+            "CommandContext can not be used as handler parameter. Use \"context\" field instead. Handler: public final void org.github.telegabots.handler.CommandWithCommandContextParam.handle(java.lang.String,org.github.telegabots.api.CommandContext)",
+            ex.message
         )
-        assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
-        assertEquals(CommandWithCommandContextParam::class.java, ex.command)
         assertNotCalled<CommandWithCommandContextParam>()
     }
 
     @Test
     fun testCommandContextNotAccessibleAfterHandler() {
-        val executor = createExecutor(CommandContextHolder::class.java)
-        val update1 = createAnyTextMessage()
+        scenario<CommandContextHolder> {
+            assertThat {
+                rootNotCalled()
+                assertNull(CommandContextHolder.usedContext)
+            }
 
-        assertNotCalled<CommandContextHolder>()
-        assertNull(CommandContextHolder.usedContext)
+            user {
+                sendTextMessage("pupa")
+            }
 
-        executor.handle(update1)
+            assertThat {
+                wasCalled<CommandContextHolder>(1)
+                assertNotNull(CommandContextHolder.usedContext)
 
-        assertWasCalled<CommandContextHolder>()
-        assertNotNull(CommandContextHolder.usedContext)
+                val ex = assertThrows<IllegalStateException> { CommandContextHolder.usedContext!!.currentCommand() }
 
-        val ex = assertThrows<IllegalStateException> { CommandContextHolder.usedContext!!.currentCommand() }
-
-        assertEquals("Command context not initialized for current command", ex.message)
+                assertEquals("Command context not initialized for current command", ex.message)
+            }
+        }
     }
 }
 

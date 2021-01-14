@@ -1,22 +1,16 @@
 package org.github.telegabots.handler
 
-import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
-import org.github.telegabots.api.InputMessage
+import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.error.CommandInvokeException
-import org.github.telegabots.test.CommandAssert.assertNotCalled
-import org.github.telegabots.test.CommandAssert.assertWasCalled
 import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.text.ParseException
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
-import kotlin.test.fail
 
 /**
  * Tests related with annotation TextHandler
@@ -47,42 +41,57 @@ class TextHandlerTests : BaseTests() {
     }
 
     @Test
-    fun testCommand_Success_WhenHandlerNotReturnsBool() {
-        val executor = createExecutor(SimpleCommandWithoutBoolReturn::class.java)
-        val update = createAnyTextMessage()
+    fun testCommand_Success_WhenHandlerReturnsVoid() {
+        scenario<SimpleCommandReturnsVoid> {
+            assertThat {
+                rootNotCalled()
+            }
 
-        assertNotCalled<SimpleCommandWithoutBoolReturn>()
+            user {
+                sendTextMessage("Make Kotlin GA!")
+            }
 
-        val success = executor.handle(update)
-
-        assertWasCalled<SimpleCommandWithoutBoolReturn>()
-        assertTrue(success)
+            assertThat {
+                rootWasCalled(1)
+                commandReturnTrue()
+            }
+        }
     }
 
     @Test
     fun testCommand_Success_WhenHandlerReturnsBool() {
-        val executor = createExecutor(SimpleCommandReturnsBool::class.java)
-        val update = createAnyTextMessage()
+        scenario<SimpleCommandReturnsBool> {
+            assertThat {
+                rootNotCalled()
+            }
 
-        assertNotCalled<SimpleCommandReturnsBool>()
+            user {
+                sendTextMessage("Make Kotlin Great!")
+            }
 
-        val success = executor.handle(update)
-
-        assertWasCalled<SimpleCommandReturnsBool>()
-        assertFalse(success)
+            assertThat {
+                rootWasCalled(1)
+                commandReturnFalse()
+            }
+        }
     }
 
     @Test
     fun testCommand_Success_WhenHandlerInherited() {
-        val executor = createExecutor(InheritSimpleCommand::class.java)
-        val update = createAnyTextMessage()
+        scenario<InheritSimpleCommand> {
+            assertThat {
+                rootNotCalled()
+            }
 
-        assertNotCalled<InheritSimpleCommand>()
+            user {
+                sendTextMessage("Make Java Great!")
+            }
 
-        val success = executor.handle(update)
-
-        assertWasCalled<InheritSimpleCommand>()
-        assertFalse(success)
+            assertThat {
+                rootWasCalled(1)
+                commandReturnFalse()
+            }
+        }
     }
 
     @Test
@@ -111,13 +120,19 @@ class TextHandlerTests : BaseTests() {
 
     @Test
     fun testCommand_WhenHandlerThrowsError() {
-        val executor = createExecutor(SimpleCommandThrowsError::class.java)
-        val update = createAnyTextMessage()
-        val ex = assertThrows<CommandInvokeException> { executor.handle(update) }
+        scenario<SimpleCommandThrowsError> {
+            assertThat { rootNotCalled() }
 
-        assertEquals(ParseException::class.java, ex.cause!!::class.java)
-        assertEquals("Command must throw error", ex.cause?.message)
-        assertEquals(SimpleCommandThrowsError::class.java, ex.command)
+            user {
+                val ex = assertThrows<CommandInvokeException> { sendTextMessage("!?!") }
+
+                assertEquals(ParseException::class.java, ex.cause!!::class.java)
+                assertEquals("Command must throw error", ex.cause?.message)
+                assertEquals(SimpleCommandThrowsError::class.java, ex.command)
+            }
+
+            assertThat { rootNotCalled() }
+        }
     }
 }
 
@@ -156,7 +171,7 @@ internal class SimpleCommandThrowsError : BaseCommand() {
     }
 }
 
-internal class SimpleCommandWithoutBoolReturn : BaseCommand() {
+internal class SimpleCommandReturnsVoid : BaseCommand() {
     @TextHandler
     fun execute(text: String) {
     }

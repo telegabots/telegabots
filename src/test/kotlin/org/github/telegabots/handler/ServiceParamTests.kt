@@ -5,36 +5,50 @@ import org.github.telegabots.BaseTests
 import org.github.telegabots.api.Service
 import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.error.CommandInvokeException
-import org.github.telegabots.test.CommandAssert.assertNotCalled
-import org.github.telegabots.test.CommandAssert.assertWasCalled
+import org.github.telegabots.test.scenario
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertEquals
 
 class ServiceParamTests : BaseTests() {
     @Test
     fun testServiceCall_Success_WhenServiceRegistered() {
-        val executor = createExecutor(CommandWithServiceParam::class.java)
-        val update = createAnyTextMessage(messageText = "Hello from client!")
-        executor.addService(SimpleTestService::class.java, SimpleTestService())
+        scenario<CommandWithServiceParam> {
+            addService(SimpleTestService::class.java, SimpleTestService())
+            resetRootCall()
 
-        assertNotCalled<CommandWithServiceParam>()
+            assertThat {
+                assertFalse(SimpleTestService.calledWith("Ruslan"))
+            }
 
-        executor.handle(update)
+            user {
+                sendTextMessage("Hello from client!")
+            }
 
-        assertWasCalled<CommandWithServiceParam>()
+            assertThat {
+                rootWasCalled(1)
+                assertTrue(SimpleTestService.calledWith("Ruslan"))
+            }
+        }
     }
 
     @Test
     fun testServiceCall_Fail_WhenServiceNotRegistered() {
-        val executor = createExecutor(CommandWithServiceParam::class.java)
-        val update = createAnyTextMessage(messageText = "Hello from client!")
+        scenario<CommandWithServiceParam> {
+            resetRootCall()
 
-        val ex = assertThrows<CommandInvokeException> { executor.handle(update) }
+            user {
+                val ex = assertThrows<CommandInvokeException> { sendTextMessage("Hello from client!") }
 
-        assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
-        assertEquals(CommandWithServiceParam::class.java, ex.command)
-        assertEquals("Service not found: org.github.telegabots.handler.SimpleTestService", ex.cause?.message)
+                assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
+                assertEquals(CommandWithServiceParam::class.java, ex.command)
+                assertEquals("Service not found: org.github.telegabots.handler.SimpleTestService", ex.cause?.message)
+            }
+
+            assertThat {
+                rootNotCalled()
+            }
+        }
     }
 }
 
@@ -47,5 +61,15 @@ internal class CommandWithServiceParam : BaseCommand() {
 }
 
 internal class SimpleTestService : Service {
-    fun greet(name: String): String = "Hello from service, $name"
+    fun greet(name: String): String {
+        calledNames.add(name)
+
+        return "Hello from service, $name"
+    }
+
+    companion object {
+        private val calledNames = mutableListOf<String>()
+
+        fun calledWith(name: String) = calledNames.contains(name)
+    }
 }

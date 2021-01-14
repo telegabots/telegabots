@@ -186,7 +186,7 @@ class ValidationTextHandlerRootCommand : BaseCommand() {
 
 class CommandWithOnlyInlineHandler : BaseCommand() {
     @InlineHandler
-    fun handleInline(msg: String, messageId: Int) {
+    fun handleInline(msg: String) {
     }
 }
 

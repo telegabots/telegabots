@@ -7,7 +7,7 @@ import java.io.File
 
 class FileDownloadCommand : BaseCommand() {
     @InlineHandler
-    fun handle(message: String, messageId: Int, downloadPath: String) {
+    fun handle(message: String, downloadPath: String) {
         log.info("Download file: {}, message: {}", downloadPath, message)
 
         val file = File(downloadPath)

@@ -7,7 +7,7 @@ import java.util.*
 
 class FileExplorerCommand : BaseCommand() {
     @InlineHandler
-    fun index(message: String, messageId: Int, currentDir: State<String>) {
+    fun index(message: String, currentDir: State<String>) {
         val currentPath = currentDir.get() ?: "/"
         val nextPath = when (message) {
             SystemCommands.REFRESH -> currentPath
@@ -18,13 +18,14 @@ class FileExplorerCommand : BaseCommand() {
         currentDir.set(nextPath)
         val currentFile = File(nextPath)
 
+        log.debug("currentPath: {}, nextPath: {}", currentPath, nextPath)
+
         if (currentFile.isDirectory) {
-            val files = currentFile.listFiles()
+            val files = currentFile.listFiles() ?: emptyArray()
             files.sortBy { it.name }
             val allFiles = files.map { SubCommand.of(it.name, if (it.isDirectory) "[${it.name}]" else it.name) }
                 .toMutableList()
 
-            log.debug("currentPath: {}, nextPath: {}, files count: {}", currentPath, nextPath, allFiles.size)
 
             if (nextPath != "/") {
                 allFiles.add(0, SubCommand.of(UP_DIR))
@@ -42,7 +43,7 @@ class FileExplorerCommand : BaseCommand() {
                 Page(
                     """
                         Files of directory: *$nextPath*
-                        Count: ${allFiles.size}
+                        Count: ${allFiles.size - 1}
                     """.trimIndent(),
                     contentType = ContentType.Markdown,
                     messageType = MessageType.Inline,

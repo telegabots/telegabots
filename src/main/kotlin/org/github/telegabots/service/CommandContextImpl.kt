@@ -24,6 +24,9 @@ class CommandContextImpl(
     private val messageSender: MessageSender
 ) : CommandContext {
     private val log = LoggerFactory.getLogger(CommandContextImpl::class.java)!!
+
+    override fun inlineMessageId(): Int? = input.messageId
+
     override fun blockId(): Long = blockId
 
     override fun pageId(): Long = pageId
@@ -207,7 +210,8 @@ class CommandContextImpl(
      *
      * TODO: providing local state from caller
      */
-    override fun executeInlineCommand(clazz: Class<out BaseCommand>, messageId: Int, query: String): Boolean {
+    override fun executeInlineCommand(clazz: Class<out BaseCommand>, query: String): Boolean {
+        val messageId = input.messageId ?: throw IllegalStateException("Inline command can be executed only in inline message context")
         val newInput = input.copy(query = query, messageId = messageId, type = MessageType.Inline)
         val handler = commandHandlers.getCommandHandler(clazz.name)
         val states = userState.getStates()

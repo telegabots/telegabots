@@ -5,6 +5,7 @@ import org.github.telegabots.BaseTests
 import org.github.telegabots.api.State
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
+import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Test
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertEquals
@@ -15,54 +16,66 @@ import kotlin.test.assertTrue
 class StateParamTests : BaseTests() {
     @Test
     fun testCommand_Success_WhenHandlerWithStateParam() {
-        val executor = createExecutor(CommandWithStateParam::class.java)
-        val update = createAnyTextMessage(messageText = "Hello from client")
+        scenario<CommandWithStateParam> {
+            assertFalse(CommandWithStateParam.handlerCalled.get())
 
-        assertFalse(CommandWithStateParam.handlerCalled.get())
+            user {
+                sendTextMessage("Hello from client")
+            }
 
-        val success = executor.handle(update)
-
-        assertTrue(success)
-        assertTrue(CommandWithStateParam.handlerCalled.get())
+            assertThat {
+                commandReturnTrue()
+                assertTrue(CommandWithStateParam.handlerCalled.get())
+            }
+        }
     }
 
     @Test
     fun testCommand_Success_WhenInlineHandlerWithStateParam() {
-        val executor = createExecutor(CommandWithStateParam::class.java)
-        val update = createAnyInlineMessage(messageId = 445577, callbackData = "Hello from client callback")
+        scenario<CommandWithStateParam> {
+            assertFalse(CommandWithStateParam.inlineHandlerCalled.get())
 
-        assertFalse(CommandWithStateParam.inlineHandlerCalled.get())
+            user {
+                sendInlineMessage(messageId = 445577, callbackData = "Hello from client callback")
+            }
 
-        val success = executor.handle(update)
-
-        assertTrue(success)
-        assertTrue(CommandWithStateParam.inlineHandlerCalled.get())
+            assertThat {
+                commandReturnTrue()
+                assertTrue(CommandWithStateParam.inlineHandlerCalled.get())
+            }
+        }
     }
 
     @Test
     fun testCommand_Success_WhenHandlerWithReadonlyLocalStateParam() {
-        val executor = createExecutor(CommandWithReadonlyLocalState::class.java)
-        val update = createAnyTextMessage(messageText = "Hello!")
+        scenario<CommandWithReadonlyLocalState> {
+            assertFalse(CommandWithReadonlyLocalState.handlerCalled.get())
 
-        assertFalse(CommandWithReadonlyLocalState.handlerCalled.get())
+            user {
+                sendTextMessage("Hello!")
+            }
 
-        val success = executor.handle(update)
-
-        assertTrue(success)
-        assertTrue(CommandWithReadonlyLocalState.handlerCalled.get())
+            assertThat {
+                commandReturnTrue()
+                assertTrue(CommandWithReadonlyLocalState.handlerCalled.get())
+            }
+        }
     }
 
     @Test
     fun testCommand_Success_WhenHandlerWithInlineReadonlyLocalStateParam() {
-        val executor = createExecutor(CommandWithReadonlyLocalState::class.java)
-        val update = createAnyInlineMessage(messageId = 123987, callbackData = "Data2")
+        scenario<CommandWithReadonlyLocalState> {
+            assertFalse(CommandWithReadonlyLocalState.inlineHandlerCalled.get())
 
-        assertFalse(CommandWithReadonlyLocalState.inlineHandlerCalled.get())
+            user {
+                sendInlineMessage(messageId = 123987, callbackData = "Data2")
+            }
 
-        val success = executor.handle(update)
-
-        assertTrue(success)
-        assertTrue(CommandWithReadonlyLocalState.inlineHandlerCalled.get())
+            assertThat {
+                commandReturnTrue()
+                assertTrue(CommandWithReadonlyLocalState.inlineHandlerCalled.get())
+            }
+        }
     }
 }
 
@@ -82,9 +95,9 @@ internal class CommandWithStateParam : BaseCommand() {
     }
 
     @InlineHandler
-    fun handleInline(msg: String, messageId: Int, doubleState: State<Double>) {
+    fun handleInline(msg: String, doubleState: State<Double>) {
         assertEquals("Hello from client callback", msg)
-        assertEquals(445577, messageId)
+        assertEquals(445577, context.inlineMessageId())
         assertFalse(doubleState.isPresent())
         assertNull(doubleState.get())
 
@@ -112,9 +125,9 @@ internal class CommandWithReadonlyLocalState : BaseCommand() {
     }
 
     @InlineHandler
-    fun handleInline(messageId: Int, message: String, readOnlyState: String?) {
+    fun handleInline(message: String, readOnlyState: String?) {
         assertEquals("Data2", message)
-        assertEquals(123987, messageId)
+        assertEquals(123987, context.inlineMessageId())
         assertNull(readOnlyState)
 
         inlineHandlerCalled.set(true)

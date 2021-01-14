@@ -28,14 +28,13 @@ object CommandClassUtil {
     }
 
     private fun checkInlineHandler(handler: HandlerInfo) {
-        check(handler.params.size >= 2) { "Handler must contains at least two parameters: ${handler.method}" }
+        check(handler.params.isNotEmpty()) { "Handler must contains at least one parameter: ${handler.method}" }
 
         val firstParam = handler.params[0]
-        val secondParam = handler.params[1]
 
-        check(firstParam.isString() && secondParam.isInteger() || firstParam.isInteger() && secondParam.isString())
-        { "First two parameters must be Integer and String (or vice versa) in handler ${handler.method}" }
+        check(firstParam.isString()) { "First parameter must be String but found ${firstParam.type.name} in handler ${handler.method}" }
         check(handler.isVoidReturnType()) { "Handler must return void type but it returns ${handler.retType} in method ${handler.method}" }
+        check(handler.params.none { it.isContext() }) { "CommandContext can not be used as handler parameter. Use \"context\" field instead. Handler: ${handler.method}" }
     }
 
     private fun checkTextHandler(handler: HandlerInfo) {
@@ -45,6 +44,7 @@ object CommandClassUtil {
 
         check(firstParam.isString()) { "First parameter must be String but found ${firstParam.type.name} in handler ${handler.method}" }
         check(handler.isValidReturnType()) { "Handler must return bool or void but it returns ${handler.retType} in method ${handler.method}" }
+        check(handler.params.none { it.isContext() }) { "CommandContext can not be used as handler parameter. Use \"context\" field instead. Handler: ${handler.method}" }
     }
 
     private fun mapHandler(method: Method, command: BaseCommand): HandlerInfo? {

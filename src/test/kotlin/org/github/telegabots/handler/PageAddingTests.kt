@@ -154,14 +154,14 @@ internal class TextCommandAddingPage : BaseCommand() {
 }
 
 internal class InlineCommandAddingPage : BaseCommand() {
+    @InlineHandler
+    fun handleInline(message: String) {
+        context.addPage(Page("new inline content", messageType = MessageType.Inline))
+    }
+
     @TextHandler
     fun handle(message: String) {
         context.addPage(Page("Inline text", messageType = MessageType.Inline))
-    }
-
-    @InlineHandler
-    fun handleInline(message: String, messageId: Int) {
-        context.addPage(Page("new inline content", messageType = MessageType.Inline))
     }
 }
 
@@ -172,7 +172,7 @@ internal class InvalidCommandTextMessageAfterInline : BaseCommand() {
     }
 
     @InlineHandler
-    fun handleInline(message: String, messageId: Int) {
+    fun handleInline(message: String) {
         context.addPage(Page("must be inline but text", messageType = MessageType.Text))
     }
 }
@@ -188,7 +188,7 @@ internal class InvalidCommandInlineMessageAfterText : BaseCommand() {
     }
 
     @InlineHandler
-    fun handleInline(message: String, messageId: Int) {
+    fun handleInline(message: String) {
         CODE_NOT_REACHED()
     }
 }

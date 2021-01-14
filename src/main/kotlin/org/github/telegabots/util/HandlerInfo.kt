@@ -19,10 +19,6 @@ data class HandlerInfo(
         check(messageType == MessageType.Text) { "Invalid message type: $messageType" }
 
         try {
-            if (params.size == 1) {
-                return (method.invoke(command, text) ?: true) as Boolean
-            }
-
             val args = toArgs(text, states, context)
 
             return (method.invoke(command, *args) ?: true) as Boolean
@@ -31,11 +27,11 @@ data class HandlerInfo(
         }
     }
 
-    fun executeInline(messageId: Int, query: String, states: States, context: CommandContext) {
+    fun executeInline(query: String, states: States, context: CommandContext) {
         check(messageType == MessageType.Inline) { "Invalid message type: $messageType" }
 
         try {
-            val args = toArgs(messageId, query, states, context)
+            val args = toArgs(query, states, context)
 
             method.invoke(command, *args)
         } catch (ex: Throwable) {
@@ -46,15 +42,6 @@ data class HandlerInfo(
     private fun getInnerException(ex: Throwable): Throwable = when (ex) {
         is InvocationTargetException -> ex.targetException
         else -> ex
-    }
-
-    private fun toArgs(messageId: Int, query: String, states: States, context: CommandContext): Array<Any?> {
-        return Array(params.size) { idx ->
-            when (idx) {
-                0, 1 -> if (params[idx].isInteger()) messageId else query
-                else -> toArg(params[idx], states, context)
-            }
-        }
     }
 
     private fun toArgs(text: String, states: States, context: CommandContext): Array<Any?> {
@@ -68,10 +55,6 @@ data class HandlerInfo(
             return StateImpl(param, states)
         }
 
-        if (param.isContext()) {
-            throw IllegalStateException("CommandContext can not be used as handler parameter. Use \"context\" field instead")
-        }
-
         if (param.isService()) {
             val service = context.getService(param.type as Class<Service>)
             check(service != null) { "Service not found: ${param.type.name}" }
@@ -81,7 +64,7 @@ data class HandlerInfo(
         return states.get(param.stateKind, StateKey(param.type, param.stateName))?.value
     }
 
-    fun isValidReturnType() = retType == Boolean::class.java || retType.name == "void" || retType == Void::class.java
+    fun isValidReturnType() = retType == Boolean::class.java || isVoidReturnType()
 
     fun isVoidReturnType() = retType.name == "void" || retType == Void::class.java
 }

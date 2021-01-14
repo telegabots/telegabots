@@ -90,7 +90,7 @@ internal class CommandRoot : BaseCommand() {
     }
 
     @InlineHandler
-    fun handleInline(msg: String, messageId: Int) {
+    fun handleInline(msg: String) {
         context.updatePage(createPage())
     }
 
@@ -104,7 +104,7 @@ internal class CommandRoot : BaseCommand() {
 
 internal class SubMenu1Command : BaseCommand() {
     @InlineHandler
-    fun handle(message: String, messageId: Int) {
+    fun handle(message: String) {
         if (message == SystemCommands.REFRESH) {
             context.updatePage(Page("SubMenu1Command", messageType = MessageType.Inline))
         }
@@ -113,7 +113,7 @@ internal class SubMenu1Command : BaseCommand() {
 
 internal class SubMenu2Command : BaseCommand() {
     @InlineHandler
-    fun handle(message: String, messageId: Int) {
+    fun handle(message: String) {
         if (message == SystemCommands.REFRESH) {
             context.updatePage(Page("SubMenu2Command", messageType = MessageType.Inline))
         }

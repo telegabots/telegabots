@@ -16,5 +16,5 @@ open class BaseException : RuntimeException {
 }
 
 class CommandInvokeException(val command: Class<out BaseCommand>, cause: Throwable?) :
-        BaseException("Command invoke failed: ${command.name}", cause) {
+    BaseException("Command invoke failed: ${command.name}, error: ${cause?.message}", cause) {
 }

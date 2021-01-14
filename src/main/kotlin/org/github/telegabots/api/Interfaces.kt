@@ -11,6 +11,11 @@ import java.util.regex.Pattern
  */
 interface CommandContext : UserContext, CommandExecutor {
     /**
+     * Message id of inline message
+     */
+    fun inlineMessageId(): Int?
+
+    /**
      * Returns current block's id
      *
      * Can be 0 if not associated with a block
@@ -67,7 +72,7 @@ interface CommandContext : UserContext, CommandExecutor {
 interface CommandExecutor {
     fun executeTextCommand(handler: Class<out BaseCommand>, text: String): Boolean
 
-    fun executeInlineCommand(handler: Class<out BaseCommand>, messageId: Int, query: String): Boolean
+    fun executeInlineCommand(handler: Class<out BaseCommand>, query: String): Boolean
 }
 
 interface UserContext {

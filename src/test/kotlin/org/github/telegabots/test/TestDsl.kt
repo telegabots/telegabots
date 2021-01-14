@@ -2,6 +2,7 @@ package org.github.telegabots.test
 
 import org.github.telegabots.BaseTests
 import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.Service
 import org.github.telegabots.entity.CommandDef
 import org.github.telegabots.entity.CommandPage
 import org.junit.jupiter.api.Assertions.*
@@ -25,6 +26,10 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>) : BaseTes
 
     fun user(action: UserBuilder.() -> Unit) {
         userBuilder.apply(action)
+    }
+
+    fun addService(service: Class<out Service>, instance: Service) {
+        executor.addService(service, instance)
     }
 
     fun resetRootCall() = rootCommand.kotlin.resetCalled()
@@ -70,10 +75,16 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>) : BaseTes
             ) { "Pages of last command expected to be ${pages.size}, but found ${lastPages.size}. Last pages: $lastPages" }
         }
 
-        fun assertReturnSuccess() {
+        fun commandReturnTrue() {
             assertNotNull(lastHandleResult, "Handle not called")
 
             assertTrue(lastHandleResult!!, "Last command result is false, expected true")
+        }
+
+        fun commandReturnFalse() {
+            assertNotNull(lastHandleResult, "Handle not called")
+
+            assertFalse(lastHandleResult!!, "Last command result is true, expected false")
         }
 
         fun userMessageNotSentYet() {
@@ -107,6 +118,10 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>) : BaseTes
             )
             lastHandleResult = executor.handle(message)
             return executor.lastUserMessageId()
+        }
+
+        fun addLocalization(vararg localPairs: Pair<String, String>) {
+            executor.addLocalization(userId, *localPairs)
         }
     }
 }

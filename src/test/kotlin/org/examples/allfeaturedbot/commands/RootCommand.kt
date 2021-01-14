@@ -17,7 +17,7 @@ class RootCommand : BaseCommand() {
     }
 
     @InlineHandler
-    fun handleInline(message: String, messageId: Int) {
+    fun handleInline(message: String) {
         if (message == SystemCommands.REFRESH) {
             context.updatePage(
                 Page(

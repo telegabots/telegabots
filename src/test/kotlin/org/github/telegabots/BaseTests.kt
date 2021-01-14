@@ -51,7 +51,6 @@ abstract class BaseTests {
         val message = Mockito.mock(Message::class.java)
         Mockito.`when`(message.hasText()).thenReturn(false)
         Mockito.`when`(message.chatId).thenReturn(chatId)
-        Mockito.`when`(message.from).thenReturn(fromUser)
         Mockito.`when`(message.messageId).thenReturn(messageId)
         val update = Mockito.mock(Update::class.java)
         Mockito.`when`(update.hasMessage()).thenReturn(false)
@@ -60,6 +59,7 @@ abstract class BaseTests {
         Mockito.`when`(update.callbackQuery).thenReturn(callbackQuery)
         Mockito.`when`(callbackQuery.message).thenReturn(message)
         Mockito.`when`(callbackQuery.data).thenReturn(callbackData)
+        Mockito.`when`(callbackQuery.from).thenReturn(fromUser)
         return update
     }
 }
