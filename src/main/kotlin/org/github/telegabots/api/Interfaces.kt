@@ -316,9 +316,24 @@ interface ServiceProvider {
 }
 
 /**
+ * Factory of getting LocalizeProvider by specified user
+ */
+interface UserLocalizationFactory : Service {
+    /**
+     * Returns LocalizeProvider for user by id
+     */
+    fun getProvider(userId: Int): LocalizeProvider
+}
+
+/**
  * Specific language related Localization provider
  */
 interface LocalizeProvider {
+    /**
+     * Language code
+      */
+    fun language(): String
+
     /**
      * Returns localized string of key itself
      */

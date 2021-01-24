@@ -1,7 +1,7 @@
 package org.github.telegabots.state
 
+import org.github.telegabots.api.UserLocalizationFactory
 import org.github.telegabots.service.JsonService
-import org.github.telegabots.service.UserLocalizationFactory
 
 
 /**

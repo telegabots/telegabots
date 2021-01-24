@@ -11,6 +11,8 @@ class TestUserLocalizationProvider(private val userId: Int) : LocalizeProvider {
         log.info("TestUserLocalizationProvider created for user: $userId")
     }
 
+    override fun language(): String = "test"
+
     override fun getString(key: String): String = map.getOrDefault(key, defaultValue = key)
 
     fun addLocalization(vararg pairs: Pair<String, String>) {
