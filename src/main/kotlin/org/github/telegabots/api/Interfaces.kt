@@ -137,23 +137,42 @@ data class Document(
     }
 }
 
+/**
+ * State used while command executing
+ */
 data class StateRef(val items: List<StateItem>) {
     companion object {
+        /**
+         * Empty state
+         */
         @JvmField
         val Empty = StateRef(emptyList())
 
+        /**
+         * Creates state from list of objects
+         */
         @JvmStatic
         fun of(vararg objs: Any): StateRef = StateRef(objs.map { StateItem(key = StateKey.from(it), value = it) })
+
+        /**
+         * Creates state from list of name+object
+         */
+        @JvmStatic
+        fun of(vararg objs: Pair<String, Any>): StateRef =
+            StateRef(objs.map { StateItem(key = StateKey.from(it.second, it.first), value = it.second) })
     }
 }
 
-data class StateItem(
-    val key: StateKey,
-    val value: Any
-) {
+/**
+ * Single state element
+ */
+data class StateItem(val key: StateKey, val value: Any) {
     fun equals(type: Class<*>, name: String) = key.equals(type, name)
 }
 
+/**
+ * State key considered as type and name (optional, can be empty)
+ */
 data class StateKey(val type: Class<*>, val name: String) {
     fun equals(type: Class<*>, name: String) = this.type == type && this.name == name
 
@@ -331,7 +350,7 @@ interface UserLocalizationFactory : Service {
 interface LocalizeProvider {
     /**
      * Language code
-      */
+     */
     fun language(): String
 
     /**
