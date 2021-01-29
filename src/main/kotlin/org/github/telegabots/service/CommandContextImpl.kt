@@ -173,6 +173,17 @@ class CommandContextImpl(
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    override fun sendMessage(message: String, contentType: ContentType, disablePreview: Boolean, chatId: String): Int {
+        val finalChatId = if (chatId.isNotBlank()) chatId else input.chatId.toString()
+
+        return messageSender.sendMessage(
+            finalChatId,
+            message,
+            contentType = contentType,
+            disablePreview = disablePreview
+        )
+    }
+
     override fun enterCommand(command: BaseCommand) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -211,7 +222,8 @@ class CommandContextImpl(
      * TODO: providing local state from caller
      */
     override fun executeInlineCommand(clazz: Class<out BaseCommand>, query: String): Boolean {
-        val messageId = input.messageId ?: throw IllegalStateException("Inline command can be executed only in inline message context")
+        val messageId = input.messageId
+            ?: throw IllegalStateException("Inline command can be executed only in inline message context")
         val newInput = input.copy(query = query, messageId = messageId, type = MessageType.Inline)
         val handler = commandHandlers.getCommandHandler(clazz.name)
         val states = userState.getStates()

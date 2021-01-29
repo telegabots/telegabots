@@ -35,6 +35,9 @@ object CommandContextSupport : CommandContext {
     override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean) =
         current().sendAdminMessage(message, contentType, disablePreview)
 
+    override fun sendMessage(message: String, contentType: ContentType, disablePreview: Boolean, chatId: String): Int =
+        current().sendMessage(message, contentType, disablePreview, chatId)
+
     override fun enterCommand(command: BaseCommand) = current().enterCommand(command)
 
     override fun leaveCommand(command: BaseCommand?) = current().leaveCommand(command)

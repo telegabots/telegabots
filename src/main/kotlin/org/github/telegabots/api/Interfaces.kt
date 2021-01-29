@@ -54,11 +54,36 @@ interface CommandContext : UserContext, CommandExecutor {
 
     fun sendDocument(document: Document)
 
+    /**
+     * Sends message to admin chat
+     */
     fun sendAdminMessage(
         message: String,
         contentType: ContentType,
-        disablePreview: Boolean = true
+        disablePreview: Boolean = false
     ): Int
+
+    /**
+     * Sends message to the chat
+     */
+    fun sendMessage(
+        message: String,
+        contentType: ContentType = ContentType.Plain,
+        disablePreview: Boolean = false,
+        chatId: String = ""
+    ): Int
+
+    fun sendHtmlMessage(
+        message: String,
+        disablePreview: Boolean = false,
+        chatId: String = ""
+    ): Int = sendMessage(message, ContentType.Html, disablePreview, chatId)
+
+    fun sendMarkdownMessage(
+        message: String,
+        disablePreview: Boolean = false,
+        chatId: String = ""
+    ): Int = sendMessage(message, ContentType.Markdown, disablePreview, chatId)
 
     fun enterCommand(command: BaseCommand)
 
@@ -105,7 +130,7 @@ data class Page(
     val message: String,
     val contentType: ContentType = ContentType.Plain,
     val messageType: MessageType = MessageType.Text,
-    val disablePreview: Boolean = true,
+    val disablePreview: Boolean = false,
     val subCommands: List<List<SubCommand>> = emptyList(),
     val handler: Class<out BaseCommand>? = null,
     val id: Long = 0L
@@ -359,6 +384,9 @@ interface LocalizeProvider {
     fun getString(key: String): String
 }
 
+/**
+ * State manage controller
+ */
 interface State<T> {
     /**
      * Returns stored value of type T
@@ -376,8 +404,14 @@ interface State<T> {
     fun isPresent(): Boolean
 }
 
+/**
+ * Marker of service
+ */
 interface Service
 
+/**
+ * Message type
+ */
 enum class MessageType {
     Text,
 
