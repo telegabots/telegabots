@@ -3,7 +3,6 @@ package org.github.telegabots.util
 import org.github.telegabots.api.*
 import org.github.telegabots.error.CommandInvokeException
 import org.github.telegabots.state.States
-import java.lang.IllegalStateException
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 

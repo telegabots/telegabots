@@ -46,7 +46,7 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
             val resp = bot.execute<Message, SendMessage>(sendMessage)
             return resp.messageId
         } catch (e: Exception) {
-            log.error("send message failed: {}, message: {}", e.message, sendMessage, e)
+            log.error("send message failed: {}, chatId: {}, message: {}", e.message, chatId, sendMessage, e)
             throw e
         }
     }
@@ -81,7 +81,7 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
         try {
             bot.execute<Serializable, EditMessageText>(editMessageText)
         } catch (e: Exception) {
-            log.error("edit message failed: {}, message: {}", e.message, editMessageText, e)
+            log.error("edit message failed: {}, chatId: {}, message: {}", e.message, chatId, editMessageText, e)
             throw e
         }
     }
@@ -115,7 +115,7 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
             log.info("Sending file: {}", doc)
             bot.execute(doc)
         } catch (e: TelegramApiException) {
-            log.error("Document send failed: {}, document: {}", e.message, doc, e)
+            log.error("Document send failed: {}, chatId: {}, document: {}", e.message, chatId, doc, e)
             throw e
         }
     }
@@ -201,7 +201,7 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
             log.info("Sending image: {}", image)
             bot.execute(image)
         } catch (e: TelegramApiException) {
-            log.error("Image send failed: {}, image: {}", e.message, image, e)
+            log.error("Image send failed: {}, chatId: {}, image: {}", e.message, chatId, image, e)
             throw e
         }
     }
@@ -229,7 +229,7 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
             log.info("Sending images: {}", images)
             bot.execute(images)
         } catch (e: TelegramApiException) {
-            log.error("Images send failed: {}, images: {}", e.message, images, e)
+            log.error("Images send failed: {}, chatId: {}, images: {}", e.message, chatId, images, e)
             throw e
         }
     }
@@ -256,7 +256,7 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
             log.info("Sending video: {}", video)
             bot.execute(video)
         } catch (e: TelegramApiException) {
-            log.error("Video send failed: {}, video: {}", e.message, video, e)
+            log.error("Video send failed: {}, chatId: {}, video: {}", e.message, chatId, video, e)
             throw e
         }
     }

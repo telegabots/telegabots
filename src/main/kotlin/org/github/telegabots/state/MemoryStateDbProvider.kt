@@ -68,7 +68,7 @@ class MemoryStateDbProvider : StateDbProvider {
 
     @Synchronized
     override fun findLastBlockByUserId(userId: Int): CommandBlock? {
-        return commandBlocks.filter { it.userId == userId }.maxBy { it.id }
+        return commandBlocks.filter { it.userId == userId }.maxByOrNull{ it.id }
     }
 
     @Synchronized
