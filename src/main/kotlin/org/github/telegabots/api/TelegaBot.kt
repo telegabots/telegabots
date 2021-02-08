@@ -3,6 +3,7 @@ package org.github.telegabots.api
 import org.github.telegabots.service.*
 import org.github.telegabots.state.StateDbProvider
 import org.github.telegabots.state.UsersStatesManager
+import org.github.telegabots.util.CommandValidatorImpl
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.objects.Update
 
@@ -20,6 +21,7 @@ class TelegaBot(
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
     private val jsonService: JsonService = JsonService()
     private val commandHandlers = CommandHandlers(commandInterceptor)
+    private val commandValidator = CommandValidatorImpl(commandHandlers)
     private val userLocalizationFactory =
         serviceProvider.getService(UserLocalizationFactory::class.java) ?: FileBasedLocalizationFactory(jsonService)
     private val usersStatesManager = UsersStatesManager(dbProvider, userLocalizationFactory, jsonService)
@@ -41,6 +43,15 @@ class TelegaBot(
         log.debug("Got context by message: {}, context: {}", inputMessage, context)
 
         return context.execute()
+    }
+
+    fun <T : Service> getService(clazz: Class<T>): T? {
+        val service = when (clazz) {
+            CommandValidator::class.java -> commandValidator
+            else -> null
+        }
+
+        return service as T?
     }
 
     private fun getInputMessage(update: Update): InputMessage? {

@@ -1,6 +1,7 @@
 package org.examples.allfeaturedbot
 
 import org.examples.allfeaturedbot.commands.RootCommand
+import org.github.telegabots.api.CommandValidator
 import org.github.telegabots.api.ContentType
 import org.github.telegabots.api.TelegaBotStarter
 import org.github.telegabots.api.config.BotConfig
@@ -21,6 +22,10 @@ class AllFeaturedBot {
                 serviceProvider = ServiceProviderImpl(),
                 rootCommand = RootCommand::class.java
             )
+
+            val validator = starter.getService(CommandValidator::class.java)!!
+
+            validator.validateAll("org.examples.allfeaturedbot.commands")
 
             starter.start(Consumer { sender ->
                 sender.sendMessage(config.adminChatId.toString(), "*All featured bot started*", ContentType.Markdown)

@@ -28,8 +28,7 @@ class EmptyCommand : BaseCommand() {
     }
 
     @InlineHandler
-    fun executeInline(text: String): Boolean {
+    fun executeInline(text: String) {
         log.warn("Empty command inline executed: $text")
-        return true
     }
 }

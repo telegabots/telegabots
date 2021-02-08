@@ -55,6 +55,8 @@ open class TelegaBotStarter(
         }
     }
 
+    fun <T : Service> getService(clazz: Class<T>): T? = telegaBot.getService(clazz)
+
     companion object {
         init {
             ApiContextInitializer.init()

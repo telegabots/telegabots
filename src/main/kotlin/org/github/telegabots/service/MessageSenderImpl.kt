@@ -40,7 +40,7 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
 
         preSendHandler.accept(sendMessage)
 
-        log.info("send (length: {}): {}", message.length, message)
+        log.debug("send (length: {}): {}", message.length, message)
 
         try {
             val resp = bot.execute<Message, SendMessage>(sendMessage)
@@ -112,7 +112,7 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
         }
 
         try {
-            log.info("Sending file: {}", doc)
+            log.debug("Sending file: {}", doc)
             bot.execute(doc)
         } catch (e: TelegramApiException) {
             log.error("Document send failed: {}, chatId: {}, document: {}", e.message, chatId, doc, e)
@@ -198,7 +198,7 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
         }
 
         try {
-            log.info("Sending image: {}", image)
+            log.debug("Sending image: {}", image)
             bot.execute(image)
         } catch (e: TelegramApiException) {
             log.error("Image send failed: {}, chatId: {}, image: {}", e.message, chatId, image, e)
@@ -226,7 +226,7 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
         }
 
         try {
-            log.info("Sending images: {}", images)
+            log.debug("Sending images: {}", images)
             bot.execute(images)
         } catch (e: TelegramApiException) {
             log.error("Images send failed: {}, chatId: {}, images: {}", e.message, chatId, images, e)
@@ -253,7 +253,7 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
         }
 
         try {
-            log.info("Sending video: {}", video)
+            log.debug("Sending video: {}", video)
             bot.execute(video)
         } catch (e: TelegramApiException) {
             log.error("Video send failed: {}, chatId: {}, video: {}", e.message, chatId, video, e)

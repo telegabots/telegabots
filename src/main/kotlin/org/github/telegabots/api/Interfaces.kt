@@ -456,9 +456,29 @@ data class InputMessage(
  */
 interface CommandInterceptor {
     fun executed(command: BaseCommand, messageType: MessageType)
+
+    companion object {
+        @JvmStatic
+        public val Empty: CommandInterceptor = CommandInterceptorEmpty
+    }
 }
 
 internal object CommandInterceptorEmpty : CommandInterceptor {
     override fun executed(command: BaseCommand, messageType: MessageType) {
     }
+}
+
+/**
+ * Command class validator
+ */
+interface CommandValidator : Service {
+    /**
+     * Validates specified command classes
+     */
+    fun validate(vararg classes: Class<out BaseCommand>)
+
+    /**
+     * Finds all command classes by packagePrefix and validates them
+     */
+    fun validateAll(packagePrefix: String)
 }

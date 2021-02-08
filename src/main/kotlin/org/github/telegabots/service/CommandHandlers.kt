@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Creating and thread-safe storing of CommandHandler
  */
-class CommandHandlers(private val commandInterceptor: CommandInterceptor) {
+class CommandHandlers(private val commandInterceptor: CommandInterceptor = CommandInterceptor.Empty) {
     private val log = LoggerFactory.getLogger(CommandHandlers::class.java)
     private val commandHandlers = ConcurrentHashMap<String, CommandHandler>()
 
