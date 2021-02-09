@@ -2,19 +2,16 @@ package org.github.telegabots.util
 
 import org.github.telegabots.CODE_NOT_REACHED
 import org.github.telegabots.api.BaseCommand
-import org.github.telegabots.api.CommandContext
 import org.github.telegabots.api.EmptyCommand
 import org.github.telegabots.api.annotation.TextHandler
+import org.github.telegabots.commands.AbstractBaseCommand
 import org.github.telegabots.handler.*
-import org.github.telegabots.handler.InvalidCommandInlineMessageAfterText
-import org.github.telegabots.handler.InvalidCommandTextMessageAfterInline
-import org.github.telegabots.handler.InvalidRootCommandWithoutTextHandler
 import org.github.telegabots.java.JavaSimpleCommand
 import org.github.telegabots.service.CommandHandlers
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.lang.IllegalStateException
+import kotlin.test.assertNull
 
 class CommandValidatorTests() {
     private val commandHandlers = CommandHandlers()
@@ -23,6 +20,7 @@ class CommandValidatorTests() {
     @Test
     fun testValidateAll() {
         commandValidator.validateAll("org.examples.allfeaturedbot.commands")
+        commandValidator.validateAll("org.github.telegabots.commands")
     }
 
     @Test
@@ -107,11 +105,18 @@ class CommandValidatorTests() {
         assertEquals(NoSuchMethodException::class.java, ex.cause!!::class.java)
         assertEquals("org.github.telegabots.util.CommandWithoutDefaultConstructor", ex.message)
     }
+
+    @Test
+    fun testValidate_Fail_WhenCommandIsAbstract() {
+        val ex = assertThrows<InstantiationException> { commandValidator.validate(AbstractBaseCommand::class.java) }
+
+        assertNull(ex.message)
+    }
 }
 
 internal class CommandWithoutDefaultConstructor(val someVal: String) : BaseCommand() {
     @TextHandler
-    fun handle(msg: String, context: CommandContext) {
+    fun handle(msg: String) {
         CODE_NOT_REACHED()
     }
 }

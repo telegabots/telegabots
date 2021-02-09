@@ -5,6 +5,7 @@ import org.github.telegabots.api.CommandValidator
 import org.github.telegabots.service.CommandHandlers
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
+import java.lang.reflect.Modifier
 
 class CommandValidatorImpl(private val commandHandlers: CommandHandlers) : CommandValidator {
     private val log = LoggerFactory.getLogger(javaClass)!!
@@ -25,6 +26,7 @@ class CommandValidatorImpl(private val commandHandlers: CommandHandlers) : Comma
     override fun validateAll(packagePrefix: String) {
         val reflections = Reflections(packagePrefix)
         val allCommands = reflections.getSubTypesOf(BaseCommand::class.java)
+            .filter { !Modifier.isAbstract(it.modifiers) }
 
         validate(*allCommands.toTypedArray())
     }
