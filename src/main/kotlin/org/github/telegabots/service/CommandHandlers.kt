@@ -33,6 +33,12 @@ class CommandHandlers(private val commandInterceptor: CommandInterceptor = Comma
         } catch (e: ClassNotFoundException) {
             log.error("Handler not found: {}", handler, e)
             throw e
+        } catch (e: InstantiationException) {
+            if (e.cause is NoSuchMethodException)
+                log.error("Default constructor not found: {}", handler, e)
+            else
+                log.error("Handler class load failed: {}", handler, e)
+            throw e
         } catch (e: Throwable) {
             log.error("Handler class load failed: {}", handler, e)
             throw e

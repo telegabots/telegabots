@@ -1,6 +1,10 @@
 package org.github.telegabots.util
 
+import org.github.telegabots.CODE_NOT_REACHED
+import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.CommandContext
 import org.github.telegabots.api.EmptyCommand
+import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.handler.*
 import org.github.telegabots.handler.InvalidCommandInlineMessageAfterText
 import org.github.telegabots.handler.InvalidCommandTextMessageAfterInline
@@ -94,5 +98,20 @@ class CommandValidatorTests() {
         val ex = assertThrows<IllegalStateException> { commandValidator.validate(CommandWithCommandContextParam::class.java) }
 
         assertEquals("CommandContext can not be used as handler parameter. Use \"context\" field instead. Handler: public final void org.github.telegabots.handler.CommandWithCommandContextParam.handle(java.lang.String,org.github.telegabots.api.CommandContext)", ex.message)
+    }
+
+    @Test
+    fun testValidate_Fail_WhenCommandWithoutDefaultConstructor() {
+        val ex = assertThrows<InstantiationException> { commandValidator.validate(CommandWithoutDefaultConstructor::class.java) }
+
+        assertEquals(NoSuchMethodException::class.java, ex.cause!!::class.java)
+        assertEquals("org.github.telegabots.util.CommandWithoutDefaultConstructor", ex.message)
+    }
+}
+
+internal class CommandWithoutDefaultConstructor(val someVal: String) : BaseCommand() {
+    @TextHandler
+    fun handle(msg: String, context: CommandContext) {
+        CODE_NOT_REACHED()
     }
 }
