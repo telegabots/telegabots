@@ -19,6 +19,14 @@ interface States {
      */
     fun hasValue(kind: StateKind, key: StateKey): Boolean
 
+    /**
+     * Returns all state items
+     */
+    fun getAll(kind: StateKind): List<StateItem>
+
+    /**
+     * Flushes all state items into permanent storage
+     */
     fun flush()
 }
 
@@ -26,6 +34,8 @@ interface StateProvider {
     fun get(stateKey: StateKey): StateItem?
 
     fun set(stateKey: StateKey, value: Any?): StateItem?
+
+    fun getAll(): List<StateItem>
 
     fun flush()
 

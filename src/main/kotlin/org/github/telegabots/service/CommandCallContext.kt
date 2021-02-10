@@ -3,6 +3,7 @@ package org.github.telegabots.service
 import org.github.telegabots.api.CommandContext
 import org.github.telegabots.api.InputMessage
 import org.github.telegabots.api.MessageType
+import org.github.telegabots.state.StateKind
 import org.github.telegabots.state.States
 import org.slf4j.LoggerFactory
 
@@ -21,6 +22,29 @@ class CommandCallContext(
     fun execute(): Boolean {
         if (!commandHandler.canHandle(input.type)) {
             throw IllegalStateException("Message of type ${input.type} can not be handled by command: ${commandHandler.command.javaClass.name}")
+        }
+
+        if (log.isTraceEnabled) {
+            log.trace(
+                """
+                ----------------------------------------------------------
+                Command: [{}]:{}
+                Handler: {}
+                Block/Page: {}/{}
+                State:
+                  local: {}
+                  shared: {}
+                  user: {}
+                  global: {}
+                ----------------------------------------------------------
+            """.trimIndent(), input.type, input.query, commandHandler.command,
+                commandContext.blockId(),
+                commandContext.pageId(),
+                states.getAll(StateKind.LOCAL),
+                states.getAll(StateKind.SHARED),
+                states.getAll(StateKind.USER),
+                states.getAll(StateKind.GLOBAL)
+            )
         }
 
         val success = when (input.type) {

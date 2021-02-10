@@ -29,6 +29,14 @@ abstract class AbstractStateProvider(private val jsonService: JsonService) : Sta
         }
     }
 
+    override fun getAll(): List<StateItem> {
+        return synchronized(cache) {
+            loadFromDb()
+
+            return cache.values.toList()
+        }
+    }
+
     abstract fun saveState(state: StateDef)
 
     abstract fun loadState(): StateDef

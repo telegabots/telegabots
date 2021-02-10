@@ -2,6 +2,7 @@ package org.github.telegabots.service
 
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.github.telegabots.api.StateItem
 import org.github.telegabots.api.StateRef
@@ -13,6 +14,7 @@ open class JsonService {
 
     init {
         objectMapper.enable(MapperFeature.USE_ANNOTATIONS)
+        objectMapper.registerModule(JavaTimeModule())
         objectMapper.registerKotlinModule()
     }
 
