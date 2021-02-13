@@ -12,4 +12,8 @@ class LocalStateProvider(
     override fun saveState(state: StateDef) = dbProvider.saveLocalState(pageId, state)
 
     override fun loadState(): StateDef = state ?: dbProvider.getLocalState(pageId)
+
+    override fun toString(): String {
+        return "LocalStateProvider(pageId=$pageId, state is null=${state == null})"
+    }
 }

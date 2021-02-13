@@ -6,8 +6,10 @@ import org.github.telegabots.service.JsonService
 /**
  * Used as Local state for CommandDef. Can not be flushed
  */
-internal class LocalTempStateProvider(private val state: StateDef?,
-                                      private val jsonService: JsonService) : AbstractStateProvider(jsonService) {
+internal class LocalTempStateProvider(
+    private val state: StateDef?,
+    private val jsonService: JsonService
+) : AbstractStateProvider(jsonService) {
     override fun saveState(state: StateDef) {
         throw IllegalStateException("Temp local state cannot be flushed")
     }
@@ -15,4 +17,8 @@ internal class LocalTempStateProvider(private val state: StateDef?,
     override fun loadState(): StateDef = state ?: StateDef.Empty
 
     override fun canFlush(): Boolean = false
+    
+    override fun toString(): String {
+        return "LocalTempStateProvider(state is null=${state == null})"
+    }
 }

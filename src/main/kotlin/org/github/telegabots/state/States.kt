@@ -3,6 +3,9 @@ package org.github.telegabots.state
 import org.github.telegabots.api.StateItem
 import org.github.telegabots.api.StateKey
 
+/**
+ * Facade for all kinds of state implementations
+ */
 interface States {
     /**
      * Gets state by type and name
@@ -30,15 +33,33 @@ interface States {
     fun flush()
 }
 
+/**
+ * Common interface for specified kind of state implementation
+ */
 interface StateProvider {
+    /**
+     * Gets state by state key
+     */
     fun get(stateKey: StateKey): StateItem?
 
+    /**
+     * Sets state by state key. Returns previous state
+     */
     fun set(stateKey: StateKey, value: Any?): StateItem?
 
+    /**
+     * Returns all state items
+     */
     fun getAll(): List<StateItem>
 
+    /**
+     * Flushes all state items into permanent storage
+     */
     fun flush()
 
+    /**
+     * Checks whether it is possible to call flush
+     */
     fun canFlush(): Boolean
 }
 

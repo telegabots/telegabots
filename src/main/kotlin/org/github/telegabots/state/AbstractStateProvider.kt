@@ -4,8 +4,10 @@ import org.github.telegabots.api.StateItem
 import org.github.telegabots.api.StateKey
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
+import org.slf4j.LoggerFactory
 
 abstract class AbstractStateProvider(private val jsonService: JsonService) : StateProvider {
+    protected val log = LoggerFactory.getLogger(javaClass)!!
     private val cache: MutableMap<StateKey, StateItem> = mutableMapOf()
     private var initted: Boolean = false
     // TODO: add dirty flag
@@ -18,6 +20,10 @@ abstract class AbstractStateProvider(private val jsonService: JsonService) : Sta
     }
 
     override fun set(key: StateKey, value: Any?): StateItem? {
+        if (log.isTraceEnabled) {
+            log.trace("Set state of type: {}, value: {}, by {}", value?.javaClass?.name, value, this)
+        }
+
         return synchronized(cache) {
             loadFromDb()
 
