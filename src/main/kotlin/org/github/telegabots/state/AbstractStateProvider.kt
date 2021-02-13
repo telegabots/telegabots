@@ -39,7 +39,7 @@ abstract class AbstractStateProvider(private val jsonService: JsonService) : Sta
         return synchronized(cache) {
             loadFromDb()
 
-            return cache.values.toList()
+            cache.values.toList()
         }
     }
 

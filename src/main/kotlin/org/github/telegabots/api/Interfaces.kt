@@ -134,7 +134,21 @@ data class Page(
     val subCommands: List<List<SubCommand>> = emptyList(),
     val handler: Class<out BaseCommand>? = null,
     val id: Long = 0L
-)
+
+
+) {
+    override fun toString(): String {
+        return "Page(contentType=$contentType, messageType=$messageType, disablePreview=$disablePreview, subCommands=$subCommands, handler=$handler, id=$id,\nmessage='${
+            message.take(
+                TO_STR_MESSAGE_LEN
+            )
+        }')"
+    }
+
+    companion object {
+        private const val TO_STR_MESSAGE_LEN = 25
+    }
+}
 
 data class Document(
     val file: File,
@@ -166,6 +180,13 @@ data class Document(
  * State used while command executing
  */
 data class StateRef(val items: List<StateItem>) {
+    override fun toString(): String {
+        return when {
+            items.isEmpty() -> "StateRef()"
+            else -> "StateRef(items=\n${items.joinToString("\n")}})"
+        }
+    }
+
     companion object {
         /**
          * Empty state
@@ -201,6 +222,10 @@ data class StateItem(val key: StateKey, val value: Any) {
 data class StateKey(val type: Class<*>, val name: String) {
     fun equals(type: Class<*>, name: String) = this.type == type && this.name == name
 
+    override fun toString(): String {
+        return "StateKey(${type.name}['$name'])"
+    }
+
     companion object {
         @JvmStatic
         fun from(obj: Any, name: String = "") = StateKey(type = obj.javaClass, name = name)
@@ -211,8 +236,8 @@ data class SubCommand(
     val titleId: String,
     val title: String? = null,
     val handler: Class<out BaseCommand>? = null,
-    val state: StateRef? = null,
-    val behaviour: CommandBehaviour = CommandBehaviour.SeparatePage
+    val behaviour: CommandBehaviour = CommandBehaviour.SeparatePage,
+    val state: StateRef? = null
 ) {
     companion object {
         inline fun <reified T : BaseCommand> of(

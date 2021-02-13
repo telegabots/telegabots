@@ -24,6 +24,7 @@ class CommandContextImpl(
     private val messageSender: MessageSender
 ) : CommandContext {
     private val log = LoggerFactory.getLogger(CommandContextImpl::class.java)!!
+    private val jsonService = serviceProvider.getService(JsonService::class.java)!!
 
     override fun inlineMessageId(): Int? = input.messageId
 
@@ -34,8 +35,6 @@ class CommandContextImpl(
     override fun currentCommand(): BaseCommand = command
 
     override fun createPage(page: Page): Long {
-        log.debug("Create page. blockId: {}, pageId: {}, input: {}, page: {}", blockId, pageId, input, page)
-
         validatePageHandler(page)
 
         val messageId = messageSender.sendMessage(chatId = input.chatId.toString(),
@@ -61,6 +60,17 @@ class CommandContextImpl(
             }
         )
 
+        if (log.isDebugEnabled) {
+            log.debug(
+                "Create page. blockId: {}, pageId: {}, input: {},\npage: {}",
+                block.id,
+                savedPage.id,
+                input,
+                jsonService.toPrettyJson(page)
+            )
+        }
+
+
         return savedPage.id
     }
 
@@ -68,8 +78,6 @@ class CommandContextImpl(
         if (blockId <= 0) {
             return createPage(page)
         }
-
-        log.debug("Add page. blockId: {}, pageId: {}, input: {}, page: {}", blockId, pageId, input, page)
 
         validatePageHandler(page)
         val block = userState.getBlockById(blockId) ?: throw IllegalStateException("Block by id not found: $blockId")
@@ -86,7 +94,8 @@ class CommandContextImpl(
                     })
             }
             MessageType.Inline -> {
-                val messageId: Int = checkNotNull(input.messageId) { "Input message id cannot be null. Input: $input" }
+                check(input.messageId ?: 0 > 0) { "Input message id cannot be null or negative. Input: $input" }
+                val messageId: Int = input.messageId!!
 
                 messageSender.updateMessage(chatId = input.chatId.toString(),
                     messageId = messageId,
@@ -108,6 +117,16 @@ class CommandContextImpl(
             subCommands = page.subCommands
         )
 
+        if (log.isDebugEnabled) {
+            log.debug(
+                "Add page. blockId: {}, pageId: {}, input: {},\npage: {}",
+                blockId,
+                savedPage.id,
+                input,
+                jsonService.toPrettyJson(page)
+            )
+        }
+
         return savedPage.id
     }
 
@@ -115,8 +134,6 @@ class CommandContextImpl(
         if (blockId <= 0) {
             return createPage(page)
         }
-
-        log.debug("Update page. blockId: {}, pageId: {}, input: {}, page: {}", blockId, pageId, input, page)
 
         validatePageHandler(page)
         val block = userState.getBlockById(blockId) ?: throw IllegalStateException("Block by id not found: $blockId")
@@ -133,7 +150,8 @@ class CommandContextImpl(
                     })
             }
             MessageType.Inline -> {
-                val messageId: Int = checkNotNull(input.messageId) { "Input message id cannot be null. Input: $input" }
+                check(input.messageId ?: 0 > 0) { "Input message id cannot be null or negative. Input: $input" }
+                val messageId: Int = input.messageId!!
 
                 messageSender.updateMessage(chatId = input.chatId.toString(),
                     messageId = messageId,
@@ -154,6 +172,16 @@ class CommandContextImpl(
             handler = page.handler ?: command.javaClass,
             subCommands = page.subCommands
         )
+
+        if (log.isDebugEnabled) {
+            log.debug(
+                "Update page. blockId: {}, pageId: {}, input: {},\npage: {}",
+                blockId,
+                savedPage.id,
+                input,
+                jsonService.toPrettyJson(page)
+            )
+        }
 
         return savedPage.id
     }

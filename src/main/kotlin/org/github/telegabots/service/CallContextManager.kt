@@ -71,7 +71,14 @@ class CallContextManager(
                 }
 
                 // send input into last page command
-                return createCallContext(block, lastPage.handler, userState, input, pageId = lastPage.id, behaviour = CommandBehaviour.ParentPageState)
+                return createCallContext(
+                    block,
+                    lastPage.handler,
+                    userState,
+                    input,
+                    pageId = lastPage.id,
+                    behaviour = CommandBehaviour.ParentPageState
+                )
             } else {
                 log.warn("Last command not found. Input: {}", input)
             }
@@ -142,7 +149,15 @@ class CallContextManager(
             )
         }
 
-        return null
+        return createCallContext(
+            block,
+            lastPage.handler,
+            userState,
+            input,
+            pageId = lastPage.id,
+            state = commandDef.state,
+            behaviour = CommandBehaviour.ParentPageState
+        )
     }
 
     private fun createCallContext(

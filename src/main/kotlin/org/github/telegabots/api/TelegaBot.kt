@@ -22,11 +22,11 @@ class TelegaBot(
     private val jsonService: JsonService = JsonService()
     private val commandHandlers = CommandHandlers(commandInterceptor)
     private val commandValidator = CommandValidatorImpl(commandHandlers)
-    private val userLocalizationFactory =
-        serviceProvider.getService(UserLocalizationFactory::class.java) ?: FileBasedLocalizationFactory(jsonService)
+    private val finalServiceProvider = InternalServiceProvider(serviceProvider, jsonService)
+    private val userLocalizationFactory = finalServiceProvider.getService(UserLocalizationFactory::class.java)!!
     private val usersStatesManager = UsersStatesManager(dbProvider, userLocalizationFactory, jsonService)
     private val callContextManager = CallContextManager(
-        messageSender, serviceProvider, commandHandlers, usersStatesManager, userLocalizationFactory, rootCommand
+        messageSender, finalServiceProvider, commandHandlers, usersStatesManager, userLocalizationFactory, rootCommand
     )
 
     fun handle(update: Update): Boolean {
