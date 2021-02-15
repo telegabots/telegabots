@@ -281,6 +281,8 @@ data class SubCommand(
             CAMEL_CASE_PAT.matcher(handler.simpleName).replaceAll("$1_$2").toUpperCase()
                 .let { if (it.endsWith(PREFIX)) it.substring(0, it.length - PREFIX.length) else it }
 
+        val REFRESH = SubCommand.of(SystemCommands.REFRESH)
+        val GO_BACK = SubCommand.of(SystemCommands.GO_BACK)
         private const val PREFIX = "_COMMAND"
         private val CAMEL_CASE_PAT = Pattern.compile("([a-z\\d])([A-Z]+)")
     }

@@ -10,7 +10,7 @@ object SystemCommands {
     /**
      * Removes current page and send _REFRESH to previous one
      */
-    const val GO_BACK = "_BACK"
+    const val GO_BACK = "_GO_BACK"
 
     /**
      * Refresh content of current page
