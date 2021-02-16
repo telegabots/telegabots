@@ -1,8 +1,7 @@
 package org.github.telegabots.handler
 
-import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.BaseTests
-import org.github.telegabots.api.State
+import org.github.telegabots.api.*
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.test.scenario
@@ -77,6 +76,40 @@ class StateParamTests : BaseTests() {
             }
         }
     }
+
+    @Test
+    fun testCommand_DontReuseCachedLocalState() {
+        scenario<CommandReuseLocalState> {
+            user {
+                sendTextMessage("HELLO!")
+            }
+
+            assertThat {
+                rootWasCalled(1)
+                userMessageWasSent()
+            }
+
+            val messageId = lastUserMessageId()
+
+            user {
+                sendTextMessage("BYE!")
+            }
+
+            assertThat {
+                rootWasCalled(2)
+                userMessageWasSent()
+            }
+
+            user {
+                sendInlineMessage(messageId = messageId, "CMD1")
+
+            }
+
+            assertThat {
+                rootWasCalled(3)
+            }
+        }
+    }
 }
 
 internal class CommandWithStateParam : BaseCommand() {
@@ -136,5 +169,22 @@ internal class CommandWithReadonlyLocalState : BaseCommand() {
     companion object {
         val handlerCalled = AtomicBoolean()
         val inlineHandlerCalled = AtomicBoolean()
+    }
+}
+
+internal class CommandReuseLocalState : BaseCommand() {
+    @TextHandler
+    fun handle(message: String) {
+        context.createPage(
+            Page(
+                "Some message", ContentType.Plain, MessageType.Inline,
+                subCommands = listOf(listOf(SubCommand.of("CMD1", state = StateRef.of("FOO"))))
+            )
+        )
+    }
+
+    @InlineHandler
+    fun handleInline(commandId: String, state: State<String>) {
+        assertEquals("FOO", state.get())
     }
 }

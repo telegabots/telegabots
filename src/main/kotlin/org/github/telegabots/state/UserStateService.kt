@@ -21,7 +21,6 @@ class UserStateService(
     private val globalState: StateProvider
 ) {
     private val sharedStates: MutableMap<Int, StateProvider> = mutableMapOf()
-    private val localStates: MutableMap<Long, StateProvider> = mutableMapOf()
     private val userState = UserStateProvider(userId, dbProvider, jsonService)
 
     fun getBlockByMessageId(messageId: Int): CommandBlock? = dbProvider.findBlockByMessageId(userId, messageId)
@@ -100,11 +99,8 @@ class UserStateService(
         }
     }
 
-    private fun getLocalState(pageId: Long, state: StateDef? = null): StateProvider {
-        return synchronized(localStates) {
-            localStates.getOrPut(pageId) { LocalStateProvider(pageId, state, dbProvider, jsonService) }
-        }
-    }
+    private fun getLocalState(pageId: Long, state: StateDef? = null): StateProvider =
+        LocalStateProvider(pageId, state, dbProvider, jsonService)
 
     private fun toCommandDefs(subCommands: List<List<SubCommand>>): List<List<CommandDef>> =
         subCommands.map { it.map { cmd -> toCommandDef(cmd) } }

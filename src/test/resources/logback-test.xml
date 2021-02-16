@@ -10,7 +10,7 @@
         </layout>
     </appender>
 
-    <logger name="org.github.telegabots" level="debug" additivity="false">
+    <logger name="org.github.telegabots" level="trace" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
 

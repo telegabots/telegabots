@@ -70,7 +70,6 @@ class CommandContextImpl(
             )
         }
 
-
         return savedPage.id
     }
 
