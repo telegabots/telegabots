@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 
 abstract class AbstractStateProvider(private val jsonService: JsonService) : StateProvider {
     protected val log = LoggerFactory.getLogger(javaClass)!!
-    private val cache: MutableMap<StateKey, StateItem> = mutableMapOf()
+    protected val cache: MutableMap<StateKey, StateItem> = mutableMapOf()
     private var initted: Boolean = false
     // TODO: add dirty flag
 
