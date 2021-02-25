@@ -21,6 +21,7 @@ class UserStateService(
     private val globalState: StateProvider
 ) {
     private val sharedStates: MutableMap<Int, StateProvider> = mutableMapOf()
+    private val localStates: MutableMap<Long, StateProvider> = mutableMapOf()
     private val userState = UserStateProvider(userId, dbProvider, jsonService)
 
     fun getBlockByMessageId(messageId: Int): CommandBlock? = dbProvider.findBlockByMessageId(userId, messageId)
@@ -64,7 +65,7 @@ class UserStateService(
 
     fun getStates(messageId: Int, pageId: Long): States =
         StatesImpl(
-            localState = getLocalState(pageId),
+            localState = getLocalStateInternal(pageId),
             sharedState = getSharedState(messageId),
             userState = userState,
             globalState = globalState
@@ -72,7 +73,7 @@ class UserStateService(
 
     fun getStates(messageId: Int, state: StateDef?, pageId: Long = 0): States =
         StatesImpl(
-            localState = if (pageId > 0) getLocalState(pageId, state) else LocalTempStateProvider(state, jsonService),
+            localState = if (pageId > 0) getLocalStateInternal(pageId, state) else LocalTempStateProvider(state, jsonService),
             sharedState = getSharedState(messageId),
             userState = userState,
             globalState = globalState
@@ -85,6 +86,12 @@ class UserStateService(
             userState = userState,
             globalState = globalState
         )
+
+    fun getLocalStateProvider(pageId: Long): StateProvider {
+        return synchronized(localStates) {
+            localStates.getOrPut(pageId) { LocalStateProvider(pageId, dbProvider, jsonService) }
+        }
+    }
 
     /**
      * Flushes dirty states to db
@@ -99,8 +106,11 @@ class UserStateService(
         }
     }
 
-    private fun getLocalState(pageId: Long, state: StateDef? = null): StateProvider =
-        LocalStateProvider(pageId, state, dbProvider, jsonService)
+    private fun getLocalStateInternal(pageId: Long, state: StateDef? = null): StateProvider =
+        if (state != null)
+            AdditionalStateProvider(getLocalStateProvider(pageId), state, jsonService)
+        else
+            getLocalStateProvider(pageId)
 
     private fun toCommandDefs(subCommands: List<List<SubCommand>>): List<List<CommandDef>> =
         subCommands.map { it.map { cmd -> toCommandDef(cmd) } }

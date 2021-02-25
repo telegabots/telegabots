@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 
 abstract class AbstractStateProvider(private val jsonService: JsonService) : StateProvider {
     protected val log = LoggerFactory.getLogger(javaClass)!!
-    protected val cache: MutableMap<StateKey, StateItem> = mutableMapOf()
+    private val cache: MutableMap<StateKey, StateItem> = mutableMapOf()
     private var initted: Boolean = false
     // TODO: add dirty flag
 
@@ -43,16 +43,37 @@ abstract class AbstractStateProvider(private val jsonService: JsonService) : Sta
         }
     }
 
+    override fun setAll(items: List<StateItem>) {
+        if (log.isTraceEnabled) {
+            log.trace("set state items: {}", items)
+        }
+
+        synchronized(cache) {
+            items.forEach { item -> cache[item.key] = item }
+        }
+    }
+
+    /**
+     * Save state to permanent store
+     */
     abstract fun saveState(state: StateDef)
 
+    /**
+     * Load state from permanent store
+     */
     abstract fun loadState(): StateDef
 
+    /**
+     * Can be stored into permanent store
+     */
     override fun canFlush(): Boolean = true
 
     override fun flush() {
-        synchronized(cache) {
-            saveState(StateDef(cache.values.map { jsonService.toStateItemDef(it) }))
+        val state = synchronized(cache) {
+            StateDef(cache.values.map { jsonService.toStateItemDef(it) })
         }
+
+        saveState(state)
     }
 
     private fun loadFromDb() {

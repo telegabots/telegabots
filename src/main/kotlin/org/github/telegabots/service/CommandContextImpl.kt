@@ -1,6 +1,18 @@
 package org.github.telegabots.service
 
-import org.github.telegabots.api.*
+import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.CommandContext
+import org.github.telegabots.api.ContentType
+import org.github.telegabots.api.Document
+import org.github.telegabots.api.InputMessage
+import org.github.telegabots.api.LocalizeProvider
+import org.github.telegabots.api.MessageSender
+import org.github.telegabots.api.MessageType
+import org.github.telegabots.api.Page
+import org.github.telegabots.api.Service
+import org.github.telegabots.api.ServiceProvider
+import org.github.telegabots.api.StateItem
+import org.github.telegabots.api.SubCommand
 import org.github.telegabots.state.UserStateService
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
@@ -9,7 +21,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
-import java.lang.IllegalStateException
 import java.util.function.Consumer
 
 class CommandContextImpl(
@@ -59,6 +70,10 @@ class CommandContextImpl(
                 MessageType.Inline -> null
             }
         )
+
+        if (page.state != null) {
+            saveLocalState(savedPage.id, page.state.items)
+        }
 
         if (log.isDebugEnabled) {
             log.debug(
@@ -116,6 +131,10 @@ class CommandContextImpl(
             subCommands = page.subCommands
         )
 
+        if (page.state != null) {
+            saveLocalState(savedPage.id, page.state.items)
+        }
+
         if (log.isDebugEnabled) {
             log.debug(
                 "Add page. blockId: {}, pageId: {}, input: {},\npage: {}",
@@ -171,6 +190,10 @@ class CommandContextImpl(
             handler = page.handler ?: command.javaClass,
             subCommands = page.subCommands
         )
+
+        if (page.state != null) {
+            saveLocalState(savedPage.id, page.state.items)
+        }
 
         if (log.isDebugEnabled) {
             log.debug(
@@ -288,6 +311,14 @@ class CommandContextImpl(
             localizeProvider = localizeProvider,
             userState = userState
         )
+    }
+
+    private fun saveLocalState(
+        pageId: Long,
+        stateItems: List<StateItem>
+    ) {
+        val localState = userState.getLocalStateProvider(pageId)
+        localState.setAll(stateItems)
     }
 
     private fun validatePageHandler(page: Page) {

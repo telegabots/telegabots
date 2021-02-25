@@ -133,9 +133,8 @@ data class Page(
     val disablePreview: Boolean = false,
     val subCommands: List<List<SubCommand>> = emptyList(),
     val handler: Class<out BaseCommand>? = null,
-    val id: Long = 0L
-
-
+    val id: Long = 0L,
+    val state: StateRef? = null
 ) {
     override fun toString(): String {
         return "Page(contentType=$contentType, messageType=$messageType, disablePreview=$disablePreview, subCommands=$subCommands, handler=$handler, id=$id,\nmessage='${

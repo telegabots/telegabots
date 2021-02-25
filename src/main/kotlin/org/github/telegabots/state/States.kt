@@ -53,6 +53,11 @@ interface StateProvider {
     fun getAll(): List<StateItem>
 
     /**
+     * Sets state items
+     */
+    fun setAll(items: List<StateItem>)
+
+    /**
      * Flushes all state items into permanent storage
      */
     fun flush()
