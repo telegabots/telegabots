@@ -13,6 +13,7 @@ import org.github.telegabots.api.Service
 import org.github.telegabots.api.ServiceProvider
 import org.github.telegabots.api.StateItem
 import org.github.telegabots.api.SubCommand
+import org.github.telegabots.api.UserService
 import org.github.telegabots.state.UserStateService
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
@@ -289,6 +290,8 @@ class CommandContextImpl(
     }
 
     override fun <T : Service> getService(clazz: Class<T>): T? = serviceProvider.getService(clazz)
+
+    override fun <T : UserService> getUserService(clazz: Class<T>, userId: Int): T?  = serviceProvider.getUserService(clazz, userId)
 
     override fun userId(): Int = input.userId
 

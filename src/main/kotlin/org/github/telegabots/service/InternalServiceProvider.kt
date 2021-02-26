@@ -3,6 +3,7 @@ package org.github.telegabots.service
 import org.github.telegabots.api.Service
 import org.github.telegabots.api.ServiceProvider
 import org.github.telegabots.api.UserLocalizationFactory
+import org.github.telegabots.api.UserService
 
 class InternalServiceProvider(
     private val delegate: ServiceProvider,
@@ -10,6 +11,9 @@ class InternalServiceProvider(
 ) : ServiceProvider {
     override fun <T : Service> getService(clazz: Class<T>): T? =
         (getServiceInternalPre(clazz) ?: delegate.getService(clazz)) ?: getServiceInternalPost(clazz)
+
+    override fun <T : UserService> getUserService(clazz: Class<T>, userId: Int): T? =
+        delegate.getUserService(clazz, userId)
 
     @Suppress("UNCHECKED_CAST")
     private fun <T : Service> getServiceInternalPre(clazz: Class<T>): T? {

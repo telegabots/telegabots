@@ -46,6 +46,8 @@ object CommandContextSupport : CommandContext {
 
     override fun <T : Service> getService(clazz: Class<T>): T? = current().getService(clazz)
 
+    override fun <T : UserService> getUserService(clazz: Class<T>, userId: Int): T?  = current().getUserService(clazz, userId)
+
     override fun userId(): Int = current().userId()
 
     override fun isAdmin(): Boolean = current().isAdmin()

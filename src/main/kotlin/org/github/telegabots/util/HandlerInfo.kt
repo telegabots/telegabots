@@ -54,6 +54,12 @@ data class HandlerInfo(
             return StateImpl(param, states)
         }
 
+        if (param.isUserService()) {
+            val service = context.getUserService(param.type as Class<UserService>, context.userId())
+            check(service != null) { "Service not found: ${param.type.name}" }
+            return service
+        }
+
         if (param.isService()) {
             val service = context.getService(param.type as Class<Service>)
             check(service != null) { "Service not found: ${param.type.name}" }

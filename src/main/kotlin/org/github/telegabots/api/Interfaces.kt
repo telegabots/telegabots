@@ -92,6 +92,8 @@ interface CommandContext : UserContext, CommandExecutor {
     fun clearCommands()
 
     fun <T : Service> getService(clazz: Class<T>): T?
+
+    fun <T : UserService> getUserService(clazz: Class<T>, userId: Int): T?
 }
 
 interface CommandExecutor {
@@ -383,6 +385,8 @@ interface MessageSender {
 
 interface ServiceProvider {
     fun <T : Service> getService(clazz: Class<T>): T?
+
+    fun <T : UserService> getUserService(clazz: Class<T>, userId: Int): T?
 }
 
 /**
@@ -434,6 +438,13 @@ interface State<T> {
  * Marker of service
  */
 interface Service
+
+/**
+ * User related service
+ */
+interface UserService : Service {
+    fun userId(): Int
+}
 
 /**
  * Message type
