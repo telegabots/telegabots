@@ -21,6 +21,19 @@ class CommandCallContext(
 
     fun execute(): Boolean {
         if (!commandHandler.canHandle(input.type)) {
+            if (input.type == MessageType.Text) {
+                val defaultContext = defaultContext()
+
+                if (defaultContext != null) {
+                    log.warn(
+                        "Call default context ({}). Because command '{}' cannot handle input message: {}",
+                        defaultContext, commandHandler.command.javaClass.name, input
+                    )
+
+                    return defaultContext.execute()
+                }
+            }
+
             throw IllegalStateException("Message of type ${input.type} can not be handled by command: ${commandHandler.command.javaClass.name}")
         }
 
@@ -64,7 +77,7 @@ class CommandCallContext(
             if (defaultContext != null) {
                 log.warn(
                     "Call default context ({}). Because command '{}' cannot handle input message: {}",
-                    defaultContext, commandHandler, input
+                    defaultContext, commandHandler.command.javaClass.name, input
                 )
                 return defaultContext.execute()
             }

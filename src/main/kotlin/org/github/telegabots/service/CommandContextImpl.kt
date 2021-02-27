@@ -291,7 +291,8 @@ class CommandContextImpl(
 
     override fun <T : Service> getService(clazz: Class<T>): T? = serviceProvider.getService(clazz)
 
-    override fun <T : UserService> getUserService(clazz: Class<T>, userId: Int): T?  = serviceProvider.getUserService(clazz, userId)
+    override fun <T : UserService> getUserService(clazz: Class<T>, userId: Int): T? =
+        serviceProvider.getUserService(clazz, userId)
 
     override fun userId(): Int = input.userId
 
@@ -325,13 +326,34 @@ class CommandContextImpl(
     }
 
     private fun validatePageHandler(page: Page) {
-        val handler = page.handler ?: command.javaClass
+        val pageHandler = page.handler
+
+        if (pageHandler != null && page.messageType == MessageType.Text) {
+            checkHandlerType(pageHandler, page.messageType)
+        }
+
+        page.subCommands.flatten().filter { !it.isSystemCommand() }.forEach { subCmd ->
+            val handler = subCmd.handler
+
+            if (handler != null) {
+                checkHandlerType(handler, page.messageType)
+            } else if (page.messageType == MessageType.Inline) {
+                val handler2 = page.handler ?: command.javaClass
+                checkHandlerType(handler2, page.messageType)
+            }
+        }
+    }
+
+    private fun checkHandlerType(
+        handler: Class<out BaseCommand>,
+        messageType: MessageType
+    ) {
         val cmdHandler = commandHandlers.getCommandHandler(handler)
 
-        check(cmdHandler.canHandle(page.messageType)) {
-            "Message handler for type ${page.messageType} in ${handler.name} not found. Use annotation @${
+        check(cmdHandler.canHandle(messageType)) {
+            "Message handler for type ${messageType} in ${handler.name} not found. Use annotation @${
                 annotationNameByType(
-                    page.messageType
+                    messageType
                 )
             }"
         }

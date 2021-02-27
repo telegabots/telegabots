@@ -240,6 +240,8 @@ data class SubCommand(
     val behaviour: CommandBehaviour = CommandBehaviour.SeparatePage,
     val state: StateRef? = null
 ) {
+    fun isSystemCommand() = this == REFRESH || this == GO_BACK
+
     companion object {
         inline fun <reified T : BaseCommand> of(
             state: StateRef? = null,

@@ -3,6 +3,10 @@ package org.github.telegabots.handler
 import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
 import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.MessageType
+import org.github.telegabots.api.Page
+import org.github.telegabots.api.SubCommand
+import org.github.telegabots.api.SystemCommands
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.test.scenario
@@ -79,6 +83,42 @@ class InlineHandlerTests : BaseTests() {
             }
         }
     }
+
+    @Test
+    fun testCommand_Success_RedirectToRootCommand_WhenTextHandlerNotExists() {
+        scenario<ValidTextHandlerCommand> {
+            assertThat {
+                notCalled<ValidTextHandlerCommand>()
+            }
+
+            user {
+                sendTextMessage("start")
+            }
+
+            assertThat {
+                wasCalled<ValidTextHandlerCommand>(1)
+                notCalled<ValidInlineHandlerCommand>()
+            }
+
+            user {
+                sendInlineMessage(messageId = lastUserMessageId(), callbackData = "VALID_INLINE_HANDLER")
+            }
+
+            assertThat {
+                wasCalled<ValidTextHandlerCommand>(1)
+                wasCalled<ValidInlineHandlerCommand>(1)
+            }
+
+            user {
+                sendTextMessage("this is text command")
+            }
+
+            assertThat {
+                wasCalled<ValidTextHandlerCommand>(2)
+                wasCalled<ValidInlineHandlerCommand>(1)
+            }
+        }
+    }
 }
 
 internal class InvalidInlineCommandWithoutAnyParam : BaseCommand() {
@@ -126,5 +166,34 @@ internal class ValidInlineCommandStringInt() : BaseCommand() {
 
     @TextHandler
     fun handle(message: String) {
+    }
+}
+
+
+internal class ValidTextHandlerCommand() : BaseCommand() {
+    @TextHandler
+    fun handle(message: String) {
+        if ("start" == message) {
+            context.createPage(
+                Page(
+                    "INLINE ME", messageType = MessageType.Inline,
+                    subCommands = listOf(
+                        listOf(
+                            SubCommand.of(ValidInlineHandlerCommand::class.java),
+                            SubCommand.REFRESH
+                        )
+                    )
+                )
+            )
+        } else {
+            assertEquals("this is text command", message)
+        }
+    }
+}
+
+internal class ValidInlineHandlerCommand : BaseCommand() {
+    @InlineHandler
+    fun handleInline(message: String, someInt: Int?) {
+        assertEquals(SystemCommands.REFRESH, message)
     }
 }
