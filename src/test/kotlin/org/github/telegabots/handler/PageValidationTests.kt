@@ -4,6 +4,7 @@ import org.github.telegabots.BaseTests
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.Page
+import org.github.telegabots.api.SubCommand
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.error.CommandInvokeException
@@ -225,7 +226,8 @@ class ValidationInlineHandlerRootCommand : BaseCommand() {
     private fun createInitPage() = Page("Init text message", messageType = MessageType.Text, handler = this.javaClass)
 
     private fun createInvalidPage() = Page(
-        "Some foo bar", messageType = MessageType.Inline, handler = CommandWithOnlyTextHandler::class.java
+        "Some foo bar", messageType = MessageType.Inline, handler = CommandWithOnlyTextHandler::class.java,
+        subCommands = listOf(listOf(SubCommand.of("SOME_COMMAND")))
     )
 }
 
