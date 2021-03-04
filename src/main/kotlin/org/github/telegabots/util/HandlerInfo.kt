@@ -55,7 +55,7 @@ data class HandlerInfo(
         }
 
         if (param.isUserService()) {
-            val service = context.getUserService(param.type as Class<UserService>, context.userId())
+            val service = context.getUserService(param.type as Class<UserService>)
             check(service != null) { "Service not found: ${param.type.name}" }
             return service
         }

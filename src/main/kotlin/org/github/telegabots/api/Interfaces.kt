@@ -93,7 +93,7 @@ interface CommandContext : UserContext, CommandExecutor {
 
     fun <T : Service> getService(clazz: Class<T>): T?
 
-    fun <T : UserService> getUserService(clazz: Class<T>, userId: Int): T?
+    fun <T : UserService> getUserService(clazz: Class<T>): T?
 }
 
 interface CommandExecutor {
@@ -390,7 +390,7 @@ interface MessageSender {
 interface ServiceProvider {
     fun <T : Service> getService(clazz: Class<T>): T?
 
-    fun <T : UserService> getUserService(clazz: Class<T>, userId: Int): T?
+    fun <T : UserService> getUserService(clazz: Class<T>, user: InputUser): T?
 }
 
 /**
