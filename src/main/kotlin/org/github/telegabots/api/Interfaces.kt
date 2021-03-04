@@ -106,6 +106,8 @@ interface UserContext {
     fun userId(): Int
 
     fun isAdmin(): Boolean
+
+    fun user(): InputUser
 }
 
 interface UserStateService : Service {
@@ -480,6 +482,7 @@ data class InputMessage(
     val chatId: Long,
     val userId: Int,
     val isAdmin: Boolean,
+    val user: InputUser,
     val messageId: Int? = null
 ) {
     init {
@@ -489,6 +492,14 @@ data class InputMessage(
 
     fun toInputRefresh() = this.copy(query = SystemCommands.REFRESH)
 }
+
+data class InputUser(
+    val id: Int,
+    val firstName: String,
+    val lastName: String,
+    val userName: String,
+    val isBot: Boolean
+)
 
 /**
  * For internal uses

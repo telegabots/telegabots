@@ -5,6 +5,7 @@ import org.github.telegabots.api.CommandContext
 import org.github.telegabots.api.ContentType
 import org.github.telegabots.api.Document
 import org.github.telegabots.api.InputMessage
+import org.github.telegabots.api.InputUser
 import org.github.telegabots.api.LocalizeProvider
 import org.github.telegabots.api.MessageSender
 import org.github.telegabots.api.MessageType
@@ -297,6 +298,8 @@ class CommandContextImpl(
     override fun userId(): Int = input.userId
 
     override fun isAdmin(): Boolean = input.isAdmin
+
+    override fun user(): InputUser = input.user
 
     private fun createCommandContext(
         blockId: Long,

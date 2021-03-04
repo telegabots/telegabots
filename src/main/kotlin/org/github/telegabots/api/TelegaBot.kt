@@ -6,6 +6,7 @@ import org.github.telegabots.state.UsersStatesManager
 import org.github.telegabots.util.CommandValidatorImpl
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.objects.Update
+import org.telegram.telegrambots.meta.api.objects.User
 
 /**
  * Wrapper for convenient Telegram bot running
@@ -57,18 +58,21 @@ class TelegaBot(
     private fun getInputMessage(update: Update): InputMessage? {
         return if (update.hasMessage() && update.message.hasText()) {
             val message = update.message
-            val userId = message.from.id
+            val user = message.from!!
+            val userId = user.id
 
             InputMessage(
                 type = MessageType.Text,
                 query = message.text,
                 chatId = message.chatId,
                 userId = userId,
+                user = toUser(user),
                 isAdmin = userId.toLong() == adminChatId
             )
         } else if (update.hasCallbackQuery()) {
             val callbackQuery = update.callbackQuery
             val message = callbackQuery.message
+            val user = callbackQuery.from!!
             val userId = callbackQuery.from.id
 
             InputMessage(
@@ -76,6 +80,7 @@ class TelegaBot(
                 query = callbackQuery.data ?: "",
                 chatId = message.chatId,
                 userId = userId,
+                user = toUser(user),
                 messageId = message.messageId,
                 isAdmin = userId.toLong() == adminChatId
             )
@@ -84,4 +89,12 @@ class TelegaBot(
             return null
         }
     }
+
+    private fun toUser(user: User): InputUser =
+        InputUser(
+            user.id, firstName = user.firstName ?: "",
+            lastName = user.lastName ?: "",
+            userName = user.userName ?: "",
+            isBot = user.bot == true
+        )
 }
