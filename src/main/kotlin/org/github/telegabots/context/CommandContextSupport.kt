@@ -1,6 +1,14 @@
 package org.github.telegabots.context
 
-import org.github.telegabots.api.*
+import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.CommandContext
+import org.github.telegabots.api.ContentType
+import org.github.telegabots.api.Document
+import org.github.telegabots.api.InputUser
+import org.github.telegabots.api.Page
+import org.github.telegabots.api.Service
+import org.github.telegabots.api.UserService
+
 
 /**
  * Supports CommandContext for current executing command
@@ -47,8 +55,6 @@ object CommandContextSupport : CommandContext {
     override fun <T : Service> getService(clazz: Class<T>): T? = current().getService(clazz)
 
     override fun <T : UserService> getUserService(clazz: Class<T>): T? = current().getUserService(clazz)
-
-    override fun userId(): Int = current().userId()
 
     override fun isAdmin(): Boolean = current().isAdmin()
 

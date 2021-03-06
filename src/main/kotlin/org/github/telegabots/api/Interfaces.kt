@@ -103,8 +103,6 @@ interface CommandExecutor {
 }
 
 interface UserContext {
-    fun userId(): Int
-
     fun isAdmin(): Boolean
 
     fun user(): InputUser

@@ -295,8 +295,6 @@ class CommandContextImpl(
     override fun <T : UserService> getUserService(clazz: Class<T>): T? =
         serviceProvider.getUserService(clazz, input.user)
 
-    override fun userId(): Int = input.userId
-
     override fun isAdmin(): Boolean = input.isAdmin
 
     override fun user(): InputUser = input.user
