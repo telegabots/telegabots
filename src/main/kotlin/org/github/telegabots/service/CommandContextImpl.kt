@@ -15,6 +15,7 @@ import org.github.telegabots.api.ServiceProvider
 import org.github.telegabots.api.StateItem
 import org.github.telegabots.api.SubCommand
 import org.github.telegabots.api.UserService
+import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.state.UserStateService
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
@@ -23,11 +24,16 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
+import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 
 class CommandContextImpl(
     private val blockId: Long,
     private val pageId: Long,
+    /**
+     * Message id related with current block
+     */
+    private val currentMessageId: Int,
     private val input: InputMessage,
     private val command: BaseCommand,
     private val commandHandlers: CommandHandlers,
@@ -39,7 +45,16 @@ class CommandContextImpl(
     private val log = LoggerFactory.getLogger(CommandContextImpl::class.java)!!
     private val jsonService = serviceProvider.getService(JsonService::class.java)!!
 
-    override fun inlineMessageId(): Int? = input.messageId
+    /**
+     * Block was create while command executing
+     *
+     * Several updates can be made while one command executed
+     */
+    private val implicitBlockId = AtomicLong(0)
+
+    override fun messageId(): Int = currentMessageId
+
+    override fun inputMessageId(): Int = input.messageId
 
     override fun blockId(): Long = blockId
 
@@ -110,8 +125,8 @@ class CommandContextImpl(
                     })
             }
             MessageType.Inline -> {
-                check(input.messageId ?: 0 > 0) { "Input message id cannot be null or negative. Input: $input" }
-                val messageId: Int = input.messageId!!
+                check(input.inlineMessageId ?: 0 > 0) { "Input message id cannot be null or negative. Input: $input" }
+                val messageId: Int = input.inlineMessageId!!
 
                 messageSender.updateMessage(chatId = input.chatId.toString(),
                     messageId = messageId,
@@ -151,44 +166,100 @@ class CommandContextImpl(
     }
 
     override fun updatePage(page: Page): Long {
-        if (blockId <= 0) {
+        if (page.blockId > 0) {
+            return updatePageExplicit(page, page.blockId, finalPageId = page.id)
+        }
+
+        if (page.id > 0) {
+            val blockByPageId = getBlockIdByPageId(page.id)
+            return updatePageExplicit(page, blockByPageId, finalPageId = page.id)
+        }
+
+        val finalBlockId = implicitBlockId.get().let { if (it > 0) it else blockId }
+
+        if (finalBlockId <= 0) {
             return createPage(page)
         }
 
+        if (input.inlineMessageId == null && page.messageType == MessageType.Inline && implicitBlockId.get() <= 0) {
+            // from non-inline handler we have attempt to update page
+            // we have to clone current block and bind it with new message
+            val newMessageId = messageSender.sendMessage(chatId = input.chatId.toString(),
+                contentType = page.contentType,
+                disablePreview = page.disablePreview,
+                message = page.message,
+                preSendHandler = Consumer { msg ->
+                    applyMessageButtons(msg, page.subCommands, page.messageType)
+                })
+
+            val lastPage = createBlockFrom(blockId, newMessageId)
+            implicitBlockId.set(lastPage.blockId)
+
+            return updatePageExplicit(page, implicitBlockId.get(), finalPageId = lastPage.id, ignoreSender = true)
+        }
+
+        val finalPageId = if (implicitBlockId.get() > 0) 0 else pageId
+
+        return updatePageExplicit(page, finalBlockId, finalPageId = finalPageId)
+    }
+
+    private fun createBlockFrom(blockId: Long, newMessageId: Int): CommandPage {
+        TODO("Not yet implemented")
+    }
+
+    private fun getBlockIdByPageId(id: Long): Long {
+        TODO("Not yet implemented")
+    }
+
+    private fun updatePageExplicit(
+        page: Page,
+        finalBlockId: Long,
+        finalPageId: Long,
+        ignoreSender: Boolean = false
+    ): Long {
         validatePageHandler(page)
-        val block = userState.getBlockById(blockId) ?: throw IllegalStateException("Block by id not found: $blockId")
+
+        val block = userState.getBlockById(finalBlockId)
+            ?: throw IllegalStateException("Block by id not found: $finalBlockId")
         check(page.messageType == block.messageType) { "Adding page message type mismatch block's type. Expected: ${block.messageType}" }
 
-        val resultMessageId = when (page.messageType) {
-            MessageType.Text -> {
-                messageSender.sendMessage(chatId = input.chatId.toString(),
-                    contentType = page.contentType,
-                    disablePreview = page.disablePreview,
-                    message = page.message,
-                    preSendHandler = Consumer { msg ->
-                        applyMessageButtons(msg, page.subCommands, page.messageType)
-                    })
-            }
-            MessageType.Inline -> {
-                check(input.messageId ?: 0 > 0) { "Input message id cannot be null or negative. Input: $input" }
-                val messageId: Int = input.messageId!!
+        if (!ignoreSender) {
+            when (page.messageType) {
+                MessageType.Text -> {
+                    messageSender.sendMessage(chatId = input.chatId.toString(),
+                        contentType = page.contentType,
+                        disablePreview = page.disablePreview,
+                        message = page.message,
+                        preSendHandler = Consumer { msg ->
+                            applyMessageButtons(msg, page.subCommands, page.messageType)
+                        })
+                }
+                MessageType.Inline -> {
+                    check(input.inlineMessageId ?: 0 > 0) { "Input message id cannot be null or negative. Input: $input" }
+                    val messageId: Int = block.messageId
 
-                messageSender.updateMessage(chatId = input.chatId.toString(),
-                    messageId = messageId,
-                    contentType = page.contentType,
-                    disablePreview = page.disablePreview,
-                    message = page.message,
-                    preSendHandler = Consumer { msg ->
-                        applyMessageButtons(msg, page.subCommands)
-                    })
-                null
+                    messageSender.updateMessage(chatId = input.chatId.toString(),
+                        messageId = messageId,
+                        contentType = page.contentType,
+                        disablePreview = page.disablePreview,
+                        message = page.message,
+                        preSendHandler = Consumer { msg ->
+                            applyMessageButtons(msg, page.subCommands)
+                        })
+                }
             }
         }
 
+        val bestPageId = if (finalPageId == 0L) {
+            // if specified pageId==0 update last page of the block
+            return userState.getLastPage(finalBlockId)?.id ?: 0
+        } else {
+            finalPageId
+        }
+
         val savedPage = userState.savePage(
-            blockId,
-            messageId = resultMessageId,
-            pageId = if (page.id > 0) page.id else pageId,
+            finalBlockId,
+            pageId = bestPageId,
             handler = page.handler ?: command.javaClass,
             subCommands = page.subCommands
         )
@@ -254,10 +325,11 @@ class CommandContextImpl(
      * TODO: providing local state from caller
      */
     override fun executeTextCommand(clazz: Class<out BaseCommand>, text: String): Boolean {
-        val newInput = input.copy(query = text, messageId = null, type = MessageType.Text)
+        val newInput = input.copy(query = text, inlineMessageId = null, type = MessageType.Text)
         val handler = commandHandlers.getCommandHandler(clazz)
         val states = userState.getStates()
-        val context = createCommandContext(blockId = 0, command = handler.command, input = newInput)
+        val context =
+            createCommandContext(blockId = 0, currentMessageId = 0, command = handler.command, input = newInput)
 
         val callContext = CommandCallContext(commandHandler = handler,
             input = newInput,
@@ -274,12 +346,13 @@ class CommandContextImpl(
      * TODO: providing local state from caller
      */
     override fun executeInlineCommand(clazz: Class<out BaseCommand>, query: String): Boolean {
-        val messageId = input.messageId
+        val messageId = input.inlineMessageId
             ?: throw IllegalStateException("Inline command can be executed only in inline message context")
-        val newInput = input.copy(query = query, messageId = messageId, type = MessageType.Inline)
+        val newInput = input.copy(query = query, inlineMessageId = messageId, type = MessageType.Inline)
         val handler = commandHandlers.getCommandHandler(clazz.name)
         val states = userState.getStates()
-        val context = createCommandContext(blockId = 0, command = handler.command, input = newInput)
+        val context =
+            createCommandContext(blockId = 0, currentMessageId = 0, command = handler.command, input = newInput)
 
         val callContext = CommandCallContext(commandHandler = handler,
             input = newInput,
@@ -301,6 +374,7 @@ class CommandContextImpl(
 
     private fun createCommandContext(
         blockId: Long,
+        currentMessageId: Int,
         command: BaseCommand,
         input: InputMessage,
         pageId: Long = 0
@@ -308,6 +382,7 @@ class CommandContextImpl(
         return CommandContextImpl(
             blockId = blockId,
             pageId = pageId,
+            currentMessageId = currentMessageId,
             command = command,
             input = input,
             commandHandlers = commandHandlers,

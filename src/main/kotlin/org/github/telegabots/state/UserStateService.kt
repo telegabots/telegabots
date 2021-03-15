@@ -51,6 +51,7 @@ class UserStateService(
         handler: Class<out BaseCommand>,
         subCommands: List<List<SubCommand>> = emptyList(),
         pageId: Long = 0,
+        // TODO: redundant field. remove it
         messageId: Int? = null
     ): CommandPage =
         dbProvider.savePage(

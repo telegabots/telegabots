@@ -67,6 +67,8 @@ class TelegaBot(
                 chatId = message.chatId,
                 userId = userId,
                 user = toUser(user),
+                messageId = message.messageId,
+                inlineMessageId = null,
                 isAdmin = userId.toLong() == adminChatId
             )
         } else if (update.hasCallbackQuery()) {
@@ -82,6 +84,7 @@ class TelegaBot(
                 userId = userId,
                 user = toUser(user),
                 messageId = message.messageId,
+                inlineMessageId = message.messageId,
                 isAdmin = userId.toLong() == adminChatId
             )
         } else {

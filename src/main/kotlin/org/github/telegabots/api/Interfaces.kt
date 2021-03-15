@@ -11,9 +11,14 @@ import java.util.regex.Pattern
  */
 interface CommandContext : UserContext, CommandExecutor {
     /**
-     * Message id of inline message
+     * Message id related with current block
      */
-    fun inlineMessageId(): Int?
+    fun messageId(): Int
+
+    /**
+     * Message id related with input user message
+     */
+    fun inputMessageId(): Int
 
     /**
      * Returns current block's id
@@ -136,6 +141,7 @@ data class Page(
     val subCommands: List<List<SubCommand>> = emptyList(),
     val handler: Class<out BaseCommand>? = null,
     val id: Long = 0L,
+    val blockId: Long = 0L,
     val state: StateRef? = null
 ) {
     override fun toString(): String {
@@ -481,7 +487,8 @@ data class InputMessage(
     val userId: Int,
     val isAdmin: Boolean,
     val user: InputUser,
-    val messageId: Int? = null
+    val messageId: Int,
+    val inlineMessageId: Int?
 ) {
     init {
         check(userId != 0) { "UserId cannot be $userId" }

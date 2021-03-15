@@ -40,9 +40,9 @@ class CallContextManager(
     }
 
     private fun getInlineMessageContext(input: InputMessage): CommandCallContext {
-        val messageId = input.messageId!!
+        check(input.type == MessageType.Inline) { "Expected Inline, but found ${input.type}" }
         val userState = usersStatesManager.get(input.userId)
-        val block = userState.getBlockByMessageId(messageId)
+        val block = userState.getBlockByMessageId(input.messageId)
 
         return getCommonCallContext(block, input, userState)
     }
@@ -175,7 +175,7 @@ class CallContextManager(
             CommandBehaviour.SeparatePage -> {
                 val finalPageId = userState.savePage(block.id, cmdHandler.commandClass).id
                 val states = userState.getStates(block.messageId, state, finalPageId)
-                val context = createCommandContext(block.id, cmdHandler.command, input, finalPageId)
+                val context = createCommandContext(block.id, block.messageId, cmdHandler.command, input, finalPageId)
 
                 return CommandCallContext(commandHandler = cmdHandler,
                     input = input,
@@ -185,7 +185,7 @@ class CallContextManager(
             }
             CommandBehaviour.ParentPage -> {
                 val states = userState.getStates(block.messageId, state, pageId = 0)
-                val context = createCommandContext(block.id, cmdHandler.command, input, pageId)
+                val context = createCommandContext(block.id, block.messageId, cmdHandler.command, input, pageId)
 
                 return CommandCallContext(commandHandler = cmdHandler,
                     input = input,
@@ -195,7 +195,7 @@ class CallContextManager(
             }
             CommandBehaviour.ParentPageState -> {
                 val states = userState.getStates(block.messageId, state, pageId)
-                val context = createCommandContext(block.id, cmdHandler.command, input, pageId)
+                val context = createCommandContext(block.id, block.messageId, cmdHandler.command, input, pageId)
 
                 return CommandCallContext(commandHandler = cmdHandler,
                     input = input,
@@ -211,7 +211,7 @@ class CallContextManager(
     ): CommandCallContext {
         val handler = commandHandlers.getCommandHandler(rootCommand)
         val states = userState.getStates()
-        val context = createCommandContext(blockId = 0, command = handler.command, input = input)
+        val context = createCommandContext(blockId = 0, currentMessageId = input.inlineMessageId ?: 0, command = handler.command, input = input)
 
         return CommandCallContext(commandHandler = handler,
             input = input,
@@ -253,6 +253,7 @@ class CallContextManager(
 
     private fun createCommandContext(
         blockId: Long,
+        currentMessageId: Int,
         command: BaseCommand,
         input: InputMessage,
         pageId: Long = 0L
@@ -260,6 +261,7 @@ class CallContextManager(
         return CommandContextImpl(
             blockId = blockId,
             pageId = pageId,
+            currentMessageId = currentMessageId,
             command = command,
             input = input,
             commandHandlers = commandHandlers,

@@ -145,7 +145,7 @@ internal class InvalidInlineCommandWithTwoIntParams() : BaseCommand() {
 internal class ValidInlineCommandWithTwoStringParams() : BaseCommand() {
     @InlineHandler
     fun handle(first: String, second: String?) {
-        assertEquals(12357, context.inlineMessageId())
+        assertEquals(12357, context.messageId())
         assertEquals("XXX", first)
         assertNull(second)
     }
@@ -159,7 +159,7 @@ internal class ValidInlineCommandWithTwoStringParams() : BaseCommand() {
 internal class ValidInlineCommandStringInt() : BaseCommand() {
     @InlineHandler
     fun handleInline(message: String, someInt: Int?) {
-        assertEquals(55557, context.inlineMessageId())
+        assertEquals(55557, context.messageId())
         assertEquals("StringInt", message)
         assertNull(someInt)
     }

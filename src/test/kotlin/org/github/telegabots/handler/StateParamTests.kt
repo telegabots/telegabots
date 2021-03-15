@@ -130,7 +130,7 @@ internal class CommandWithStateParam : BaseCommand() {
     @InlineHandler
     fun handleInline(msg: String, doubleState: State<Double>) {
         assertEquals("Hello from client callback", msg)
-        assertEquals(445577, context.inlineMessageId())
+        assertEquals(445577, context.messageId())
         assertFalse(doubleState.isPresent())
         assertNull(doubleState.get())
 
@@ -160,7 +160,7 @@ internal class CommandWithReadonlyLocalState : BaseCommand() {
     @InlineHandler
     fun handleInline(message: String, readOnlyState: String?) {
         assertEquals("Data2", message)
-        assertEquals(123987, context.inlineMessageId())
+        assertEquals(123987, context.messageId())
         assertNull(readOnlyState)
 
         inlineHandlerCalled.set(true)

@@ -24,7 +24,9 @@ object CommandContextSupport : CommandContext {
             ?: throw IllegalStateException("Command context not initialized for current command")
     }
 
-    override fun inlineMessageId(): Int? = current().inlineMessageId()
+    override fun messageId(): Int = current().messageId()
+
+    override fun inputMessageId(): Int = current().inputMessageId()
 
     override fun blockId(): Long = current().blockId()
 
