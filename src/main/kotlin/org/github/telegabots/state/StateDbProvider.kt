@@ -22,9 +22,19 @@ interface StateDbProvider {
 
     fun findLastPageByBlockId(userId: Int, blockId: Long): CommandPage?
 
+    fun findBlockIdByPageId(userId: Int, pageId: Long): Long?
+
     fun saveLocalState(pageId: Long, state: StateDef)
 
+    /**
+     * Returns local state related specified pageId
+     */
     fun getLocalState(pageId: Long): StateDef
+
+    /**
+     * Returns all local states related with all pages by specified blockId
+     */
+    fun getLocalStates(blockId: Long): Map<Long, StateDef>
 
     fun saveSharedState(userId: Int, messageId: Int, state: StateDef)
 

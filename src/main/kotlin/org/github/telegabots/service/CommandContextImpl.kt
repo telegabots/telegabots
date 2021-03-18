@@ -111,7 +111,7 @@ class CommandContextImpl(
         }
 
         validatePageHandler(page)
-        val block = userState.getBlockById(blockId) ?: throw IllegalStateException("Block by id not found: $blockId")
+        val block = userState.getBlockById(blockId)
         check(page.messageType == block.messageType) { "Adding page message type mismatch block's type. Expected: ${block.messageType}" }
 
         val resultMessageId = when (page.messageType) {
@@ -192,24 +192,23 @@ class CommandContextImpl(
                     applyMessageButtons(msg, page.subCommands, page.messageType)
                 })
 
-            val lastPage = createBlockFrom(blockId, newMessageId)
+            val lastPage = cloneFromBlock(blockId, newMessageId)
             implicitBlockId.set(lastPage.blockId)
 
             return updatePageExplicit(page, implicitBlockId.get(), finalPageId = lastPage.id, ignoreSender = true)
         }
 
-        val finalPageId = if (implicitBlockId.get() > 0) 0 else pageId
+        val finalPageId = if (implicitBlockId.get() > 0) PAGE_ID_LAST else pageId
 
         return updatePageExplicit(page, finalBlockId, finalPageId = finalPageId)
     }
 
-    private fun createBlockFrom(blockId: Long, newMessageId: Int): CommandPage {
-        TODO("Not yet implemented")
+    private fun cloneFromBlock(blockId: Long, newMessageId: Int): CommandPage {
+        return userState.cloneFromBlock(blockId, newMessageId)
     }
 
-    private fun getBlockIdByPageId(id: Long): Long {
-        TODO("Not yet implemented")
-    }
+    private fun getBlockIdByPageId(pageId: Long): Long =
+        userState.findBlockIdByPageId(pageId) ?: throw IllegalStateException("Block not found by pageId: $pageId")
 
     private fun updatePageExplicit(
         page: Page,
@@ -219,7 +218,7 @@ class CommandContextImpl(
     ): Long {
         validatePageHandler(page)
 
-        val block = userState.getBlockById(finalBlockId)
+        val block = userState.findBlockById(finalBlockId)
             ?: throw IllegalStateException("Block by id not found: $finalBlockId")
         check(page.messageType == block.messageType) { "Adding page message type mismatch block's type. Expected: ${block.messageType}" }
 
@@ -250,12 +249,10 @@ class CommandContextImpl(
             }
         }
 
-        val bestPageId = if (finalPageId == 0L) {
-            // if specified pageId==0 update last page of the block
-            return userState.getLastPage(finalBlockId)?.id ?: 0
-        } else {
+        val bestPageId = if (finalPageId == PAGE_ID_LAST)
+            userState.getLastPage(finalBlockId).id
+        else
             finalPageId
-        }
 
         val savedPage = userState.savePage(
             finalBlockId,
@@ -476,4 +473,8 @@ class CommandContextImpl(
         }.toMutableList()
 
     private fun getTitle(cmd: SubCommand) = cmd.title ?: localizeProvider.getString(cmd.titleId)
+
+    companion object {
+        private const val PAGE_ID_LAST: Long = 0
+    }
 }

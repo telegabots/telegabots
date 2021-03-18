@@ -230,7 +230,7 @@ data class StateKey(val type: Class<*>, val name: String) {
     fun equals(type: Class<*>, name: String) = this.type == type && this.name == name
 
     override fun toString(): String {
-        return "StateKey(${type.name}['$name'])"
+        return if (name.isNotBlank()) "StateKey(${type.name}['$name'])" else "StateKey(${type.name})"
     }
 
     companion object {

@@ -9,6 +9,7 @@ import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandDef
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
+import org.github.telegabots.util.Validation
 
 /**
  * Stores commands tree and all user-related states
@@ -26,11 +27,17 @@ class UserStateService(
 
     fun getBlockByMessageId(messageId: Int): CommandBlock? = dbProvider.findBlockByMessageId(userId, messageId)
 
-    fun getBlockById(blockId: Long): CommandBlock? = dbProvider.findBlockById(blockId)
+    fun findBlockById(blockId: Long): CommandBlock? = dbProvider.findBlockById(blockId)
+
+    fun getBlockById(blockId: Long): CommandBlock =
+        findBlockById(blockId) ?: throw IllegalStateException("Block by id not found: $blockId")
 
     fun getLastBlock(): CommandBlock? = dbProvider.findLastBlockByUserId(userId)
 
-    fun getLastPage(blockId: Long): CommandPage? = dbProvider.findLastPageByBlockId(userId, blockId)
+    fun findLastPage(blockId: Long): CommandPage? = dbProvider.findLastPageByBlockId(userId, blockId)
+
+    fun getLastPage(blockId: Long): CommandPage =
+        findLastPage(blockId) ?: throw IllegalStateException("Page not found by blockId: $blockId")
 
     fun getPages(blockId: Long): List<CommandPage> = dbProvider.getBlockPages(blockId)
 
@@ -74,7 +81,10 @@ class UserStateService(
 
     fun getStates(messageId: Int, state: StateDef?, pageId: Long = 0): States =
         StatesImpl(
-            localState = if (pageId > 0) getLocalStateInternal(pageId, state) else LocalTempStateProvider(state, jsonService),
+            localState = if (pageId > 0) getLocalStateInternal(pageId, state) else LocalTempStateProvider(
+                state,
+                jsonService
+            ),
             sharedState = getSharedState(messageId),
             userState = userState,
             globalState = globalState
@@ -124,4 +134,44 @@ class UserStateService(
             state = jsonService.toStateDef(cmd.state),
             behaviour = cmd.behaviour
         )
+
+    /**
+     * Clones specified block and returns last page from cloned block
+     */
+    fun cloneFromBlock(blockId: Long, newMessageId: Int): CommandPage {
+        Validation.validateMessageId(newMessageId)
+
+        val block = getBlockById(blockId)
+        val pages = getPages(blockId)
+        val sharedState = dbProvider.getSharedState(userId, block.messageId)
+        val localStates = dbProvider.getLocalStates(blockId)
+
+        val newBlock = dbProvider.saveBlock(
+            CommandBlock(
+                messageId = newMessageId,
+                userId = userId,
+                messageType = block.messageType,
+                id = 0
+            )
+        )
+
+        dbProvider.saveSharedState(userId, newMessageId, sharedState)
+
+        val newPages = pages.map { page ->
+            val newPage = dbProvider.savePage(page.copy(blockId = newBlock.id))
+            val state = localStates[page.id]
+
+            if (state != null) {
+                dbProvider.saveLocalState(newPage.id, state)
+            }
+
+            newPage
+        }
+
+        return newPages.last()
+    }
+
+    fun findBlockIdByPageId(pageId: Long): Long? {
+        return dbProvider.findBlockIdByPageId(userId, pageId)
+    }
 }

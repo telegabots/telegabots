@@ -68,7 +68,7 @@ class MemoryStateDbProvider : StateDbProvider {
 
     @Synchronized
     override fun findLastBlockByUserId(userId: Int): CommandBlock? {
-        return commandBlocks.filter { it.userId == userId }.maxByOrNull{ it.id }
+        return commandBlocks.filter { it.userId == userId }.maxByOrNull { it.id }
     }
 
     @Synchronized
@@ -81,6 +81,13 @@ class MemoryStateDbProvider : StateDbProvider {
         return commandPages[blockId]?.lastOrNull()
     }
 
+    @Synchronized
+    override fun findBlockIdByPageId(userId: Int, pageId: Long): Long? {
+        // TODO: optimize
+        return commandBlocks.filter { it.userId == userId && commandPages[it.id] != null }
+            .flatMap { commandPages[it.id]!! }
+            .find { it.id == pageId }?.blockId
+    }
 
     @Synchronized
     override fun saveLocalState(pageId: Long, state: StateDef) {
@@ -90,6 +97,14 @@ class MemoryStateDbProvider : StateDbProvider {
     @Synchronized
     override fun getLocalState(pageId: Long): StateDef {
         return localStates[pageId] ?: StateDef.Empty
+    }
+
+    @Synchronized
+    override fun getLocalStates(blockId: Long): Map<Long, StateDef> {
+        return getBlockPages(blockId)
+            .filter { localStates[it.id] != null }
+            .map { it.id to localStates[it.id]!! }
+            .toMap()
     }
 
     @Synchronized
