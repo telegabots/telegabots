@@ -34,7 +34,7 @@ class UserStateService(
 
     fun getLastBlock(): CommandBlock? = dbProvider.findLastBlockByUserId(userId)
 
-    fun findLastPage(blockId: Long): CommandPage? = dbProvider.findLastPageByBlockId(userId, blockId)
+    fun findLastPage(blockId: Long): CommandPage? = dbProvider.findLastPageByBlockId(blockId)
 
     fun getLastPage(blockId: Long): CommandPage =
         findLastPage(blockId) ?: throw IllegalStateException("Page not found by blockId: $blockId")
@@ -172,6 +172,6 @@ class UserStateService(
     }
 
     fun findBlockIdByPageId(pageId: Long): Long? {
-        return dbProvider.findBlockIdByPageId(userId, pageId)
+        return dbProvider.findBlockByPageId(pageId)?.id
     }
 }

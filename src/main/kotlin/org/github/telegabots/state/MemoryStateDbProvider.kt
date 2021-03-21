@@ -3,9 +3,13 @@ package org.github.telegabots.state
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.StateDef
+import org.github.telegabots.util.runIn
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReadWriteLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
 
-class MemoryStateDbProvider : StateDbProvider {
+class MemoryStateDbProvider : LockableStateDbProvider {
     private val commandBlocks = mutableListOf<CommandBlock>()
     private val commandPages = mutableMapOf<Long, MutableList<CommandPage>>()
     private val localStates = mutableMapOf<Long, StateDef>()
@@ -14,138 +18,166 @@ class MemoryStateDbProvider : StateDbProvider {
     private val pageIds = AtomicLong(1_000)
     private val blockIds = AtomicLong(10_000)
     private var globalState: StateDef? = null
+    private val rwl: ReadWriteLock = ReentrantReadWriteLock()
+    private val readLock: Lock = rwl.readLock()
+    private val writeLock: Lock = rwl.writeLock()
 
-    @Synchronized
+    override fun readLock(): Lock = readLock
+
+    override fun writeLock(): Lock = writeLock
+
     override fun saveBlock(block: CommandBlock): CommandBlock {
         check(block.isValid()) { "block is invalid: $block" }
 
-        val savedBlock = block.copy(id = blockIds.getAndIncrement())
-        commandBlocks.add(savedBlock)
+        writeLock.runIn {
+            val savedBlock = block.copy(id = blockIds.getAndIncrement())
+            commandBlocks.add(savedBlock)
 
-        return savedBlock
+            return savedBlock
+        }
     }
 
-    @Synchronized
     override fun savePage(page: CommandPage): CommandPage {
         check(page.isValid()) { "page is invalid: $page" }
 
-        val block = commandBlocks.find { it.id == page.blockId }
-            ?: throw IllegalStateException("Block not found: ${page.blockId}")
+        writeLock.runIn {
+            val block = commandBlocks.find { it.id == page.blockId }
+                ?: throw IllegalStateException("Block not found: ${page.blockId}")
 
-        if (page.id > 0) {
-            val pages = commandPages.getOrPut(block.id) { mutableListOf() }
-            val index = pages.indexOfFirst { it.id == page.id }
-            check(index >= 0) { "Page not found by id: ${page.id}, blockId: ${page.blockId}" }
-            pages.removeAt(index)
-            pages.add(index, page)
+            if (page.id > 0) {
+                val pages = commandPages.getOrPut(block.id) { mutableListOf() }
+                val index = pages.indexOfFirst { it.id == page.id }
+                check(index >= 0) { "Page not found by id: ${page.id}, blockId: ${page.blockId}" }
+                pages.removeAt(index)
+                pages.add(index, page)
 
-            return page
-        } else {
-            val savedPage = page.copy(id = pageIds.getAndIncrement())
-            val pages = commandPages.getOrPut(block.id) { mutableListOf() }
-            pages.add(savedPage)
+                return page
+            } else {
+                val savedPage = page.copy(id = pageIds.getAndIncrement())
+                val pages = commandPages.getOrPut(block.id) { mutableListOf() }
+                pages.add(savedPage)
 
-            return savedPage
+                return savedPage
+            }
         }
     }
 
     override fun removePage(pageId: Long): CommandPage? {
-        // TODO: optimize
-        commandPages.forEach { (_, pages) ->
-            val index = pages.indexOfFirst { it.id == pageId }
-            if (index >= 0) {
-                return pages.removeAt(index)
+        writeLock.runIn {
+            // TODO: optimize
+            commandPages.forEach { (_, pages) ->
+                val index = pages.indexOfFirst { it.id == pageId }
+                if (index >= 0) {
+                    return pages.removeAt(index)
+                }
             }
+
+            return null
         }
-
-        return null
     }
 
-    @Synchronized
     override fun findBlockByMessageId(userId: Int, messageId: Int): CommandBlock? {
-        return commandBlocks.find { it.userId == userId && it.messageId == messageId }
+        readLock.runIn {
+            return commandBlocks.find { it.userId == userId && it.messageId == messageId }
+        }
     }
 
-    @Synchronized
     override fun findLastBlockByUserId(userId: Int): CommandBlock? {
-        return commandBlocks.filter { it.userId == userId }.maxByOrNull { it.id }
+        readLock.runIn {
+            return commandBlocks.filter { it.userId == userId }.maxByOrNull { it.id }
+        }
     }
 
-    @Synchronized
     override fun findBlockById(blockId: Long): CommandBlock? {
-        return commandBlocks.find { it.id == blockId }
+        readLock.runIn {
+            return commandBlocks.find { it.id == blockId }
+        }
     }
 
-    @Synchronized
-    override fun findLastPageByBlockId(userId: Int, blockId: Long): CommandPage? {
-        return commandPages[blockId]?.lastOrNull()
+    override fun findLastPageByBlockId(blockId: Long): CommandPage? {
+        readLock.runIn {
+            return commandPages[blockId]?.lastOrNull()
+        }
     }
 
-    @Synchronized
-    override fun findBlockIdByPageId(userId: Int, pageId: Long): Long? {
-        // TODO: optimize
-        return commandBlocks.filter { it.userId == userId && commandPages[it.id] != null }
-            .flatMap { commandPages[it.id]!! }
-            .find { it.id == pageId }?.blockId
+    override fun findBlockByPageId(pageId: Long): CommandBlock? {
+        readLock.runIn {
+            // TODO: optimize
+            return commandBlocks.find { commandPages[it.id]?.any { p -> p.id == pageId } ?: false }
+        }
     }
 
-    @Synchronized
     override fun saveLocalState(pageId: Long, state: StateDef) {
-        localStates[pageId] = state
+        writeLock.runIn {
+            localStates[pageId] = state
+        }
     }
 
-    @Synchronized
-    override fun getLocalState(pageId: Long): StateDef {
-        return localStates[pageId] ?: StateDef.Empty
+    override fun findLocalState(pageId: Long): StateDef? {
+        readLock.runIn {
+            return localStates[pageId]
+        }
     }
 
-    @Synchronized
     override fun getLocalStates(blockId: Long): Map<Long, StateDef> {
-        return getBlockPages(blockId)
-            .filter { localStates[it.id] != null }
-            .map { it.id to localStates[it.id]!! }
-            .toMap()
+        readLock.runIn {
+            return getBlockPages(blockId)
+                .filter { localStates[it.id] != null }
+                .map { it.id to localStates[it.id]!! }
+                .toMap()
+        }
     }
 
-    @Synchronized
     override fun saveSharedState(userId: Int, messageId: Int, state: StateDef) {
-        val block = findBlockByMessageId(userId, messageId)
-            ?: throw IllegalStateException("Block not found by messageId: $messageId and userId: $userId")
+        writeLock.runIn {
+            val block = findBlockByMessageId(userId, messageId)
+                ?: throw IllegalStateException("Block not found by messageId: $messageId and userId: $userId")
 
-        sharedStates[block.id] = state
+            sharedStates[block.id] = state
+        }
     }
 
-    @Synchronized
-    override fun getSharedState(userId: Int, messageId: Int): StateDef {
-        val block = findBlockByMessageId(userId, messageId)
-            ?: throw IllegalStateException("Block not found by messageId: $messageId and userId: $userId")
+    override fun findSharedState(userId: Int, messageId: Int): StateDef? {
+        readLock.runIn {
+            val block = findBlockByMessageId(userId, messageId)
 
-        return sharedStates[block.id] ?: StateDef.Empty
+            return if (block != null) sharedStates[block.id] else null
+        }
     }
 
-    @Synchronized
-    override fun getUserState(userId: Int): StateDef {
-        return userStates[userId] ?: StateDef.Empty
+    override fun findUserState(userId: Int): StateDef? {
+        readLock.runIn {
+            return userStates[userId]
+        }
     }
 
-    @Synchronized
     override fun saveUserState(userId: Int, state: StateDef) {
-        userStates[userId] = state
+        writeLock.runIn {
+            userStates[userId] = state
+        }
     }
 
-    @Synchronized
-    override fun getGlobalState(): StateDef {
-        return globalState ?: StateDef.Empty
+    override fun findGlobalState(): StateDef? {
+        readLock.runIn {
+            return globalState
+        }
     }
 
-    @Synchronized
     override fun saveGlobalState(state: StateDef) {
-        globalState = state
+        writeLock.runIn {
+            globalState = state
+        }
     }
 
-    @Synchronized
-    override fun getBlockPages(blockId: Long): List<CommandPage> = commandPages[blockId] ?: emptyList()
+    override fun getBlockPages(blockId: Long): List<CommandPage> {
+        readLock.runIn {
+            return commandPages[blockId] ?: emptyList()
+        }
+    }
 
-    @Synchronized
-    fun getUserBlocks(userId: Int): List<CommandBlock> = commandBlocks.filter { it.userId == userId }
+    fun getUserBlocks(userId: Int): List<CommandBlock> {
+        readLock.runIn {
+            return commandBlocks.filter { it.userId == userId }
+        }
+    }
 }
