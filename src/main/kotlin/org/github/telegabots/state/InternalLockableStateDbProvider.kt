@@ -38,6 +38,12 @@ class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : L
         }
     }
 
+    override fun findPageById(pageId: Long): CommandPage? {
+        readLock.runIn {
+            return delegate.findPageById(pageId)
+        }
+    }
+
     override fun findBlockById(blockId: Long): CommandBlock? {
         readLock.runIn {
             return delegate.findBlockById(blockId)

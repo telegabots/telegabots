@@ -40,6 +40,8 @@ object CommandContextSupport : CommandContext {
 
     override fun updatePage(page: Page): Long = current().updatePage(page)
 
+    override fun refreshPage(pageId: Long) = current().refreshPage(pageId)
+
     override fun sendDocument(document: Document) = current().sendDocument(document)
 
     override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean) =

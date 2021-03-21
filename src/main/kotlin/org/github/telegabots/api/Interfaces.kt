@@ -34,6 +34,9 @@ interface CommandContext : UserContext, CommandExecutor {
      */
     fun pageId(): Long
 
+    /**
+     * Returns current command in which input handled
+     */
     fun currentCommand(): BaseCommand
 
     /**
@@ -56,6 +59,11 @@ interface CommandContext : UserContext, CommandExecutor {
      * Returns updated/created page id
      */
     fun updatePage(page: Page): Long
+
+    /**
+     * Refresh page content by page id
+     */
+    fun refreshPage(pageId: Long)
 
     fun sendDocument(document: Document)
 

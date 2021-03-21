@@ -56,12 +56,17 @@ class MemoryStateDbProvider : StateDbProvider {
         // TODO: optimize
         commandPages.forEach { (_, pages) ->
             val index = pages.indexOfFirst { it.id == pageId }
+
             if (index >= 0) {
                 return pages.removeAt(index)
             }
         }
 
         return null
+    }
+
+    override fun findPageById(pageId: Long): CommandPage? {
+        return commandPages.values.flatten().find { it.id == pageId }
     }
 
     override fun findBlockByMessageId(userId: Int, messageId: Int): CommandBlock? {
@@ -74,16 +79,15 @@ class MemoryStateDbProvider : StateDbProvider {
 
     override fun findBlockById(blockId: Long): CommandBlock? {
         return commandBlocks.find { it.id == blockId }
-
-    }
-
-    override fun findLastPageByBlockId(blockId: Long): CommandPage? {
-        return commandPages[blockId]?.lastOrNull()
     }
 
     override fun findBlockByPageId(pageId: Long): CommandBlock? {
         // TODO: optimize
         return commandBlocks.find { commandPages[it.id]?.any { p -> p.id == pageId } ?: false }
+    }
+
+    override fun findLastPageByBlockId(blockId: Long): CommandPage? {
+        return commandPages[blockId]?.lastOrNull()
     }
 
     override fun saveLocalState(pageId: Long, state: StateDef) {

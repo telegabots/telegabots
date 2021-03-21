@@ -14,6 +14,7 @@ import org.github.telegabots.api.Service
 import org.github.telegabots.api.ServiceProvider
 import org.github.telegabots.api.StateItem
 import org.github.telegabots.api.SubCommand
+import org.github.telegabots.api.SystemCommands
 import org.github.telegabots.api.UserService
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.state.UserStateService
@@ -178,6 +179,44 @@ class CommandContextImpl(
         val finalPageId = if (implicitBlockId.get() > 0) PAGE_ID_LAST else pageId
 
         return updatePageExplicit(page, finalBlockId, finalPageId = finalPageId)
+    }
+
+    override fun refreshPage(pageId: Long) {
+        val page = userState.findPageById(pageId)
+
+        if (page == null) {
+            log.warn("Page not found by id: {}", pageId)
+            return
+        }
+
+        val block = userState.getBlockById(page.blockId)
+
+        if (block.messageType != MessageType.Inline) {
+            log.warn("Page (id={}) can not be refreshed. Required Inline page, but found {}", pageId, block.messageType)
+            return
+        }
+
+        val handler = commandHandlers.getCommandHandler(page.handler)
+        val states = userState.getStates()
+        val newInput = input.copy(
+            type = MessageType.Inline,
+            query = SystemCommands.REFRESH,
+            messageId = block.messageId,
+            inlineMessageId = block.messageId
+        )
+        val context = createCommandContext(
+            blockId = block.id,
+            currentMessageId = block.messageId,
+            command = handler.command,
+            input = newInput
+        )
+        val callContext = CommandCallContext(commandHandler = handler,
+            input = newInput,
+            states = states,
+            commandContext = context,
+            defaultContext = { null })
+
+        callContext.execute()
     }
 
     private fun addPageExplicit(

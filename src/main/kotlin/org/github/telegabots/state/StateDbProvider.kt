@@ -15,6 +15,8 @@ interface StateDbProvider {
 
     fun removePage(pageId: Long): CommandPage?
 
+    fun findPageById(pageId: Long): CommandPage?
+
     fun findBlockById(blockId: Long): CommandBlock?
 
     fun findBlockByMessageId(userId: Int, messageId: Int): CommandBlock?

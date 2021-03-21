@@ -42,7 +42,9 @@ class UserStateService(
 
     fun getPages(blockId: Long): List<CommandPage> = dbProvider.getBlockPages(blockId)
 
-    fun removePage(pageId: Long) = dbProvider.removePage(pageId)
+    fun removePage(pageId: Long): CommandPage? = dbProvider.removePage(pageId)
+
+    fun findPageById(pageId: Long): CommandPage? = dbProvider.findPageById(pageId)
 
     fun saveBlock(messageId: Int, messageType: MessageType): CommandBlock =
         dbProvider.saveBlock(
