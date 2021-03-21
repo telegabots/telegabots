@@ -42,6 +42,12 @@ object CommandContextSupport : CommandContext {
 
     override fun refreshPage(pageId: Long) = current().refreshPage(pageId)
 
+    override fun deletePage(pageId: Long) = current().deletePage(pageId)
+
+    override fun deleteBlock(blockId: Long) = current().deleteBlock(blockId)
+
+    override fun deleteMessage(messageId: Int) = current().deleteMessage(messageId)
+
     override fun sendDocument(document: Document) = current().sendDocument(document)
 
     override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean) =

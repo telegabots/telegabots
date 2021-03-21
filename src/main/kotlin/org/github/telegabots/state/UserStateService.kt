@@ -111,30 +111,6 @@ class UserStateService(
         TODO()
     }
 
-    private fun getSharedState(messageId: Int): StateProvider {
-        return synchronized(sharedStates) {
-            sharedStates.getOrPut(messageId) { SharedStateProvider(userId, messageId, dbProvider, jsonService) }
-        }
-    }
-
-    private fun getLocalStateInternal(pageId: Long, state: StateDef? = null): StateProvider =
-        if (state != null)
-            AdditionalStateProvider(getLocalStateProvider(pageId), state, jsonService)
-        else
-            getLocalStateProvider(pageId)
-
-    private fun toCommandDefs(subCommands: List<List<SubCommand>>): List<List<CommandDef>> =
-        subCommands.map { it.map { cmd -> toCommandDef(cmd) } }
-
-    private fun toCommandDef(cmd: SubCommand): CommandDef =
-        CommandDef(
-            titleId = cmd.titleId,
-            title = cmd.title ?: localizeProvider.getString(cmd.titleId),
-            handler = cmd.handler?.name,
-            state = jsonService.toStateDef(cmd.state),
-            behaviour = cmd.behaviour
-        )
-
     /**
      * Clones specified block and returns last page from cloned block
      */
@@ -173,7 +149,39 @@ class UserStateService(
         }
     }
 
-    fun findBlockIdByPageId(pageId: Long): Long? {
-        return dbProvider.findBlockByPageId(pageId)?.id
+    fun findBlockByPageId(pageId: Long): CommandBlock? = dbProvider.findBlockByPageId(pageId)
+
+    fun findBlockByMessageId(messageId: Int): CommandBlock? = dbProvider.findBlockByMessageId(userId, messageId)
+
+    private fun getSharedState(messageId: Int): StateProvider {
+        return synchronized(sharedStates) {
+            sharedStates.getOrPut(messageId) { SharedStateProvider(userId, messageId, dbProvider, jsonService) }
+        }
+    }
+
+    private fun getLocalStateInternal(pageId: Long, state: StateDef? = null): StateProvider =
+        if (state != null)
+            AdditionalStateProvider(getLocalStateProvider(pageId), state, jsonService)
+        else
+            getLocalStateProvider(pageId)
+
+    private fun toCommandDefs(subCommands: List<List<SubCommand>>): List<List<CommandDef>> =
+        subCommands.map { it.map { cmd -> toCommandDef(cmd) } }
+
+    private fun toCommandDef(cmd: SubCommand): CommandDef =
+        CommandDef(
+            titleId = cmd.titleId,
+            title = cmd.title ?: localizeProvider.getString(cmd.titleId),
+            handler = cmd.handler?.name,
+            state = jsonService.toStateDef(cmd.state),
+            behaviour = cmd.behaviour
+        )
+
+    fun deleteBlock(blockId: Long) {
+        dbProvider.deleteBlock(blockId)
+    }
+
+    fun deletePage(pageId: Long) {
+        dbProvider.deletePage(pageId)
     }
 }

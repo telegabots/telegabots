@@ -133,4 +133,16 @@ class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : L
             return delegate.saveGlobalState(state)
         }
     }
+
+    override fun deleteBlock(blockId: Long) {
+        writeLock.runIn {
+            return delegate.deleteBlock(blockId)
+        }
+    }
+
+    override fun deletePage(pageId: Long) {
+        writeLock.runIn {
+            return delegate.deletePage(pageId)
+        }
+    }
 }

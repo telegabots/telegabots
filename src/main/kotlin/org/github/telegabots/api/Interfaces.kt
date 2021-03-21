@@ -65,6 +65,23 @@ interface CommandContext : UserContext, CommandExecutor {
      */
     fun refreshPage(pageId: Long)
 
+    /**
+     * Removes page by page id
+     *
+     * If page is last message will be deleted
+     */
+    fun deletePage(pageId: Long)
+
+    /**
+     * Removes all pages by blockId and related message
+     */
+    fun deleteBlock(blockId: Long)
+
+    /**
+     * Deletes message by id and related block
+     */
+    fun deleteMessage(messageId: Int)
+
     fun sendDocument(document: Document)
 
     /**
@@ -397,6 +414,8 @@ interface MessageSender {
         captionContentType: ContentType,
         disableNotification: Boolean
     )
+
+    fun deleteMessage(chatId: String, messageId: Int)
 }
 
 interface ServiceProvider {

@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.methods.send.*
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto
@@ -202,6 +203,24 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
             bot.execute(image)
         } catch (e: TelegramApiException) {
             log.error("Image send failed: {}, chatId: {}, image: {}", e.message, chatId, image, e)
+            throw e
+        }
+    }
+
+    override fun deleteMessage(chatId: String, messageId: Int) {
+        val deleteMsg = DeleteMessage(chatId, messageId)
+
+        try {
+            log.debug("Deleting message: {}", deleteMsg)
+            bot.execute(deleteMsg)
+        } catch (e: TelegramApiException) {
+            log.error(
+                "Message delete failed: {}, messageId: {}, chatId: {}, message: {}",
+                e.message,
+                messageId,
+                chatId,
+                deleteMsg
+            )
             throw e
         }
     }

@@ -219,6 +219,40 @@ class CommandContextImpl(
         callContext.execute()
     }
 
+    override fun deletePage(pageId: Long) {
+        val block = userState.findBlockByPageId(pageId)
+
+        if (block != null) {
+            val pages = userState.getPages(block.id)
+
+            if (pages.size > 1) {
+                userState.deletePage(block.id)
+            } else {
+                userState.deleteBlock(block.id)
+                messageSender.deleteMessage(input.chatId.toString(), block.messageId)
+            }
+        }
+    }
+
+    override fun deleteBlock(blockId: Long) {
+        val block = userState.findBlockById(pageId)
+
+        if (block != null) {
+            userState.deleteBlock(block.id)
+            messageSender.deleteMessage(input.chatId.toString(), block.messageId)
+        }
+    }
+
+    override fun deleteMessage(messageId: Int) {
+        val block = userState.findBlockByMessageId(messageId)
+
+        if (block != null) {
+            userState.deleteBlock(block.id)
+        }
+
+        messageSender.deleteMessage(input.chatId.toString(), messageId)
+    }
+
     private fun addPageExplicit(
         page: Page,
         finalBlockId: Long,
@@ -434,7 +468,7 @@ class CommandContextImpl(
     }
 
     private fun getBlockIdByPageId(pageId: Long): Long =
-        userState.findBlockIdByPageId(pageId) ?: throw IllegalStateException("Block not found by pageId: $pageId")
+        userState.findBlockByPageId(pageId)?.id ?: throw IllegalStateException("Block not found by pageId: $pageId")
 
     private fun createCommandContext(
         blockId: Long,

@@ -136,6 +136,27 @@ class MemoryStateDbProvider : StateDbProvider {
         globalState = state
     }
 
+    override fun deleteBlock(blockId: Long) {
+        commandPages.remove(blockId)
+        commandBlocks.removeIf { it.id == blockId }
+    }
+
+    override fun deletePage(pageId: Long) {
+        val block = findBlockByPageId(pageId)
+
+        if (block != null) {
+            val pages = commandPages[block.id]
+
+            if (pages != null) {
+                pages.removeIf { it.id == pageId }
+
+                if (pages.isEmpty()) {
+                    deleteBlock(block.id)
+                }
+            }
+        }
+    }
+
     override fun getBlockPages(blockId: Long): List<CommandPage> {
         return commandPages[blockId] ?: emptyList()
     }

@@ -52,6 +52,10 @@ interface StateDbProvider {
     fun findGlobalState(): StateDef?
 
     fun saveGlobalState(state: StateDef)
+
+    fun deleteBlock(blockId: Long)
+
+    fun deletePage(pageId: Long)
 }
 
 fun StateDbProvider.getLocalState(pageId: Long): StateDef = findLocalState(pageId) ?: StateDef.Empty

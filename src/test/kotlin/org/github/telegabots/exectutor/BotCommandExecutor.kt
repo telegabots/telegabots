@@ -150,6 +150,10 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
         TODO("Not yet implemented")
     }
 
+    override fun deleteMessage(chatId: String, messageId: Int) {
+        TODO("Not yet implemented")
+    }
+
     override fun executed(command: BaseCommand, messageType: MessageType) {
         command::class.call()
     }
