@@ -10,13 +10,14 @@ import org.github.telegabots.entity.CommandDef
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.util.Validation
+import org.github.telegabots.util.runIn
 
 /**
  * Stores commands tree and all user-related states
  */
 class UserStateService(
     private val userId: Int,
-    private val dbProvider: StateDbProvider,
+    private val dbProvider: LockableStateDbProvider,
     private val localizeProvider: LocalizeProvider,
     private val jsonService: JsonService,
     private val globalState: StateProvider
@@ -57,16 +58,13 @@ class UserStateService(
         blockId: Long,
         handler: Class<out BaseCommand>,
         subCommands: List<List<SubCommand>> = emptyList(),
-        pageId: Long = 0,
-        // TODO: redundant field. remove it
-        messageId: Int? = null
+        pageId: Long = 0
     ): CommandPage =
         dbProvider.savePage(
             CommandPage(
                 id = pageId,
                 blockId = blockId,
                 handler = handler.name,
-                messageId = messageId,
                 commandDefs = toCommandDefs(subCommands)
             )
         )
@@ -141,34 +139,36 @@ class UserStateService(
     fun cloneFromBlock(blockId: Long, newMessageId: Int): CommandPage {
         Validation.validateMessageId(newMessageId)
 
-        val block = getBlockById(blockId)
-        val pages = getPages(blockId)
-        val sharedState = dbProvider.getSharedState(userId, block.messageId)
-        val localStates = dbProvider.getLocalStates(blockId)
+        dbProvider.writeLock().runIn {
+            val block = getBlockById(blockId)
+            val pages = getPages(blockId)
+            val sharedState = dbProvider.getSharedState(userId, block.messageId)
+            val localStates = dbProvider.getLocalStates(blockId)
 
-        val newBlock = dbProvider.saveBlock(
-            CommandBlock(
-                messageId = newMessageId,
-                userId = userId,
-                messageType = block.messageType,
-                id = 0
+            val newBlock = dbProvider.saveBlock(
+                CommandBlock(
+                    messageId = newMessageId,
+                    userId = userId,
+                    messageType = block.messageType,
+                    id = 0
+                )
             )
-        )
 
-        dbProvider.saveSharedState(userId, newMessageId, sharedState)
+            dbProvider.saveSharedState(userId, newMessageId, sharedState)
 
-        val newPages = pages.map { page ->
-            val newPage = dbProvider.savePage(page.copy(blockId = newBlock.id))
-            val state = localStates[page.id]
+            val newPages = pages.map { page ->
+                val newPage = dbProvider.savePage(page.copy(blockId = newBlock.id, id = 0))
+                val state = localStates[page.id]
 
-            if (state != null) {
-                dbProvider.saveLocalState(newPage.id, state)
+                if (state != null) {
+                    dbProvider.saveLocalState(newPage.id, state)
+                }
+
+                newPage
             }
 
-            newPage
+            return newPages.last()
         }
-
-        return newPages.last()
     }
 
     fun findBlockIdByPageId(pageId: Long): Long? {

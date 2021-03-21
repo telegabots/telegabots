@@ -81,11 +81,7 @@ class CommandContextImpl(
         val savedPage = userState.savePage(
             block.id,
             handler = page.handler ?: command.javaClass,
-            subCommands = page.subCommands,
-            messageId = when (page.messageType) {
-                MessageType.Text -> messageId
-                MessageType.Inline -> null
-            }
+            subCommands = page.subCommands
         )
 
         if (page.state != null) {
@@ -106,66 +102,44 @@ class CommandContextImpl(
     }
 
     override fun addPage(page: Page): Long {
-        if (blockId <= 0) {
+        validatePageHandler(page)
+
+        if (page.blockId > 0) {
+            return addPageExplicit(page, page.blockId)
+        }
+
+        val finalBlockId = implicitBlockId.get().let { if (it > 0) it else blockId }
+
+        if (finalBlockId <= 0) {
             return createPage(page)
         }
 
-        validatePageHandler(page)
-        val block = userState.getBlockById(blockId)
-        check(page.messageType == block.messageType) { "Adding page message type mismatch block's type. Expected: ${block.messageType}" }
+        if (input.inlineMessageId == null && page.messageType == MessageType.Inline && implicitBlockId.get() <= 0) {
+            val finalBlock = userState.getBlockById(finalBlockId)
+            check(page.messageType == finalBlock.messageType) { "Adding page message type mismatch block's type. Expected: ${finalBlock.messageType}" }
 
-        val resultMessageId = when (page.messageType) {
-            MessageType.Text -> {
-                messageSender.sendMessage(chatId = input.chatId.toString(),
-                    contentType = page.contentType,
-                    disablePreview = page.disablePreview,
-                    message = page.message,
-                    preSendHandler = Consumer { msg ->
-                        applyMessageButtons(msg, page.subCommands, page.messageType)
-                    })
-            }
-            MessageType.Inline -> {
-                check(input.inlineMessageId ?: 0 > 0) { "Input message id cannot be null or negative. Input: $input" }
-                val messageId: Int = input.inlineMessageId!!
+            // from non-inline handler we have attempt to add page
+            // we have to clone current block and bind it with new message
+            val newMessageId = messageSender.sendMessage(chatId = input.chatId.toString(),
+                contentType = page.contentType,
+                disablePreview = page.disablePreview,
+                message = page.message,
+                preSendHandler = Consumer { msg ->
+                    applyMessageButtons(msg, page.subCommands, page.messageType)
+                })
 
-                messageSender.updateMessage(chatId = input.chatId.toString(),
-                    messageId = messageId,
-                    contentType = page.contentType,
-                    disablePreview = page.disablePreview,
-                    message = page.message,
-                    preSendHandler = Consumer { msg ->
-                        applyMessageButtons(msg, page.subCommands)
-                    })
+            val lastPage = cloneFromBlock(blockId, newMessageId)
+            implicitBlockId.set(lastPage.blockId)
 
-                null
-            }
+            return addPageExplicit(page, implicitBlockId.get(), ignoreSender = true)
         }
 
-        val savedPage = userState.savePage(
-            blockId,
-            messageId = resultMessageId,
-            handler = page.handler ?: command.javaClass,
-            subCommands = page.subCommands
-        )
-
-        if (page.state != null) {
-            saveLocalState(savedPage.id, page.state.items)
-        }
-
-        if (log.isDebugEnabled) {
-            log.debug(
-                "Add page. blockId: {}, pageId: {}, input: {},\npage: {}",
-                blockId,
-                savedPage.id,
-                input,
-                jsonService.toPrettyJson(page)
-            )
-        }
-
-        return savedPage.id
+        return addPageExplicit(page, finalBlockId)
     }
 
     override fun updatePage(page: Page): Long {
+        validatePageHandler(page)
+
         if (page.blockId > 0) {
             return updatePageExplicit(page, page.blockId, finalPageId = page.id)
         }
@@ -182,6 +156,9 @@ class CommandContextImpl(
         }
 
         if (input.inlineMessageId == null && page.messageType == MessageType.Inline && implicitBlockId.get() <= 0) {
+            val finalBlock = userState.getBlockById(finalBlockId)
+            check(page.messageType == finalBlock.messageType) { "Update page message type mismatch block's type. Expected: ${finalBlock.messageType}" }
+
             // from non-inline handler we have attempt to update page
             // we have to clone current block and bind it with new message
             val newMessageId = messageSender.sendMessage(chatId = input.chatId.toString(),
@@ -203,23 +180,12 @@ class CommandContextImpl(
         return updatePageExplicit(page, finalBlockId, finalPageId = finalPageId)
     }
 
-    private fun cloneFromBlock(blockId: Long, newMessageId: Int): CommandPage {
-        return userState.cloneFromBlock(blockId, newMessageId)
-    }
-
-    private fun getBlockIdByPageId(pageId: Long): Long =
-        userState.findBlockIdByPageId(pageId) ?: throw IllegalStateException("Block not found by pageId: $pageId")
-
-    private fun updatePageExplicit(
+    private fun addPageExplicit(
         page: Page,
         finalBlockId: Long,
-        finalPageId: Long,
-        ignoreSender: Boolean = false
+        ignoreSender: Boolean = false,
     ): Long {
-        validatePageHandler(page)
-
-        val block = userState.findBlockById(finalBlockId)
-            ?: throw IllegalStateException("Block by id not found: $finalBlockId")
+        val block = userState.getBlockById(finalBlockId)
         check(page.messageType == block.messageType) { "Adding page message type mismatch block's type. Expected: ${block.messageType}" }
 
         if (!ignoreSender) {
@@ -234,11 +200,66 @@ class CommandContextImpl(
                         })
                 }
                 MessageType.Inline -> {
-                    check(input.inlineMessageId ?: 0 > 0) { "Input message id cannot be null or negative. Input: $input" }
                     val messageId: Int = block.messageId
 
                     messageSender.updateMessage(chatId = input.chatId.toString(),
                         messageId = messageId,
+                        contentType = page.contentType,
+                        disablePreview = page.disablePreview,
+                        message = page.message,
+                        preSendHandler = Consumer { msg ->
+                            applyMessageButtons(msg, page.subCommands)
+                        })
+                }
+            }
+        }
+
+        val savedPage = userState.savePage(
+            blockId,
+            handler = page.handler ?: command.javaClass,
+            subCommands = page.subCommands
+        )
+
+        if (page.state != null) {
+            saveLocalState(savedPage.id, page.state.items)
+        }
+
+        if (log.isDebugEnabled) {
+            log.debug(
+                "Add page. blockId: {}, pageId: {}, input: {},\npage: {}",
+                blockId,
+                savedPage.id,
+                input,
+                jsonService.toPrettyJson(page)
+            )
+        }
+
+        return savedPage.id
+    }
+
+    private fun updatePageExplicit(
+        page: Page,
+        finalBlockId: Long,
+        finalPageId: Long,
+        ignoreSender: Boolean = false
+    ): Long {
+        val block = userState.getBlockById(finalBlockId)
+        check(page.messageType == block.messageType) { "Update page message type mismatch block's type. Expected: ${block.messageType}" }
+
+        if (!ignoreSender) {
+            when (page.messageType) {
+                MessageType.Text -> {
+                    messageSender.sendMessage(chatId = input.chatId.toString(),
+                        contentType = page.contentType,
+                        disablePreview = page.disablePreview,
+                        message = page.message,
+                        preSendHandler = Consumer { msg ->
+                            applyMessageButtons(msg, page.subCommands, page.messageType)
+                        })
+                }
+                MessageType.Inline -> {
+                    messageSender.updateMessage(chatId = input.chatId.toString(),
+                        messageId = block.messageId,
                         contentType = page.contentType,
                         disablePreview = page.disablePreview,
                         message = page.message,
@@ -368,6 +389,13 @@ class CommandContextImpl(
     override fun isAdmin(): Boolean = input.isAdmin
 
     override fun user(): InputUser = input.user
+
+    private fun cloneFromBlock(blockId: Long, newMessageId: Int): CommandPage {
+        return userState.cloneFromBlock(blockId, newMessageId)
+    }
+
+    private fun getBlockIdByPageId(pageId: Long): Long =
+        userState.findBlockIdByPageId(pageId) ?: throw IllegalStateException("Block not found by pageId: $pageId")
 
     private fun createCommandContext(
         blockId: Long,

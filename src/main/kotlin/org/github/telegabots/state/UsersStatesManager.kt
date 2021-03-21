@@ -8,7 +8,7 @@ import org.github.telegabots.service.JsonService
  * States manager used by all users
  */
 class UsersStatesManager(
-    private val dbProvider: StateDbProvider,
+    private val dbProvider: LockableStateDbProvider,
     private val localizationFactory: UserLocalizationFactory,
     private val jsonService: JsonService
 ) {

@@ -109,6 +109,12 @@ class PageAddingTests : BaseTests() {
                 Assertions.assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
                 Assertions.assertEquals(InvalidCommandTextMessageAfterInline::class.java, ex.command)
             }
+
+            assertThat {
+                rootWasCalled(1)
+                blocksCount(1)
+                lastBlockPagesCount(1)
+            }
         }
     }
 
@@ -141,6 +147,12 @@ class PageAddingTests : BaseTests() {
                 )
                 Assertions.assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
                 Assertions.assertEquals(InvalidCommandInlineMessageAfterText::class.java, ex.command)
+            }
+
+            assertThat {
+                rootWasCalled(1)
+                blocksCount(1)
+                lastBlockPagesCount(1)
             }
         }
     }

@@ -5,18 +5,16 @@ package org.github.telegabots.entity
  */
 data class CommandPage(
     val id: Long = 0,
+
     /**
      * Related block id
      */
     val blockId: Long,
+
     /**
      * Handler of the current page
      */
     val handler: String,
-    /**
-     * Message id of the telegram message. Used for text messages
-     */
-    val messageId: Int?,
 
     /**
      * Command definitions under message
