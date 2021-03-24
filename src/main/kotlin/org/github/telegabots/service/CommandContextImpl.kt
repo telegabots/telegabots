@@ -227,6 +227,11 @@ class CommandContextImpl(
 
             if (pages.size > 1) {
                 userState.deletePage(block.id)
+
+                if (block.messageType == MessageType.Inline) {
+                    val lastPage = pages.last { it.id != pageId }
+                    refreshPage(lastPage.id)
+                }
             } else {
                 userState.deleteBlock(block.id)
                 messageSender.deleteMessage(input.chatId.toString(), block.messageId)
