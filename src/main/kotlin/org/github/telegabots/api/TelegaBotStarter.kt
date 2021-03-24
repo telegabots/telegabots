@@ -23,7 +23,8 @@ open class TelegaBotStarter(
     private val messageSender: MessageSender? = null
 ) : TelegramLongPollingBot() {
     protected val log = LoggerFactory.getLogger(javaClass)!!
-    protected val messageSenderReal = messageSender ?: MessageSenderImpl(this)
+    protected val messageSenderReal =
+        messageSender ?: MessageSenderImpl(this, ignoreNotModifiedMessageError = config.notModifiedMessageErrorIgnore)
     protected val telegaBot: TelegaBot = TelegaBot(
         messageSender = messageSenderReal,
         serviceProvider = serviceProvider,

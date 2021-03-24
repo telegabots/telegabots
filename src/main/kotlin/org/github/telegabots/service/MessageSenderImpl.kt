@@ -11,11 +11,15 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
 import java.io.File
 import java.io.Serializable
 import java.util.function.Consumer
 
-class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender {
+class MessageSenderImpl(
+    private val bot: TelegramLongPollingBot,
+    val ignoreNotModifiedMessageError: Boolean
+) : MessageSender {
     private val log = LoggerFactory.getLogger(javaClass)!!
 
     override fun sendMessage(
@@ -82,6 +86,13 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
         try {
             bot.execute<Serializable, EditMessageText>(editMessageText)
         } catch (e: Exception) {
+            if (e is TelegramApiRequestException) {
+                if (ignoreNotModifiedMessageError && 400 == e.errorCode && MESSAGE_NOT_MODIFIED == e.apiResponse) {
+                    log.warn("Not modified message error was ignored. Content: \"{}\"", message)
+                    return
+                }
+            }
+
             log.error("edit message failed: {}, chatId: {}, message: {}", e.message, chatId, editMessageText, e)
             throw e
         }
@@ -284,5 +295,10 @@ class MessageSenderImpl(private val bot: TelegramLongPollingBot) : MessageSender
         ContentType.Markdown -> ParseMode.MARKDOWN
         ContentType.Html -> ParseMode.HTML
         ContentType.Plain -> oldParseMode
+    }
+
+    companion object {
+        const val MESSAGE_NOT_MODIFIED =
+            "Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message"
     }
 }

@@ -20,6 +20,9 @@ class BotConfig private constructor(prop: Properties) {
     val adminChatId: Long
         get() = getProperty("admin.chatId", "0").toLong()
 
+    val notModifiedMessageErrorIgnore: Boolean
+        get() = getProperty("error.notModifiedMessage.ignore", "true").toBoolean()
+
     private fun getProperty(key: String): String {
         return Validate.notNull(props.getProperty(key), "Configuration not found for key: $key")
     }
