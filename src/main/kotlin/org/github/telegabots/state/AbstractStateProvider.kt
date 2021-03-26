@@ -43,7 +43,7 @@ abstract class AbstractStateProvider(private val jsonService: JsonService) : Sta
         }
     }
 
-    override fun setAll(items: List<StateItem>) {
+    override fun mergeAll(items: List<StateItem>) {
         if (log.isTraceEnabled) {
             log.trace("set state items: {}", items)
         }

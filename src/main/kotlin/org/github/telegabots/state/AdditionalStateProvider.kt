@@ -33,12 +33,12 @@ class AdditionalStateProvider(
 
     override fun flush() = provider.flush()
 
-    override fun setAll(items: List<StateItem>) {
+    override fun mergeAll(items: List<StateItem>) {
         synchronized(localCache) {
             items.forEach { localCache.remove(it.key) }
         }
 
-        provider.setAll(items)
+        provider.mergeAll(items)
     }
 
     override fun getAll(): List<StateItem> {

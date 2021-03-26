@@ -264,6 +264,9 @@ data class StateKey(val type: Class<*>, val name: String) {
     }
 }
 
+/**
+ * Data related with single button
+ */
 data class SubCommand(
     val titleId: String,
     val title: String? = null,
@@ -272,6 +275,12 @@ data class SubCommand(
     val state: StateRef? = null
 ) {
     fun isSystemCommand() = this == REFRESH || this == GO_BACK
+
+    /**
+     * Creates new SubCommand with new state
+     */
+    fun withState(state: StateRef?): SubCommand =
+        this.copy(state = state)
 
     companion object {
         inline fun <reified T : BaseCommand> of(

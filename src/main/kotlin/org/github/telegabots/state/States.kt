@@ -53,9 +53,9 @@ interface StateProvider {
     fun getAll(): List<StateItem>
 
     /**
-     * Sets state items
+     * Merges state items
      */
-    fun setAll(items: List<StateItem>)
+    fun mergeAll(items: List<StateItem>)
 
     /**
      * Flushes all state items into permanent storage

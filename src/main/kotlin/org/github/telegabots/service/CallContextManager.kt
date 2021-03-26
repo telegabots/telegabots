@@ -174,7 +174,10 @@ class CallContextManager(
         return when (behaviour) {
             CommandBehaviour.SeparatePage -> {
                 val finalPageId = userState.savePage(block.id, cmdHandler.commandClass).id
-                val states = userState.getStates(block.messageId, state, finalPageId)
+                if (state != null) {
+                    userState.mergeLocalStateByPageId(finalPageId, state)
+                }
+                val states = userState.getStates(block.messageId, finalPageId)
                 val context = createCommandContext(block.id, block.messageId, cmdHandler.command, input, finalPageId)
 
                 return CommandCallContext(commandHandler = cmdHandler,

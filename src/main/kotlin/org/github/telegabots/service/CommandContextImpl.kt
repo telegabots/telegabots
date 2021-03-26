@@ -501,7 +501,7 @@ class CommandContextImpl(
         stateItems: List<StateItem>
     ) {
         val localState = userState.getLocalStateProvider(pageId)
-        localState.setAll(stateItems)
+        localState.mergeAll(stateItems)
     }
 
     private fun validatePageHandler(page: Page) {

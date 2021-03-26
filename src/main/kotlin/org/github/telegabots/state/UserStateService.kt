@@ -184,4 +184,8 @@ class UserStateService(
     fun deletePage(pageId: Long) {
         dbProvider.deletePage(pageId)
     }
+
+    fun mergeLocalStateByPageId(pageId: Long, state: StateDef) {
+        getLocalStateProvider(pageId).mergeAll(jsonService.toState(state)!!.items)
+    }
 }
