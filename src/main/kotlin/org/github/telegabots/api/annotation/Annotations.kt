@@ -47,3 +47,11 @@ annotation class User(val name: String = "")
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
 annotation class Global(val name: String = "")
+
+/**
+ * Mark method if one must be called when task started
+ */
+@Target(AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+@MustBeDocumented
+annotation class TaskHandler

@@ -1,8 +1,10 @@
 package org.github.telegabots.api
 
+import org.github.telegabots.context.TaskContextSupport
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import java.io.File
+import java.time.LocalDateTime
 import java.util.function.Consumer
 import java.util.regex.Pattern
 
@@ -136,6 +138,63 @@ interface AlertService : Service {
     fun sendHtmlMessage(message: String, disablePreview: Boolean = false)
 
     fun sendMarkdownMessage(message: String, disablePreview: Boolean = false)
+}
+
+interface TaskContext {
+    fun blockId(): Long
+
+    fun pageId(): Long
+}
+
+/**
+ * Base class for task - long live operation
+ */
+abstract class BaseTask {
+    protected val context: TaskContext = TaskContextSupport
+
+    abstract fun status(): String?
+
+    abstract fun estimateEndTime(): LocalDateTime?
+
+    /**
+     * Progress percentage of the task. Value from 0 to 100
+     */
+    abstract fun progress(): Int?
+}
+
+interface TaskManager {
+    fun run(task: BaseTask): Task
+
+    fun getAll(): List<Task>
+}
+
+interface Task {
+    fun state(): TaskState
+
+    fun stopAsync()
+
+    fun status(): String?
+
+    fun startedTime(): LocalDateTime
+
+    fun estimateEndTime(): LocalDateTime?
+
+    /**
+     * Progress percentage of the task. Value from 0 to 100
+     */
+    fun progress(): Int?
+}
+
+enum class TaskState {
+    Initted,
+
+    Starting,
+
+    Started,
+
+    Stopping,
+
+    Stopped
 }
 
 interface UserContext {
