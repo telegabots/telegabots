@@ -20,6 +20,9 @@ class BotConfig private constructor(prop: Properties) {
     val adminChatId: Long
         get() = getProperty("admin.chatId", "0").toLong()
 
+    val alertChatId: Long
+        get() = getProperty("alert.chatId", "0").toLong()
+
     val notModifiedMessageErrorIgnore: Boolean
         get() = getProperty("error.notModifiedMessage.ignore", "true").toBoolean()
 
@@ -48,5 +51,7 @@ class BotConfig private constructor(prop: Properties) {
 
             return BotConfig(props)
         }
+
+        fun load(props: Properties) = BotConfig(props)
     }
 }

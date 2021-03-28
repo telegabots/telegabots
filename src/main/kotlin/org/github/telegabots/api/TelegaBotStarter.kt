@@ -28,7 +28,7 @@ open class TelegaBotStarter(
     protected val telegaBot: TelegaBot = TelegaBot(
         messageSender = messageSenderReal,
         serviceProvider = serviceProvider,
-        adminChatId = config.adminChatId,
+        config = config,
         rootCommand = rootCommand,
         dbProvider = stateDbProvider
     )

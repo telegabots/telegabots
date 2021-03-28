@@ -1,6 +1,7 @@
 package org.github.telegabots.exectutor
 
 import org.github.telegabots.api.*
+import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.state.MemoryStateDbProvider
 import org.github.telegabots.test.TestUserLocalizationProvider
 import org.github.telegabots.test.call
@@ -12,6 +13,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Update
 import java.io.File
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
@@ -24,6 +26,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     private val localProviders = mutableMapOf<Int, TestUserLocalizationProvider>()
     private val telegaBot: TelegaBot
     private val sentMessages = mutableMapOf<Int, String>()
+    private val config = BotConfig.load(Properties())
 
     init {
         Mockito.`when`(serviceProvider.getService(UserLocalizationFactory::class.java))
@@ -34,7 +37,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
         telegaBot = TelegaBot(
             messageSender = this,
             serviceProvider = serviceProvider,
-            adminChatId = 0,
+            config = config,
             dbProvider = dbProvider,
             rootCommand = rootCommand,
             commandInterceptor = this

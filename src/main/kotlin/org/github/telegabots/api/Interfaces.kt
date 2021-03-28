@@ -132,6 +132,12 @@ interface CommandExecutor {
     fun executeInlineCommand(handler: Class<out BaseCommand>, query: String): Boolean
 }
 
+interface AlertService : Service {
+    fun sendHtmlMessage(message: String, disablePreview: Boolean = false)
+
+    fun sendMarkdownMessage(message: String, disablePreview: Boolean = false)
+}
+
 interface UserContext {
     fun isAdmin(): Boolean
 

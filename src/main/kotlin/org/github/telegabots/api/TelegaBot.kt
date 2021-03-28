@@ -1,5 +1,6 @@
 package org.github.telegabots.api
 
+import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.service.*
 import org.github.telegabots.state.InternalLockableStateDbProvider
 import org.github.telegabots.state.LockableStateDbProvider
@@ -16,12 +17,13 @@ import org.telegram.telegrambots.meta.api.objects.User
 class TelegaBot(
     private val messageSender: MessageSender,
     private val serviceProvider: ServiceProvider,
-    private val adminChatId: Long = 0L,
+    private val config: BotConfig,
     private val dbProvider: StateDbProvider,
     private val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java,
     private val commandInterceptor: CommandInterceptor = CommandInterceptorEmpty
 ) {
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
+    private val adminChatId: Long = config.adminChatId
     private val jsonService: JsonService = JsonService()
     private val commandHandlers = CommandHandlers(commandInterceptor)
     private val commandValidator = CommandValidatorImpl(commandHandlers)
@@ -33,6 +35,7 @@ class TelegaBot(
     private val callContextManager = CallContextManager(
         messageSender, finalServiceProvider, commandHandlers, usersStatesManager, userLocalizationFactory, rootCommand
     )
+    private val alertService = AlertServiceImpl(messageSender, config.alertChatId)
 
     fun handle(update: Update): Boolean {
         log.debug("Handle message: {}", update)
@@ -53,6 +56,8 @@ class TelegaBot(
     fun <T : Service> getService(clazz: Class<T>): T? {
         val service = when (clazz) {
             CommandValidator::class.java -> commandValidator
+            MessageSender::class.java -> messageSender
+            AlertService::class.java -> alertService
             else -> null
         }
 
