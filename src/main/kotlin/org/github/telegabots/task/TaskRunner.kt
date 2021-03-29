@@ -5,8 +5,13 @@ import java.util.concurrent.Callable
 
 class TaskRunner(
     private val task: BaseTask
-) : Callable<Any> {
-    override fun call(): Any {
-        TODO("Not yet implemented")
+) : Callable<Any?> {
+    var called = false
+        private set
+
+    override fun call(): Any? {
+        //task.run()
+        called = true
+        return null
     }
 }

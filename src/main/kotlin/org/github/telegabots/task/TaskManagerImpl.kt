@@ -8,14 +8,34 @@ import java.util.concurrent.Executors
 
 class TaskManagerImpl() : TaskManager {
     private val executorService = Executors.newCachedThreadPool()
-    private val mutableList = mutableListOf<TaskWrapper>()
+    private val tasks = mutableSetOf<TaskWrapper>()
 
-    override fun run(task: BaseTask): Task {
-        val runner = TaskRunner(task)
-        val future = executorService.submit(runner)
+    override fun register(task: BaseTask): Task {
+        val wrapper = TaskWrapper(task, LocalDateTime.now(), executorService)
 
-        return TaskWrapper(task, LocalDateTime.now(), future)
+        synchronized(tasks) {
+            tasks.add(wrapper)
+        }
+
+        return wrapper
     }
 
-    override fun getAll(): List<Task> = mutableList.toList()
+    override fun unregister(task: Task) {
+        synchronized(tasks) {
+            val wrapper = task as TaskWrapper
+
+            if (!tasks.contains(wrapper)) {
+                return
+            }
+
+            // TODO: stop task if running. wait until stop
+
+            tasks.remove(wrapper)
+        }
+    }
+
+    override fun getAll(): List<Task> =
+        synchronized(tasks) {
+            tasks.toList()
+        }
 }

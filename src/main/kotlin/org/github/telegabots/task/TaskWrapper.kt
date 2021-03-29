@@ -4,19 +4,26 @@ import org.github.telegabots.api.BaseTask
 import org.github.telegabots.api.Task
 import org.github.telegabots.api.TaskState
 import java.time.LocalDateTime
-import java.util.concurrent.Future
+import java.util.concurrent.ExecutorService
 
 class TaskWrapper(
     private val task: BaseTask,
     private val startedTime: LocalDateTime,
-    private val future: Future<Any>
+    private val executorService: ExecutorService
 ) : Task {
-    override fun state(): TaskState {
+    private var state = TaskState.Initted
+
+    override fun state(): TaskState = state
+
+    override fun run() {
         TODO("Not yet implemented")
     }
 
-    override fun stopAsync() {
-        future.cancel(true)
+    override fun stop() {
+        if (state != TaskState.Stopping || state != TaskState.Stopped) {
+            state = TaskState.Stopping
+            task.stopAsync()
+        }
     }
 
     override fun status(): String? = task.status()

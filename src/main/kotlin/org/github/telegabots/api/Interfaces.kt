@@ -152,6 +152,8 @@ interface TaskContext {
 abstract class BaseTask {
     protected val context: TaskContext = TaskContextSupport
 
+    abstract fun stopAsync()
+
     abstract fun status(): String?
 
     abstract fun estimateEndTime(): LocalDateTime?
@@ -163,15 +165,28 @@ abstract class BaseTask {
 }
 
 interface TaskManager {
-    fun run(task: BaseTask): Task
+    /**
+     * Register new task
+     */
+    fun register(task: BaseTask): Task
 
+    /**
+     * Remove task from executing. If task is running, it will be stopped before
+     */
+    fun unregister(task: Task)
+
+    /**
+     * Returns all registered tasks
+     */
     fun getAll(): List<Task>
 }
 
 interface Task {
     fun state(): TaskState
 
-    fun stopAsync()
+    fun run()
+
+    fun stop()
 
     fun status(): String?
 
