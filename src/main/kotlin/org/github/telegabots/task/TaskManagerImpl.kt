@@ -3,10 +3,12 @@ package org.github.telegabots.task
 import org.github.telegabots.api.BaseTask
 import org.github.telegabots.api.Task
 import org.github.telegabots.api.TaskManager
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.concurrent.Executors
 
 class TaskManagerImpl() : TaskManager {
+    private val log = LoggerFactory.getLogger(javaClass)!!
     private val executorService = Executors.newCachedThreadPool()
     private val tasks = mutableSetOf<TaskWrapper>()
 
@@ -16,6 +18,8 @@ class TaskManagerImpl() : TaskManager {
         synchronized(tasks) {
             tasks.add(wrapper)
         }
+
+        log.info("Task '{}' registered", task.id())
 
         return wrapper
     }
@@ -29,8 +33,9 @@ class TaskManagerImpl() : TaskManager {
             }
 
             // TODO: stop task if running. wait until stop
-
             tasks.remove(wrapper)
+
+            log.info("Task '{}' unregistered", task.id())
         }
     }
 

@@ -152,6 +152,10 @@ interface TaskContext {
 abstract class BaseTask {
     protected val context: TaskContext = TaskContextSupport
 
+    abstract  fun id(): String
+
+    abstract  fun title(): String
+
     abstract fun stopAsync()
 
     abstract fun status(): String?
@@ -182,6 +186,10 @@ interface TaskManager {
 }
 
 interface Task {
+    fun id(): String
+
+    fun title(): String
+
     fun state(): TaskState
 
     fun run()
