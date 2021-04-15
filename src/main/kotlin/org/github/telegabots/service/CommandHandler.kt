@@ -6,7 +6,7 @@ import org.github.telegabots.api.CommandInterceptor
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.context.CommandContextSupport
 import org.github.telegabots.state.States
-import org.github.telegabots.util.HandlerInfo
+import org.github.telegabots.util.CommandHandlerInfo
 import org.slf4j.LoggerFactory
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
@@ -16,7 +16,7 @@ import kotlin.reflect.jvm.isAccessible
  */
 class CommandHandler(
     val command: BaseCommand,
-    private val handlers: List<HandlerInfo>,
+    private val handlers: List<CommandHandlerInfo>,
     private val commandInterceptor: CommandInterceptor
 ) {
     val commandClass: Class<out BaseCommand> get() = command.javaClass

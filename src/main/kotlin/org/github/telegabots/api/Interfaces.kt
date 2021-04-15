@@ -144,6 +144,10 @@ interface TaskContext {
     fun blockId(): Long
 
     fun pageId(): Long
+
+    fun <T : Service> getService(clazz: Class<T>): T?
+
+    fun <T : UserService> getUserService(clazz: Class<T>): T?
 }
 
 /**

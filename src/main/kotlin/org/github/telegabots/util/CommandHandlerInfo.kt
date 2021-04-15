@@ -6,7 +6,7 @@ import org.github.telegabots.state.States
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
-data class HandlerInfo(
+data class CommandHandlerInfo(
     val name: String,
     val messageType: MessageType,
     val params: List<HandlerParamInfo>,
@@ -72,19 +72,4 @@ data class HandlerInfo(
     fun isValidReturnType() = retType == Boolean::class.java || isVoidReturnType()
 
     fun isVoidReturnType() = retType.name == "void" || retType == Void::class.java
-}
-
-
-private class StateImpl(private val param: HandlerParamInfo, private val states: States) : State<Any?> {
-    private val key = StateKey(param.innerType!!, param.stateName)
-
-    override fun get(): Any? {
-        return states.get(param.stateKind, key)?.value
-    }
-
-    override fun set(value: Any?): Any? {
-        return states.set(param.stateKind, key, value)?.value
-    }
-
-    override fun isPresent(): Boolean = states.hasValue(param.stateKind, key)
 }

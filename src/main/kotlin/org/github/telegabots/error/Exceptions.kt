@@ -1,7 +1,7 @@
 package org.github.telegabots.error
 
 import org.github.telegabots.api.BaseCommand
-import java.lang.RuntimeException
+import org.github.telegabots.api.BaseTask
 
 /**
  * Base TelegaBots exception
@@ -17,4 +17,8 @@ open class BaseException : RuntimeException {
 
 class CommandInvokeException(val command: Class<out BaseCommand>, cause: Throwable?) :
     BaseException("Command invoke failed: ${command.name}, error: ${cause?.message}", cause) {
+}
+
+class TaskInvokeException(val command: Class<out BaseTask>, cause: Throwable?) :
+    BaseException("Task invoke failed: ${command.name}, error: ${cause?.message}", cause) {
 }
