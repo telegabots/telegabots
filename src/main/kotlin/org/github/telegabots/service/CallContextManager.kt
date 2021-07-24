@@ -1,6 +1,16 @@
 package org.github.telegabots.service
 
-import org.github.telegabots.api.*
+import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.CommandBehaviour
+import org.github.telegabots.api.CommandContext
+import org.github.telegabots.api.InputMessage
+import org.github.telegabots.api.LocalizeProvider
+import org.github.telegabots.api.MessageSender
+import org.github.telegabots.api.MessageType
+import org.github.telegabots.api.ServiceProvider
+import org.github.telegabots.api.SystemCommands
+import org.github.telegabots.api.TaskManager
+import org.github.telegabots.api.UserLocalizationFactory
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandDef
 import org.github.telegabots.entity.CommandPage
@@ -15,6 +25,7 @@ class CallContextManager(
     private val commandHandlers: CommandHandlers,
     private val usersStatesManager: UsersStatesManager,
     private val userLocalizationFactory: UserLocalizationFactory,
+    private val taskManager: TaskManager,
     private val rootCommand: Class<out BaseCommand>
 ) {
     private val log = LoggerFactory.getLogger(CallContextManager::class.java)
@@ -214,7 +225,12 @@ class CallContextManager(
     ): CommandCallContext {
         val handler = commandHandlers.getCommandHandler(rootCommand)
         val states = userState.getStates()
-        val context = createCommandContext(blockId = 0, currentMessageId = input.inlineMessageId ?: 0, command = handler.command, input = input)
+        val context = createCommandContext(
+            blockId = 0,
+            currentMessageId = input.inlineMessageId ?: 0,
+            command = handler.command,
+            input = input
+        )
 
         return CommandCallContext(commandHandler = handler,
             input = input,
@@ -271,7 +287,8 @@ class CallContextManager(
             messageSender = messageSender,
             serviceProvider = serviceProvider,
             localizeProvider = userLocalizationFactory.getProvider(input.userId),
-            userState = usersStatesManager.get(input.userId)
+            userState = usersStatesManager.get(input.userId),
+            taskManager = taskManager
         )
     }
 }

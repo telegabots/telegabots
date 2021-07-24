@@ -7,6 +7,7 @@ import org.github.telegabots.api.Document
 import org.github.telegabots.api.InputUser
 import org.github.telegabots.api.Page
 import org.github.telegabots.api.Service
+import org.github.telegabots.api.TaskManager
 import org.github.telegabots.api.UserService
 
 
@@ -61,6 +62,8 @@ object CommandContextSupport : CommandContext {
     override fun leaveCommand(command: BaseCommand?) = current().leaveCommand(command)
 
     override fun clearCommands() = current().clearCommands()
+
+    override fun getTaskManager(): TaskManager = current().getTaskManager()
 
     override fun <T : Service> getService(clazz: Class<T>): T? = current().getService(clazz)
 

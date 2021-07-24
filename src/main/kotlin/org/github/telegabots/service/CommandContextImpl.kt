@@ -15,6 +15,7 @@ import org.github.telegabots.api.ServiceProvider
 import org.github.telegabots.api.StateItem
 import org.github.telegabots.api.SubCommand
 import org.github.telegabots.api.SystemCommands
+import org.github.telegabots.api.TaskManager
 import org.github.telegabots.api.UserService
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.state.UserStateService
@@ -41,7 +42,8 @@ class CommandContextImpl(
     private val userState: UserStateService,
     private val serviceProvider: ServiceProvider,
     private val localizeProvider: LocalizeProvider,
-    private val messageSender: MessageSender
+    private val messageSender: MessageSender,
+    private val taskManager: TaskManager
 ) : CommandContext {
     private val log = LoggerFactory.getLogger(CommandContextImpl::class.java)!!
     private val jsonService = serviceProvider.getService(JsonService::class.java)!!
@@ -415,6 +417,8 @@ class CommandContextImpl(
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    override fun getTaskManager(): TaskManager = taskManager
+
     /**
      * Used when command call another command
      *
@@ -492,7 +496,8 @@ class CommandContextImpl(
             messageSender = messageSender,
             serviceProvider = serviceProvider,
             localizeProvider = localizeProvider,
-            userState = userState
+            userState = userState,
+            taskManager = taskManager
         )
     }
 

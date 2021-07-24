@@ -84,6 +84,9 @@ interface CommandContext : UserContext, CommandExecutor {
      */
     fun deleteMessage(messageId: Int)
 
+    /**
+     * Sends document to the current or specified chat
+     */
     fun sendDocument(document: Document)
 
     /**
@@ -117,11 +120,19 @@ interface CommandContext : UserContext, CommandExecutor {
         chatId: String = ""
     ): Int = sendMessage(message, ContentType.Markdown, disablePreview, chatId)
 
+    // TODO: probably remove
     fun enterCommand(command: BaseCommand)
 
+    // TODO: probably remove
     fun leaveCommand(command: BaseCommand? = null)
 
+    // TODO: probably remove
     fun clearCommands()
+
+    /**
+     * Returns task manager
+     */
+    fun getTaskManager(): TaskManager
 
     fun <T : Service> getService(clazz: Class<T>): T?
 
@@ -151,14 +162,14 @@ interface TaskContext {
 }
 
 /**
- * Base class for task - long live operation
+ * Base class for task - long live operation subclassed by user
  */
 abstract class BaseTask {
     protected val context: TaskContext = TaskContextSupport
 
-    abstract  fun id(): String
+    abstract fun id(): String
 
-    abstract  fun title(): String
+    abstract fun title(): String
 
     abstract fun stopAsync()
 
@@ -170,9 +181,14 @@ abstract class BaseTask {
      * Progress percentage of the task. Value from 0 to 100
      */
     abstract fun progress(): Int?
+
+    /**
+     * Routine method
+     */
+    abstract fun run()
 }
 
-interface TaskManager {
+interface TaskManager : Service {
     /**
      * Register new task
      */
@@ -202,7 +218,7 @@ interface Task {
 
     fun status(): String?
 
-    fun startedTime(): LocalDateTime
+    fun startedTime(): LocalDateTime?
 
     fun estimateEndTime(): LocalDateTime?
 

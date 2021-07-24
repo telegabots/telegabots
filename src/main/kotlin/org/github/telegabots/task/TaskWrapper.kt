@@ -9,12 +9,13 @@ import java.util.concurrent.ExecutorService
 
 class TaskWrapper(
     private val task: BaseTask,
-    private val startedTime: LocalDateTime,
     private val executorService: ExecutorService
 ) : Task {
     private val log = LoggerFactory.getLogger(javaClass)!!
+
+    @Volatile
     private var state = TaskState.Initted
-    private val runner = TaskRunner(task) { tsk: BaseTask, error: Exception? -> taskStopHandler(tsk, error) }
+    private val runner = TaskRunner(task) { info: TaskRunInfo, error: Exception? -> taskStopHandler(info, error) }
 
     override fun id(): String = task.id()
 
@@ -26,6 +27,7 @@ class TaskWrapper(
     override fun run() {
         if (state == TaskState.Initted || state == TaskState.Stopped) {
             state = TaskState.Starting
+            log.debug("Task submit to run '{}'", task.id())
             executorService.submit(runner)
         } else {
             log.info("Task '{}' cannot be started. State is {}", task.id(), state)
@@ -36,6 +38,7 @@ class TaskWrapper(
     override fun stop() {
         if (state == TaskState.Started) {
             state = TaskState.Stopping
+            log.debug("Try to stop task '{}'", task.id())
             task.stopAsync()
         } else {
             log.info("Task '{}' cannot be stopped. State is {}", task.id(), state)
@@ -43,13 +46,33 @@ class TaskWrapper(
     }
 
     @Synchronized
-    private fun taskStopHandler(tsk: BaseTask, error: Exception?) {
+    private fun taskStopHandler(info: TaskRunInfo, error: Exception?) {
+        val byUser = state == TaskState.Stopping
         state = TaskState.Stopped
+        val task = info.task
+
+        when {
+            error != null -> {
+                log.error(
+                    "Task '{}' stopped after {} ms with error: {}",
+                    task.id(),
+                    info.runningTime,
+                    error.message,
+                    error
+                )
+            }
+            byUser -> {
+                log.debug("Task '{}' stopped (byUser) after {} ms", task.id(), info.runningTime)
+            }
+            else -> {
+                log.debug("Task '{}' stopped (self) after {} ms", task.id(), info.runningTime)
+            }
+        }
     }
 
     override fun status(): String? = task.status()
 
-    override fun startedTime(): LocalDateTime = startedTime
+    override fun startedTime(): LocalDateTime? = runner.startedTime
 
     override fun estimateEndTime(): LocalDateTime? = task.estimateEndTime()
 
