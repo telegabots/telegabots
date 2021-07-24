@@ -12,7 +12,7 @@ class FileExplorerCommand : BaseCommand() {
         val nextPath = when (message) {
             SystemCommands.REFRESH -> currentPath
             UP_DIR -> File(currentPath).parentFile.absolutePath
-            else -> File(currentPath, message).absolutePath
+            else -> File(currentPath, message).absolutePath // TODO: security check message from tg client
         }
 
         currentDir.set(nextPath)
@@ -26,6 +26,10 @@ class FileExplorerCommand : BaseCommand() {
             val allFiles = files.map { SubCommand.of(it.name, if (it.isDirectory) "[${it.name}]" else it.name) }
                 .toMutableList()
 
+            allFiles.add(0, SubCommand.of<CalculateDirSizeCommand>(
+                state = StateRef.of(nextPath),
+                behaviour = CommandBehaviour.ParentPage
+            ))
 
             if (nextPath != "/") {
                 allFiles.add(0, SubCommand.of(UP_DIR))
