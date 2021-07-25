@@ -8,23 +8,13 @@ import java.time.LocalDateTime
  * Task calculating full size of defined dir path
  */
 class CalculateDirSizeTask(path: String) : BaseTask() {
-    override fun id(): String {
-        TODO("Not yet implemented")
-    }
-
-    override fun title(): String {
-        TODO("Not yet implemented")
-    }
+    override fun title(): String  = "Calculate dir full size"
 
     override fun stopAsync() {
         TODO("Not yet implemented")
     }
 
     override fun status(): String? {
-        TODO("Not yet implemented")
-    }
-
-    override fun estimateEndTime(): LocalDateTime? {
         TODO("Not yet implemented")
     }
 

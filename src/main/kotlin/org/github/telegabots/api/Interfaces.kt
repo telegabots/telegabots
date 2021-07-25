@@ -1,6 +1,7 @@
 package org.github.telegabots.api
 
 import org.github.telegabots.context.TaskContextSupport
+import org.github.telegabots.task.DefaultTaskIdGenerator
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import java.io.File
@@ -167,20 +168,39 @@ interface TaskContext {
 abstract class BaseTask {
     protected val context: TaskContext = TaskContextSupport
 
-    abstract fun id(): String
+    /**
+     *  Identifier of the task
+     *
+     *  Can be used in search
+     */
+    open fun id(): String = DefaultTaskIdGenerator.getId(this)
 
+    /**
+     * Estimate time when task will finished
+     *
+     * Not null if can be calculated
+     */
+    open fun estimateEndTime(): LocalDateTime? = null
+
+    /**
+     * Human-friendly task description
+     */
     abstract fun title(): String
 
+    /**
+     * Request to stop task
+     */
     abstract fun stopAsync()
-
-    abstract fun status(): String?
-
-    abstract fun estimateEndTime(): LocalDateTime?
 
     /**
      * Progress percentage of the task. Value from 0 to 100
      */
     abstract fun progress(): Int?
+
+    /**
+     * Short description of the current operation
+     */
+    abstract fun status(): String?
 
     /**
      * Routine method
@@ -206,20 +226,48 @@ interface TaskManager : Service {
 }
 
 interface Task {
+    /**
+     *  Identifier of the task
+     *
+     *  Can be used in search
+     */
     fun id(): String
 
+    /**
+     * Human-friendly task description
+     */
     fun title(): String
 
+    /**
+     * Returns state of the task
+     */
     fun state(): TaskState
 
+    /**
+     * Runs task if one not started yet
+     */
     fun run()
 
+    /**
+     * Async stop task
+     */
     fun stop()
 
+    /**
+     * Short description of the current operation
+     */
     fun status(): String?
 
+    /**
+     * Time when task was actually started
+     */
     fun startedTime(): LocalDateTime?
 
+    /**
+     * Estimate time when task will finished
+     *
+     * Not null if can be calculated
+     */
     fun estimateEndTime(): LocalDateTime?
 
     /**
@@ -229,14 +277,29 @@ interface Task {
 }
 
 enum class TaskState {
+    /**
+     * Task registered but not started yet
+     */
     Initted,
 
+    /**
+     * Task is starting
+     */
     Starting,
 
+    /**
+     * Task finally started
+     */
     Started,
 
+    /**
+     * Task is stopping
+     */
     Stopping,
 
+    /**
+     * Task stopped finally
+     */
     Stopped
 }
 

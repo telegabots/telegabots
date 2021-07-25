@@ -1,7 +1,6 @@
 package org.github.telegabots.task
 
 import org.github.telegabots.api.BaseTask
-import java.time.LocalDateTime
 import java.util.concurrent.Callable
 import java.util.function.BiConsumer
 
@@ -10,32 +9,23 @@ import java.util.function.BiConsumer
  */
 class TaskRunner(
     private val task: BaseTask,
+    private val taskStartHandler: Runnable,
     private val taskStoppedHandler: BiConsumer<TaskRunInfo, Exception?>
 ) : Callable<Any?> {
-    @Volatile
-    var startedTime: LocalDateTime? = null
-        private set
-    @Volatile
-    var called = false
-        private set
 
     override fun call(): Any? {
         val startTime = System.currentTimeMillis()
-        startedTime = LocalDateTime.now()
 
         try {
+            taskStartHandler.run()
             task.run()
-            called = true
-            taskStoppedHandler.accept(TaskRunInfo(task, startedTime!!, System.currentTimeMillis() - startTime), null)
-            startedTime = null
+            taskStoppedHandler.accept(TaskRunInfo(task, System.currentTimeMillis() - startTime), null)
         } catch (e: java.lang.Exception) {
-            called = true
-            taskStoppedHandler.accept(TaskRunInfo(task, startedTime!!, System.currentTimeMillis() - startTime), e)
-            startedTime = null
+            taskStoppedHandler.accept(TaskRunInfo(task, System.currentTimeMillis() - startTime), e)
         }
 
         return null
     }
 }
 
-data class TaskRunInfo(val task: BaseTask, val startedTime: LocalDateTime, val runningTime: Long)
+data class TaskRunInfo(val task: BaseTask, val runningTime: Long)

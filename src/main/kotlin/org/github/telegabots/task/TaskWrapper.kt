@@ -14,8 +14,17 @@ class TaskWrapper(
     private val log = LoggerFactory.getLogger(javaClass)!!
 
     @Volatile
+    private var startedTime: LocalDateTime? = null
+    @Volatile
     private var state = TaskState.Initted
-    private val runner = TaskRunner(task) { info: TaskRunInfo, error: Exception? -> taskStopHandler(info, error) }
+    private val runner = TaskRunner(
+        task,
+        taskStartHandler = { taskStartHandler() }) { info: TaskRunInfo, error: Exception? ->
+        taskStopHandler(
+            info,
+            error
+        )
+    }
 
     override fun id(): String = task.id()
 
@@ -46,9 +55,16 @@ class TaskWrapper(
     }
 
     @Synchronized
+    private fun taskStartHandler() {
+        state = TaskState.Started
+        startedTime = LocalDateTime.now()
+    }
+
+    @Synchronized
     private fun taskStopHandler(info: TaskRunInfo, error: Exception?) {
         val byUser = state == TaskState.Stopping
         state = TaskState.Stopped
+        startedTime = null
         val task = info.task
 
         when {
@@ -72,7 +88,7 @@ class TaskWrapper(
 
     override fun status(): String? = task.status()
 
-    override fun startedTime(): LocalDateTime? = runner.startedTime
+    override fun startedTime(): LocalDateTime? = startedTime
 
     override fun estimateEndTime(): LocalDateTime? = task.estimateEndTime()
 
