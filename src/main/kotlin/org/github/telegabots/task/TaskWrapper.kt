@@ -2,10 +2,12 @@ package org.github.telegabots.task
 
 import org.github.telegabots.api.BaseTask
 import org.github.telegabots.api.Task
+import org.github.telegabots.api.TaskRunResult
 import org.github.telegabots.api.TaskState
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.concurrent.ExecutorService
+import java.util.function.Consumer
 
 class TaskWrapper(
     private val task: BaseTask,
@@ -15,16 +17,9 @@ class TaskWrapper(
 
     @Volatile
     private var startedTime: LocalDateTime? = null
+
     @Volatile
     private var state = TaskState.Initted
-    private val runner = TaskRunner(
-        task,
-        taskStartHandler = { taskStartHandler() }) { info: TaskRunInfo, error: Exception? ->
-        taskStopHandler(
-            info,
-            error
-        )
-    }
 
     override fun id(): String = task.id()
 
@@ -33,11 +28,17 @@ class TaskWrapper(
     override fun state(): TaskState = state
 
     @Synchronized
-    override fun run() {
+    override fun start(onComplete: Consumer<TaskRunResult>?) {
         if (state == TaskState.Initted || state == TaskState.Stopped) {
             state = TaskState.Starting
             log.debug("Task submit to run '{}'", task.id())
-            executorService.submit(runner)
+
+            executorService.submit(
+                TaskRunner(
+                    task,
+                    taskStartHandler = { taskStartHandler(it) },
+                    taskStoppedHandler = { taskStopHandler(it, onComplete) })
+            )
         } else {
             log.info("Task '{}' cannot be started. State is {}", task.id(), state)
         }
@@ -55,17 +56,17 @@ class TaskWrapper(
     }
 
     @Synchronized
-    private fun taskStartHandler() {
+    private fun taskStartHandler(startedTime: LocalDateTime) {
+        this.startedTime = startedTime
         state = TaskState.Started
-        startedTime = LocalDateTime.now()
     }
 
     @Synchronized
-    private fun taskStopHandler(info: TaskRunInfo, error: Exception?) {
+    private fun taskStopHandler(info: TaskRunResult, onComplete: Consumer<TaskRunResult>?) {
         val byUser = state == TaskState.Stopping
         state = TaskState.Stopped
-        startedTime = null
         val task = info.task
+        val error = info.error
 
         when {
             error != null -> {
@@ -83,6 +84,12 @@ class TaskWrapper(
             else -> {
                 log.debug("Task '{}' stopped (self) after {} ms", task.id(), info.runningTime)
             }
+        }
+
+        try {
+            onComplete?.accept(info)
+        } catch (e: Exception) {
+            log.error("Error in task onComplete handler: {}", e.message, e)
         }
     }
 

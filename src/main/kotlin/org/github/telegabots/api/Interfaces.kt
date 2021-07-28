@@ -195,12 +195,12 @@ abstract class BaseTask {
     /**
      * Progress percentage of the task. Value from 0 to 100
      */
-    abstract fun progress(): Int?
+    open fun progress(): Int? = null
 
     /**
      * Short description of the current operation
      */
-    abstract fun status(): String?
+    open fun status(): String? = null
 
     /**
      * Routine method
@@ -246,7 +246,7 @@ interface Task {
     /**
      * Runs task if one not started yet
      */
-    fun run()
+    fun start(onComplete: Consumer<TaskRunResult>? = null)
 
     /**
      * Async stop task
@@ -275,6 +275,14 @@ interface Task {
      */
     fun progress(): Int?
 }
+
+data class TaskRunResult(
+    val task: BaseTask,
+    val startedTime: LocalDateTime,
+    val runningTime: Long,
+    val result: Any? = null,
+    val error: Exception? = null
+)
 
 enum class TaskState {
     /**

@@ -9,6 +9,6 @@ class CalculateDirSizeCommand : BaseCommand() {
     fun handle(message: String, dirPath: String) {
         log.info("Calculate size of the dir: {}, message: {}", dirPath, message)
 
-        context.getTaskManager().register(CalculateDirSizeTask(dirPath)).run()
+        context.getTaskManager().register(CalculateDirSizeTask(dirPath)).start()
     }
 }

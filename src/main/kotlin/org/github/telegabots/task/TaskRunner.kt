@@ -1,31 +1,32 @@
 package org.github.telegabots.task
 
 import org.github.telegabots.api.BaseTask
+import org.github.telegabots.api.TaskRunResult
+import java.time.LocalDateTime
 import java.util.concurrent.Callable
-import java.util.function.BiConsumer
+import java.util.function.Consumer
 
 /**
  * Task routine class
  */
 class TaskRunner(
     private val task: BaseTask,
-    private val taskStartHandler: Runnable,
-    private val taskStoppedHandler: BiConsumer<TaskRunInfo, Exception?>
+    private val taskStartHandler: Consumer<LocalDateTime>,
+    private val taskStoppedHandler: Consumer<TaskRunResult>
 ) : Callable<Any?> {
 
     override fun call(): Any? {
         val startTime = System.currentTimeMillis()
+        val startedTime = LocalDateTime.now()
 
         try {
-            taskStartHandler.run()
+            taskStartHandler.accept(startedTime)
             task.run()
-            taskStoppedHandler.accept(TaskRunInfo(task, System.currentTimeMillis() - startTime), null)
-        } catch (e: java.lang.Exception) {
-            taskStoppedHandler.accept(TaskRunInfo(task, System.currentTimeMillis() - startTime), e)
+            taskStoppedHandler.accept(TaskRunResult(task, startedTime, System.currentTimeMillis() - startTime))
+        } catch (e: Exception) {
+            taskStoppedHandler.accept(TaskRunResult(task, startedTime, System.currentTimeMillis() - startTime, e))
         }
 
         return null
     }
 }
-
-data class TaskRunInfo(val task: BaseTask, val runningTime: Long)
