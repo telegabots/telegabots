@@ -5,19 +5,24 @@ import org.github.telegabots.api.TaskContext
 import org.github.telegabots.api.UserService
 
 object TaskContextSupport : TaskContext {
-    override fun blockId(): Long {
-        TODO("Not yet implemented")
+    private val contextCurrent = ThreadLocal<TaskContext>()
+
+    internal fun setContext(context: TaskContext?) =
+        if (context != null)
+            contextCurrent.set(context)
+        else
+            contextCurrent.remove()
+
+    private fun current(): TaskContext {
+        return contextCurrent.get()
+            ?: throw IllegalStateException("Task context not initialized for current task")
     }
 
-    override fun pageId(): Long {
-        TODO("Not yet implemented")
-    }
+    override fun blockId(): Long = current().blockId()
 
-    override fun <T : Service> getService(clazz: Class<T>): T? {
-        TODO("Not yet implemented")
-    }
+    override fun pageId(): Long = current().pageId()
 
-    override fun <T : UserService> getUserService(clazz: Class<T>): T? {
-        TODO("Not yet implemented")
-    }
+    override fun <T : Service> getService(clazz: Class<T>): T? = current().getService(clazz)
+
+    override fun <T : UserService> getUserService(clazz: Class<T>): T? = current().getUserService(clazz)
 }

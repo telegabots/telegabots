@@ -18,9 +18,12 @@ object CommandContextSupport : CommandContext {
     private val contextCurrent = ThreadLocal<CommandContext>()
 
     internal fun setContext(context: CommandContext?) =
-        if (context != null) contextCurrent.set(context) else contextCurrent.remove()
+        if (context != null)
+            contextCurrent.set(context)
+        else
+            contextCurrent.remove()
 
-    private inline fun current(): CommandContext {
+    private fun current(): CommandContext {
         return contextCurrent.get()
             ?: throw IllegalStateException("Command context not initialized for current command")
     }

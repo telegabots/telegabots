@@ -2,11 +2,15 @@ package org.github.telegabots.task
 
 import org.github.telegabots.api.BaseTask
 import org.github.telegabots.api.Task
+import org.github.telegabots.api.TaskContext
 import org.github.telegabots.api.TaskManager
+import org.github.telegabots.context.TaskContextSupport
 import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
 
-class TaskManagerImpl() : TaskManager {
+class TaskManagerImpl(val context: TaskContext) : TaskManager {
     private val log = LoggerFactory.getLogger(javaClass)!!
     private val executorService = Executors.newCachedThreadPool()
     private val tasks = mutableSetOf<TaskWrapper>()
@@ -16,6 +20,7 @@ class TaskManagerImpl() : TaskManager {
 
         synchronized(tasks) {
             tasks.add(wrapper)
+            setContext(task, context)
         }
 
         log.info("Task '{}' registered", task.id())
@@ -32,6 +37,7 @@ class TaskManagerImpl() : TaskManager {
             }
 
             // TODO: stop task if running. sync wait until stop and then remove
+            clearContext(wrapper.task)
             tasks.remove(wrapper)
 
             log.info("Task '{}' unregistered", task.id())
@@ -42,4 +48,20 @@ class TaskManagerImpl() : TaskManager {
         synchronized(tasks) {
             tasks.toList()
         }
+
+    companion object {
+        /**
+         * Sets current context of task
+         */
+        private fun setContext(task: BaseTask, context: TaskContext?) {
+            val prop = BaseTask::class.memberProperties.find { it.name == "context" }
+                ?: throw IllegalStateException("Context not found in task: ${task.javaClass.name}")
+            prop.isAccessible = true
+            (prop.get(task) as TaskContextSupport).setContext(context)
+        }
+
+        private fun clearContext(task: BaseTask) {
+            setContext(task, null)
+        }
+    }
 }

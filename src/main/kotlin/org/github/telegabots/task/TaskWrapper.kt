@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService
 import java.util.function.Consumer
 
 class TaskWrapper(
-    private val task: BaseTask,
+    val task: BaseTask,
     private val executorService: ExecutorService
 ) : Task {
     private val log = LoggerFactory.getLogger(javaClass)!!
