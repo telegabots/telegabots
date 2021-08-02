@@ -9,7 +9,6 @@ import org.github.telegabots.api.MessageSender
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.ServiceProvider
 import org.github.telegabots.api.SystemCommands
-import org.github.telegabots.api.TaskManager
 import org.github.telegabots.api.UserLocalizationFactory
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandDef
@@ -17,6 +16,7 @@ import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.state.UserStateService
 import org.github.telegabots.state.UsersStatesManager
+import org.github.telegabots.task.TaskManagerFactory
 import org.slf4j.LoggerFactory
 
 class CallContextManager(
@@ -25,10 +25,10 @@ class CallContextManager(
     private val commandHandlers: CommandHandlers,
     private val usersStatesManager: UsersStatesManager,
     private val userLocalizationFactory: UserLocalizationFactory,
-    private val taskManager: TaskManager,
     private val rootCommand: Class<out BaseCommand>
 ) {
     private val log = LoggerFactory.getLogger(CallContextManager::class.java)
+    private val taskManagerFactory = TaskManagerFactory(serviceProvider)
 
     init {
         val rootHandler = commandHandlers.getCommandHandler(rootCommand)
@@ -288,7 +288,7 @@ class CallContextManager(
             serviceProvider = serviceProvider,
             localizeProvider = userLocalizationFactory.getProvider(input.userId),
             userState = usersStatesManager.get(input.userId),
-            taskManager = taskManager
+            taskManagerFactory = taskManagerFactory
         )
     }
 }

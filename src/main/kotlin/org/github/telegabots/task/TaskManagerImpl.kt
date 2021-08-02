@@ -6,13 +6,15 @@ import org.github.telegabots.api.TaskContext
 import org.github.telegabots.api.TaskManager
 import org.github.telegabots.context.TaskContextSupport
 import org.slf4j.LoggerFactory
-import java.util.concurrent.Executors
+import java.util.concurrent.ExecutorService
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
-class TaskManagerImpl(val context: TaskContext) : TaskManager {
+class TaskManagerImpl(
+    private val context: TaskContext,
+    private val executorService: ExecutorService,
+) : TaskManager {
     private val log = LoggerFactory.getLogger(javaClass)!!
-    private val executorService = Executors.newCachedThreadPool()
     private val tasks = mutableSetOf<TaskWrapper>()
 
     override fun register(task: BaseTask): Task {

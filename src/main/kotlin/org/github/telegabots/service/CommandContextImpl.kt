@@ -19,6 +19,7 @@ import org.github.telegabots.api.TaskManager
 import org.github.telegabots.api.UserService
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.state.UserStateService
+import org.github.telegabots.task.TaskManagerFactory
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
@@ -43,10 +44,11 @@ class CommandContextImpl(
     private val serviceProvider: ServiceProvider,
     private val localizeProvider: LocalizeProvider,
     private val messageSender: MessageSender,
-    private val taskManager: TaskManager
+    private val taskManagerFactory: TaskManagerFactory
 ) : CommandContext {
     private val log = LoggerFactory.getLogger(CommandContextImpl::class.java)!!
     private val jsonService = serviceProvider.getService(JsonService::class.java)!!
+    private val taskManager = lazy { taskManagerFactory.create(blockId, pageId, input.user) }
 
     /**
      * Block was create while command executing
@@ -417,7 +419,7 @@ class CommandContextImpl(
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun getTaskManager(): TaskManager = taskManager
+    override fun getTaskManager(): TaskManager = taskManager.value
 
     /**
      * Used when command call another command
@@ -497,7 +499,7 @@ class CommandContextImpl(
             serviceProvider = serviceProvider,
             localizeProvider = localizeProvider,
             userState = userState,
-            taskManager = taskManager
+            taskManagerFactory = taskManagerFactory
         )
     }
 

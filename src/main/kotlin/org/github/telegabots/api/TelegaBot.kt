@@ -1,12 +1,15 @@
 package org.github.telegabots.api
 
 import org.github.telegabots.api.config.BotConfig
-import org.github.telegabots.service.*
+import org.github.telegabots.service.AlertServiceImpl
+import org.github.telegabots.service.CallContextManager
+import org.github.telegabots.service.CommandHandlers
+import org.github.telegabots.service.InternalServiceProvider
+import org.github.telegabots.service.JsonService
 import org.github.telegabots.state.InternalLockableStateDbProvider
 import org.github.telegabots.state.LockableStateDbProvider
 import org.github.telegabots.state.StateDbProvider
 import org.github.telegabots.state.UsersStatesManager
-import org.github.telegabots.task.TaskManagerImpl
 import org.github.telegabots.util.CommandValidatorImpl
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.objects.Update
@@ -33,14 +36,12 @@ class TelegaBot(
     private val finalServiceProvider = InternalServiceProvider(serviceProvider, jsonService)
     private val userLocalizationFactory = finalServiceProvider.getService(UserLocalizationFactory::class.java)!!
     private val usersStatesManager = UsersStatesManager(finalDbProvider, userLocalizationFactory, jsonService)
-    private val taskManager = TaskManagerImpl()
     private val callContextManager = CallContextManager(
         messageSender,
         finalServiceProvider,
         commandHandlers,
         usersStatesManager,
         userLocalizationFactory,
-        taskManager,
         rootCommand
     )
     private val alertService = AlertServiceImpl(messageSender, config.alertChatId)
