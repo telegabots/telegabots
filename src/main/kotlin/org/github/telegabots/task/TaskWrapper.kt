@@ -2,6 +2,7 @@ package org.github.telegabots.task
 
 import org.github.telegabots.api.BaseTask
 import org.github.telegabots.api.Task
+import org.github.telegabots.api.TaskContext
 import org.github.telegabots.api.TaskRunResult
 import org.github.telegabots.api.TaskState
 import org.slf4j.LoggerFactory
@@ -10,7 +11,8 @@ import java.util.concurrent.ExecutorService
 import java.util.function.Consumer
 
 class TaskWrapper(
-    val task: BaseTask,
+    private val task: BaseTask,
+    private val context: TaskContext,
     private val executorService: ExecutorService
 ) : Task {
     private val log = LoggerFactory.getLogger(javaClass)!!
@@ -36,6 +38,7 @@ class TaskWrapper(
             executorService.submit(
                 TaskRunner(
                     task,
+                    context,
                     taskStartHandler = { taskStartHandler(it) },
                     taskStoppedHandler = { taskStopHandler(it, onComplete) })
             )
