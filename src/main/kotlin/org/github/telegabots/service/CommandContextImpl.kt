@@ -57,6 +57,8 @@ class CommandContextImpl(
      */
     private val implicitBlockId = AtomicLong(0)
 
+    override fun inputMessage(): InputMessage = input
+
     override fun messageId(): Int = currentMessageId
 
     override fun inputMessageId(): Int = input.messageId
@@ -201,7 +203,7 @@ class CommandContextImpl(
         }
 
         val handler = commandHandlers.getCommandHandler(page.handler)
-        val states = userState.getStates()
+        val states = userState.getStates(messageId = block.messageId, pageId = pageId)
         val newInput = input.copy(
             type = MessageType.Inline,
             query = SystemCommands.REFRESH,
@@ -215,7 +217,6 @@ class CommandContextImpl(
             input = newInput
         )
         val callContext = CommandCallContext(commandHandler = handler,
-            input = newInput,
             states = states,
             commandContext = context,
             defaultContext = { null })
@@ -434,7 +435,6 @@ class CommandContextImpl(
             createCommandContext(blockId = 0, currentMessageId = 0, command = handler.command, input = newInput)
 
         val callContext = CommandCallContext(commandHandler = handler,
-            input = newInput,
             states = states,
             commandContext = context,
             defaultContext = { null })
@@ -457,7 +457,6 @@ class CommandContextImpl(
             createCommandContext(blockId = 0, currentMessageId = 0, command = handler.command, input = newInput)
 
         val callContext = CommandCallContext(commandHandler = handler,
-            input = newInput,
             states = states,
             commandContext = context,
             defaultContext = { null })

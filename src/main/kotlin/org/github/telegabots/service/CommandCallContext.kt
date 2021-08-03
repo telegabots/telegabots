@@ -12,12 +12,12 @@ import org.slf4j.LoggerFactory
  */
 class CommandCallContext(
     private val commandHandler: CommandHandler,
-    private val input: InputMessage,
     private val states: States,
     private val commandContext: CommandContext,
     private val defaultContext: () -> CommandCallContext?
 ) {
     private val log = LoggerFactory.getLogger(CommandCallContext::class.java)
+    private val input: InputMessage = commandContext.inputMessage()
 
     fun execute(): Boolean {
         if (!commandHandler.canHandle(input.type)) {

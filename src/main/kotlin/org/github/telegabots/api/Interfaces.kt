@@ -13,6 +13,8 @@ import java.util.regex.Pattern
  * Context used by a command
  */
 interface CommandContext : UserContext, CommandExecutor {
+    fun inputMessage() : InputMessage
+
     /**
      * Message id related with current block
      */
@@ -156,6 +158,11 @@ interface TaskContext {
     fun blockId(): Long
 
     fun pageId(): Long
+
+    /**
+     * Refresh page content by page id
+     */
+    fun refreshPage(pageId: Long = 0, state: StateRef? = null)
 
     fun <T : Service> getService(clazz: Class<T>): T?
 

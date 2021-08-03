@@ -4,12 +4,12 @@ import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.CommandContext
 import org.github.telegabots.api.ContentType
 import org.github.telegabots.api.Document
+import org.github.telegabots.api.InputMessage
 import org.github.telegabots.api.InputUser
 import org.github.telegabots.api.Page
 import org.github.telegabots.api.Service
 import org.github.telegabots.api.TaskManager
 import org.github.telegabots.api.UserService
-
 
 /**
  * Supports CommandContext for current executing command
@@ -27,6 +27,8 @@ object CommandContextSupport : CommandContext {
         return contextCurrent.get()
             ?: throw IllegalStateException("Command context not initialized for current command")
     }
+
+    override fun inputMessage(): InputMessage = current().inputMessage()
 
     override fun messageId(): Int = current().messageId()
 

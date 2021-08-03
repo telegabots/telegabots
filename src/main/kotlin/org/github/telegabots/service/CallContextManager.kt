@@ -68,7 +68,7 @@ class CallContextManager(
                 val commandDef = findCommandDef(block, lastPage, input)
 
                 if (commandDef != null) {
-                    val context = createCallContextCommandDef(
+                    val context = createCallContextByCommandDef(
                         commandDef,
                         userState,
                         block,
@@ -82,7 +82,7 @@ class CallContextManager(
                 }
 
                 // send input into last page command
-                return createCallContext(
+                return createCallContextByBehaviour(
                     block,
                     lastPage.handler,
                     userState,
@@ -100,7 +100,7 @@ class CallContextManager(
         return getRootCallContext(userState, input)
     }
 
-    private fun createCallContextCommandDef(
+    private fun createCallContextByCommandDef(
         commandDef: CommandDef,
         userState: UserStateService,
         block: CommandBlock,
@@ -114,7 +114,7 @@ class CallContextManager(
                 val prevPage = pages[pages.size - 2]
                 userState.removePage(lastPage.id)
 
-                return createCallContext(
+                return createCallContextByBehaviour(
                     block,
                     prevPage.handler,
                     userState,
@@ -124,7 +124,7 @@ class CallContextManager(
                 )
             } else {
                 // if only one page just send refresh command to current command
-                return createCallContext(
+                return createCallContextByBehaviour(
                     block,
                     lastPage.handler,
                     userState,
@@ -137,7 +137,7 @@ class CallContextManager(
 
         if (commandDef.isRefreshCommand()) {
             // send refresh command to current command
-            return createCallContext(
+            return createCallContextByBehaviour(
                 block,
                 lastPage.handler,
                 userState,
@@ -149,7 +149,7 @@ class CallContextManager(
 
         if (commandDef.handler != null && commandDef.handler.isNotBlank()) {
             // create new page with specified handler
-            return createCallContext(
+            return createCallContextByBehaviour(
                 block,
                 commandDef.handler,
                 userState,
@@ -160,7 +160,7 @@ class CallContextManager(
             )
         }
 
-        return createCallContext(
+        return createCallContextByBehaviour(
             block,
             lastPage.handler,
             userState,
@@ -171,7 +171,7 @@ class CallContextManager(
         )
     }
 
-    private fun createCallContext(
+    private fun createCallContextByBehaviour(
         block: CommandBlock,
         handler: String,
         userState: UserStateService,
@@ -182,7 +182,7 @@ class CallContextManager(
     ): CommandCallContext {
         val cmdHandler = commandHandlers.getCommandHandler(handler)
 
-        return when (behaviour) {
+        val (states, context) = when (behaviour) {
             CommandBehaviour.SeparatePage -> {
                 val finalPageId = userState.savePage(block.id, cmdHandler.commandClass).id
                 if (state != null) {
@@ -191,33 +191,26 @@ class CallContextManager(
                 val states = userState.getStates(block.messageId, finalPageId)
                 val context = createCommandContext(block.id, block.messageId, cmdHandler.command, input, finalPageId)
 
-                return CommandCallContext(commandHandler = cmdHandler,
-                    input = input,
-                    states = states,
-                    commandContext = context,
-                    defaultContext = { getRootCallContext(userState, input) })
+                states to context
             }
             CommandBehaviour.ParentPage -> {
                 val states = userState.getStates(block.messageId, state, pageId = 0)
                 val context = createCommandContext(block.id, block.messageId, cmdHandler.command, input, pageId)
 
-                return CommandCallContext(commandHandler = cmdHandler,
-                    input = input,
-                    states = states,
-                    commandContext = context,
-                    defaultContext = { getRootCallContext(userState, input) })
+                states to context
             }
             CommandBehaviour.ParentPageState -> {
                 val states = userState.getStates(block.messageId, state, pageId)
                 val context = createCommandContext(block.id, block.messageId, cmdHandler.command, input, pageId)
 
-                return CommandCallContext(commandHandler = cmdHandler,
-                    input = input,
-                    states = states,
-                    commandContext = context,
-                    defaultContext = { getRootCallContext(userState, input) })
+                states to context
             }
         }
+
+        return CommandCallContext(commandHandler = cmdHandler,
+            states = states,
+            commandContext = context,
+            defaultContext = { getRootCallContext(userState, input) })
     }
 
     private fun getRootCallContext(
@@ -233,7 +226,6 @@ class CallContextManager(
         )
 
         return CommandCallContext(commandHandler = handler,
-            input = input,
             states = states,
             commandContext = context,
             defaultContext = { null })

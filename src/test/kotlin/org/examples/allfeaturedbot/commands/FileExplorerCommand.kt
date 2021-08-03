@@ -18,7 +18,7 @@ class FileExplorerCommand : BaseCommand() {
         currentDir.set(nextPath)
         val currentFile = File(nextPath)
 
-        log.debug("currentPath: {}, nextPath: {}", currentPath, nextPath)
+        log.debug("message: {}, currentPath: {}, nextPath: {}", message, currentPath, nextPath)
 
         if (currentFile.isDirectory) {
             val files = currentFile.listFiles() ?: emptyArray()

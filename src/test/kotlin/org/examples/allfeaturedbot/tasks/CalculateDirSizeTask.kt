@@ -1,6 +1,7 @@
 package org.examples.allfeaturedbot.tasks
 
 import org.github.telegabots.api.BaseTask
+import org.github.telegabots.api.StateRef
 import org.github.telegabots.api.annotation.TaskHandler
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -11,17 +12,17 @@ import java.util.concurrent.atomic.AtomicReference
 /**
  * Task calculating full size of defined dir path
  */
-class CalculateDirSizeTask(val path: String) : BaseTask() {
+class CalculateDirSizeTask(private val dirPath: String) : BaseTask() {
     private val log = LoggerFactory.getLogger(javaClass)
     private val progress = AtomicInteger()
     private val status = AtomicReference("")
     private val stopping = AtomicBoolean()
 
-    override fun title(): String = "Calculate dir full size"
+    override fun title(): String = "Calculates dir full size"
 
     override fun stopAsync() = stopping.set(true)
 
-    override fun status(): String? = status.get()
+    override fun status(): String = status.get()
 
     override fun progress(): Int = progress.get()
 
@@ -30,11 +31,15 @@ class CalculateDirSizeTask(val path: String) : BaseTask() {
         if (!stopping.get()) {
             progress.set(0)
             val fileCount = AtomicInteger()
-            val root = File(path)
+            val root = File(dirPath)
             val dirSize = calculateDirSize(root, fileCount) { file: File, index: Int, size: Int ->
                 val percent = ((index + 1).toDouble() * 100 / size).toInt()
                 status.set("Scanned " + file.absolutePath)
-                progress.set(percent)
+                val oldPercent = progress.getAndSet(percent)
+
+                if (oldPercent != percent) {
+                    context.refreshPage(state = StateRef.of(CalculateDirSizeProgressInfo(status.get(), percent)))
+                }
             }
             status.set("Scanned ${fileCount.get()} files")
             progress.set(100)
@@ -78,3 +83,5 @@ class CalculateDirSizeTask(val path: String) : BaseTask() {
         return 0L
     }
 }
+
+data class CalculateDirSizeProgressInfo(val status: String, val percent: Int)
