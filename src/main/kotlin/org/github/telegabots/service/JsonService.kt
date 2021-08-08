@@ -19,17 +19,11 @@ open class JsonService : Service {
         objectMapper.registerKotlinModule()
     }
 
-    fun <T> parse(str: String, clazz: Class<T>): T {
-        return objectMapper.readValue(str, clazz)
-    }
+    fun <T> parse(str: String, clazz: Class<T>): T = objectMapper.readValue(str, clazz)
 
-    fun toJson(obj: Any): String {
-        return objectMapper.writeValueAsString(obj)
-    }
+    fun toJson(obj: Any): String = objectMapper.writeValueAsString(obj)
 
-    fun toPrettyJson(obj: Any): String {
-        return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj)
-    }
+    fun toPrettyJson(obj: Any): String = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj)
 
     fun toStateItem(item: StateItemDef): StateItem =
         StateItem(key = item.key, value = parse(item.value, item.key.type))
@@ -38,8 +32,8 @@ open class JsonService : Service {
         StateItemDef(key = item.key, value = toJson(item.value))
 
     fun toStateDef(state: StateRef?): StateDef? =
-        if (state != null) StateDef(items = state.items.map { toStateItemDef(it) }) else null
+        state?.let { StateDef(items = state.items.map { toStateItemDef(it) }) }
 
     fun toState(stateDef: StateDef?): StateRef? =
-        if (stateDef != null) StateRef(items = stateDef.items.map { toStateItem(it) }) else null
+        stateDef?.let { StateRef(items = stateDef.items.map { toStateItem(it) }) }
 }

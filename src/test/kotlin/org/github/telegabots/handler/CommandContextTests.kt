@@ -91,7 +91,7 @@ class CommandContextTests : BaseTests() {
 
                 val ex = assertThrows<IllegalStateException> { CommandContextHolder.usedContext!!.currentCommand() }
 
-                assertEquals("Command context not initialized for current command", ex.message)
+                assertEquals("Context not initialized", ex.message)
             }
         }
     }

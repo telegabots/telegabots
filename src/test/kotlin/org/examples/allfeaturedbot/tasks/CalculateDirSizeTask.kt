@@ -38,7 +38,7 @@ class CalculateDirSizeTask(private val dirPath: String) : BaseTask() {
                 val oldPercent = progress.getAndSet(percent)
 
                 if (oldPercent != percent) {
-                    context.refreshPage(state = StateRef.of(CalculateDirSizeProgressInfo(status.get(), percent)))
+                    context.refreshPage(state = StateRef.of(CalculateDirSizeProgressInfo(status.get(), percent)), pageId = context.pageId())
                 }
             }
             status.set("Scanned ${fileCount.get()} files")

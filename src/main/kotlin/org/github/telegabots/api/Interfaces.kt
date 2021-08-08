@@ -10,20 +10,13 @@ import java.util.function.Consumer
 import java.util.regex.Pattern
 
 /**
- * Context used by a command
+ * Base context used by a command or task
  */
-interface CommandContext : UserContext, CommandExecutor {
-    fun inputMessage() : InputMessage
-
+interface BaseContext : CommandExecutor {
     /**
      * Message id related with current block
      */
     fun messageId(): Int
-
-    /**
-     * Message id related with input user message
-     */
-    fun inputMessageId(): Int
 
     /**
      * Returns current block's id
@@ -38,11 +31,6 @@ interface CommandContext : UserContext, CommandExecutor {
      * Can be 0 if not associated with a page
      */
     fun pageId(): Long
-
-    /**
-     * Returns current command in which input handled
-     */
-    fun currentCommand(): BaseCommand
 
     /**
      * Creates new page into new block
@@ -68,7 +56,7 @@ interface CommandContext : UserContext, CommandExecutor {
     /**
      * Refresh page content by page id
      */
-    fun refreshPage(pageId: Long)
+    fun refreshPage(pageId: Long, state: StateRef? = null)
 
     /**
      * Removes page by page id
@@ -142,6 +130,32 @@ interface CommandContext : UserContext, CommandExecutor {
     fun <T : UserService> getUserService(clazz: Class<T>): T?
 }
 
+/**
+ * Context used by a command
+ */
+interface CommandContext : BaseContext, UserContext {
+    /**
+     * Message from user
+     */
+    fun inputMessage(): InputMessage
+
+    /**
+     * Message id related with input user message
+     */
+    fun inputMessageId(): Int
+
+    /**
+     * Returns current command in which input handled
+     */
+    fun currentCommand(): BaseCommand
+}
+
+/**
+ * Context used by a task
+ */
+interface TaskContext : BaseContext {
+}
+
 interface CommandExecutor {
     fun executeTextCommand(handler: Class<out BaseCommand>, text: String): Boolean
 
@@ -152,21 +166,6 @@ interface AlertService : Service {
     fun sendHtmlMessage(message: String, disablePreview: Boolean = false)
 
     fun sendMarkdownMessage(message: String, disablePreview: Boolean = false)
-}
-
-interface TaskContext {
-    fun blockId(): Long
-
-    fun pageId(): Long
-
-    /**
-     * Refresh page content by page id
-     */
-    fun refreshPage(pageId: Long = 0, state: StateRef? = null)
-
-    fun <T : Service> getService(clazz: Class<T>): T?
-
-    fun <T : UserService> getUserService(clazz: Class<T>): T?
 }
 
 /**
