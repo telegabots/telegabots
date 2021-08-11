@@ -1,8 +1,10 @@
 package org.github.telegabots.task
 
-import org.github.telegabots.api.InputUser
 import org.github.telegabots.api.ServiceProvider
+import org.github.telegabots.api.Task
+import org.github.telegabots.api.TaskContext
 import org.github.telegabots.api.TaskManager
+import org.github.telegabots.service.CommandContextImpl
 import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
 
@@ -12,13 +14,18 @@ import java.util.concurrent.Executors
 class TaskManagerFactory(val serviceProvider: ServiceProvider) {
     private val log = LoggerFactory.getLogger(javaClass)!!
     private val executorService = Executors.newCachedThreadPool()
+    private val tasks = mutableSetOf<Task>()
 
-    fun create(blockId: Long, pageId: Long, user: InputUser): TaskManager {
+    fun create(context: TaskContext): TaskManager {
         if (log.isDebugEnabled) {
-            log.debug("Create taskManager, blockId: {}, pageId: {}, user: {}", blockId, pageId, user)
+            val realContext = context as? CommandContextImpl
+
+            log.debug(
+                "Create taskManager, blockId: {}, pageId: {}, messageId: {}, user: {}",
+                context.blockId(), context.pageId(), context.messageId(), realContext?.user()
+            )
         }
 
-        val context = TaskContextImpl(blockId, pageId, user, serviceProvider)
-        return TaskManagerImpl(context, executorService)
+        return TaskManagerImpl(context, executorService, tasks)
     }
 }

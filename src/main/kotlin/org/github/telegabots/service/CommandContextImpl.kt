@@ -50,7 +50,7 @@ class CommandContextImpl(
 ) : CommandContext, TaskContext {
     private val log = LoggerFactory.getLogger(CommandContextImpl::class.java)!!
     private val jsonService = serviceProvider.getService(JsonService::class.java)!!
-    private val taskManager = lazy { taskManagerFactory.create(blockId, pageId, input.user) }
+    private val taskManager = lazy { taskManagerFactory.create(this) }
 
     /**
      * Block was create while command executing

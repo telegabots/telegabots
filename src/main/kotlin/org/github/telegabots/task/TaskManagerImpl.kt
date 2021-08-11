@@ -10,9 +10,9 @@ import java.util.concurrent.ExecutorService
 class TaskManagerImpl(
     private val context: TaskContext,
     private val executorService: ExecutorService,
+    private val tasks: MutableSet<Task>
 ) : TaskManager {
     private val log = LoggerFactory.getLogger(javaClass)!!
-    private val tasks = mutableSetOf<TaskWrapper>()
 
     override fun register(task: BaseTask): Task {
         val wrapper = TaskWrapper(task, context, executorService)
@@ -31,6 +31,7 @@ class TaskManagerImpl(
             val wrapper = task as TaskWrapper
 
             if (!tasks.contains(wrapper)) {
+                log.warn("Task '{}' not registered. Unregister skipped", task.id())
                 return
             }
 
