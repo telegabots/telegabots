@@ -135,7 +135,8 @@ class CommandContextImpl(
         return updatePageExplicit(page, blockId, finalPageId = pageId)
     }
 
-    override fun refreshPage(pageId: Long, state: StateRef?) {
+    override fun refreshPage(pageIdIn: Long, state: StateRef?) {
+        val pageId = if (pageIdIn > 0) pageIdIn else pageId()
         val page = userState.findPageById(pageId)
 
         if (page == null) {
@@ -174,7 +175,8 @@ class CommandContextImpl(
         callContext.execute()
     }
 
-    override fun deletePage(pageId: Long) {
+    override fun deletePage(pageIdIn: Long) {
+        val pageId = if (pageIdIn > 0) pageIdIn else pageId()
         val block = userState.findBlockByPageId(pageId)
 
         if (block != null) {
@@ -194,12 +196,15 @@ class CommandContextImpl(
         }
     }
 
-    override fun deleteBlock(blockId: Long) {
-        val block = userState.findBlockById(pageId)
+    override fun deleteBlock(blockIdIn: Long) {
+        val blockId = if (blockIdIn > 0) blockIdIn else blockId()
+        val block = userState.findBlockById(blockId)
 
         if (block != null) {
             userState.deleteBlock(block.id)
             messageSender.deleteMessage(input.chatId.toString(), block.messageId)
+        } else {
+            log.warn("Block not found by id: {}", blockId)
         }
     }
 
