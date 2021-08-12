@@ -28,15 +28,13 @@ class TaskManagerImpl(
 
     override fun unregister(task: Task) {
         synchronized(tasks) {
-            val wrapper = task as TaskWrapper
-
-            if (!tasks.contains(wrapper)) {
+            if (!tasks.contains(task)) {
                 log.warn("Task '{}' not registered. Unregister skipped", task.id())
                 return
             }
 
             // TODO: stop task if running. sync wait until stop and then remove
-            tasks.remove(wrapper)
+            tasks.remove(task)
 
             log.info("Task '{}' unregistered", task.id())
         }

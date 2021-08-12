@@ -5,6 +5,7 @@ import org.github.telegabots.api.StateRef
 import org.github.telegabots.api.annotation.TaskHandler
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.lang.Thread.sleep
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
@@ -38,7 +39,11 @@ class CalculateDirSizeTask(private val dirPath: String) : BaseTask() {
                 val oldPercent = progress.getAndSet(percent)
 
                 if (oldPercent != percent) {
-                    context.refreshPage(state = StateRef.of(CalculateDirSizeProgressInfo(status.get(), percent)), pageId = context.pageId())
+                    sleep(1000)
+                    context.refreshPage(
+                        state = StateRef.of(CalculateDirSizeProgressInfo(status.get(), percent)),
+                        pageId = context.pageId()
+                    )
                 }
             }
             status.set("Scanned ${fileCount.get()} files")

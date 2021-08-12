@@ -91,6 +91,9 @@ class MessageSenderImpl(
                     log.warn("Not modified message error was ignored. Content: \"{}\"", message)
                     return
                 }
+
+                log.error("edit message failed: {} ({}), chatId: {}, message: {}", e.message, e.apiResponse, chatId, editMessageText, e)
+                throw e
             }
 
             log.error("edit message failed: {}, chatId: {}, message: {}", e.message, chatId, editMessageText, e)
