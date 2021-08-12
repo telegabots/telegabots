@@ -56,7 +56,7 @@ interface BaseContext : CommandExecutor {
     /**
      * Refresh page content by page id
      */
-    fun refreshPage(pageId: Long, state: StateRef? = null)
+    fun refreshPage(pageId: Long = 0, state: StateRef? = null)
 
     /**
      * Removes page by page id

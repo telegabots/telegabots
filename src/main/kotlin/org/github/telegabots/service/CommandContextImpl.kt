@@ -29,7 +29,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
-import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 
 class CommandContextImpl(
@@ -52,13 +51,6 @@ class CommandContextImpl(
     private val jsonService = serviceProvider.getService(JsonService::class.java)!!
     private val taskManager = lazy { taskManagerFactory.create(this) }
 
-    /**
-     * Block was create while command executing
-     *
-     * Several updates can be made while one command executed
-     */
-    private val implicitBlockId = AtomicLong(0)
-
     override fun inputMessage(): InputMessage = input
 
     override fun messageId(): Int = currentMessageId
@@ -78,7 +70,7 @@ class CommandContextImpl(
             contentType = page.contentType,
             disablePreview = page.disablePreview,
             message = page.message,
-            preSendHandler = Consumer { msg ->
+            preSendHandler = { msg ->
                 applyMessageButtons(msg, page.subCommands, page.messageType)
             })
 
@@ -117,33 +109,11 @@ class CommandContextImpl(
             return addPageExplicit(page, page.blockId)
         }
 
-        val finalBlockId = implicitBlockId.get().let { if (it > 0) it else blockId }
-
-        if (finalBlockId <= 0) {
+        if (blockId <= 0) {
             return createPage(page)
         }
 
-        if (input.inlineMessageId == null && page.messageType == MessageType.Inline && implicitBlockId.get() <= 0) {
-            val finalBlock = userState.getBlockById(finalBlockId)
-            check(page.messageType == finalBlock.messageType) { "Adding page message type mismatch block's type. Expected: ${finalBlock.messageType}" }
-
-            // from non-inline handler we have attempt to add page
-            // we have to clone current block and bind it with new message
-            val newMessageId = messageSender.sendMessage(chatId = input.chatId.toString(),
-                contentType = page.contentType,
-                disablePreview = page.disablePreview,
-                message = page.message,
-                preSendHandler = Consumer { msg ->
-                    applyMessageButtons(msg, page.subCommands, page.messageType)
-                })
-
-            val lastPage = cloneFromBlock(blockId, newMessageId)
-            implicitBlockId.set(lastPage.blockId)
-
-            return addPageExplicit(page, implicitBlockId.get(), ignoreSender = true)
-        }
-
-        return addPageExplicit(page, finalBlockId)
+        return addPageExplicit(page, blockId)
     }
 
     override fun updatePage(page: Page): Long {
@@ -158,35 +128,11 @@ class CommandContextImpl(
             return updatePageExplicit(page, blockByPageId, finalPageId = page.id)
         }
 
-        val finalBlockId = implicitBlockId.get().let { if (it > 0) it else blockId }
-
-        if (finalBlockId <= 0) {
+        if (blockId <= 0) {
             return createPage(page)
         }
 
-        if (input.inlineMessageId == null && page.messageType == MessageType.Inline && implicitBlockId.get() <= 0) {
-            val finalBlock = userState.getBlockById(finalBlockId)
-            check(page.messageType == finalBlock.messageType) { "Update page message type mismatch block's type. Expected: ${finalBlock.messageType}" }
-
-            // from non-inline handler we have attempt to update page
-            // we have to clone current block and bind it with new message
-            val newMessageId = messageSender.sendMessage(chatId = input.chatId.toString(),
-                contentType = page.contentType,
-                disablePreview = page.disablePreview,
-                message = page.message,
-                preSendHandler = Consumer { msg ->
-                    applyMessageButtons(msg, page.subCommands, page.messageType)
-                })
-
-            val lastPage = cloneFromBlock(blockId, newMessageId)
-            implicitBlockId.set(lastPage.blockId)
-
-            return updatePageExplicit(page, implicitBlockId.get(), finalPageId = lastPage.id, ignoreSender = true)
-        }
-
-        val finalPageId = if (implicitBlockId.get() > 0) PAGE_ID_LAST else pageId
-
-        return updatePageExplicit(page, finalBlockId, finalPageId = finalPageId)
+        return updatePageExplicit(page, blockId, finalPageId = pageId)
     }
 
     override fun refreshPage(pageId: Long, state: StateRef?) {
@@ -206,7 +152,8 @@ class CommandContextImpl(
 
         val handler = commandHandlers.getCommandHandler(page.handler)
         // TODO: improve userState to not use jsonService.toStateDef
-        val states = userState.getStates(messageId = block.messageId, pageId = pageId, state = jsonService.toStateDef(state))
+        val states =
+            userState.getStates(messageId = block.messageId, pageId = pageId, state = jsonService.toStateDef(state))
         val newInput = input.copy(
             type = MessageType.Inline,
             query = SystemCommands.REFRESH,
@@ -266,6 +213,9 @@ class CommandContextImpl(
         messageSender.deleteMessage(input.chatId.toString(), messageId)
     }
 
+    /**
+     * Adds page to specified block
+     */
     private fun addPageExplicit(
         page: Page,
         finalBlockId: Long,
@@ -323,6 +273,9 @@ class CommandContextImpl(
         return savedPage.id
     }
 
+    /**
+     * Updates page by specified block or page
+     */
     private fun updatePageExplicit(
         page: Page,
         finalBlockId: Long,
