@@ -511,6 +511,7 @@ data class SubCommand(
 
         val REFRESH = SubCommand.of(SystemCommands.REFRESH)
         val GO_BACK = SubCommand.of(SystemCommands.GO_BACK)
+        val NOTHING = SubCommand.of(SystemCommands.NOTHING)
         private const val PREFIX = "_COMMAND"
         private val CAMEL_CASE_PAT = Pattern.compile("([a-z\\d])([A-Z]+)")
     }

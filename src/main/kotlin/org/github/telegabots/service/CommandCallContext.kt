@@ -7,19 +7,24 @@ import org.github.telegabots.state.StateKind
 import org.github.telegabots.state.States
 import org.slf4j.LoggerFactory
 
+
+interface CommandCallContext {
+    fun execute(): Boolean
+}
+
 /**
  * Composing command handler, input message and state
  */
-class CommandCallContext(
+class CommandCallContextImpl(
     private val commandHandler: CommandHandler,
     private val states: States,
     private val commandContext: CommandContext,
     private val defaultContext: () -> CommandCallContext?
-) {
+) : CommandCallContext {
     private val log = LoggerFactory.getLogger(CommandCallContext::class.java)
     private val input: InputMessage = commandContext.inputMessage()
 
-    fun execute(): Boolean {
+    override fun execute(): Boolean {
         if (!commandHandler.canHandle(input.type)) {
             if (input.type == MessageType.Text) {
                 val defaultContext = defaultContext()
@@ -89,4 +94,8 @@ class CommandCallContext(
     override fun toString(): String {
         return "CommandCallContext(commandHandler=$commandHandler, input=$input)"
     }
+}
+
+object NothingCommandCallContext : CommandCallContext {
+    override fun execute(): Boolean = true
 }

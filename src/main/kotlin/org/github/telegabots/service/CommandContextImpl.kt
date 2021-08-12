@@ -167,7 +167,7 @@ class CommandContextImpl(
             command = handler.command,
             input = newInput
         )
-        val callContext = CommandCallContext(commandHandler = handler,
+        val callContext = CommandCallContextImpl(commandHandler = handler,
             states = states,
             commandContext = context,
             defaultContext = { null })
@@ -395,7 +395,7 @@ class CommandContextImpl(
         val context =
             createCommandContext(blockId = 0, currentMessageId = 0, command = handler.command, input = newInput)
 
-        val callContext = CommandCallContext(commandHandler = handler,
+        val callContext = CommandCallContextImpl(commandHandler = handler,
             states = states,
             commandContext = context,
             defaultContext = { null })
@@ -417,7 +417,7 @@ class CommandContextImpl(
         val context =
             createCommandContext(blockId = 0, currentMessageId = 0, command = handler.command, input = newInput)
 
-        val callContext = CommandCallContext(commandHandler = handler,
+        val callContext = CommandCallContextImpl(commandHandler = handler,
             states = states,
             commandContext = context,
             defaultContext = { null })

@@ -17,7 +17,12 @@ object SystemCommands {
      */
     const val REFRESH = "_REFRESH"
 
-    val ALL = listOf(GO_BACK, REFRESH)
+    /**
+     * Do nothing
+     */
+    const val NOTHING = "_NOTHING"
+
+    val ALL = listOf(GO_BACK, REFRESH, NOTHING)
 }
 
 class EmptyCommand : BaseCommand() {

@@ -147,6 +147,10 @@ class CallContextManager(
             )
         }
 
+        if (commandDef.isNothingCommand()) {
+            return NothingCommandCallContext
+        }
+
         if (commandDef.handler != null && commandDef.handler.isNotBlank()) {
             // create new page with specified handler
             return createCallContextByBehaviour(
@@ -207,7 +211,7 @@ class CallContextManager(
             }
         }
 
-        return CommandCallContext(commandHandler = cmdHandler,
+        return CommandCallContextImpl(commandHandler = cmdHandler,
             states = states,
             commandContext = context,
             defaultContext = { getRootCallContext(userState, input) })
@@ -225,7 +229,7 @@ class CallContextManager(
             input = input
         )
 
-        return CommandCallContext(commandHandler = handler,
+        return CommandCallContextImpl(commandHandler = handler,
             states = states,
             commandContext = context,
             defaultContext = { null })

@@ -43,7 +43,7 @@ class FileExplorerCommand : BaseCommand() {
             } ?: ""
 
             if (progressInfo != null) {
-                allFiles.add(0, SubCommand.of(SystemCommands.REFRESH, title = "Calculating...${progressInfo.percent}%"))
+                allFiles.add(0, SubCommand.of(SystemCommands.NOTHING, title = "Calculating...${progressInfo.percent}%"))
             } else {
                 allFiles.add(
                     0, SubCommand.of<CalculateDirSizeCommand>(

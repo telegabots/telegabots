@@ -11,4 +11,6 @@ data class CommandDef(val titleId: String,
     fun isBackCommand(): Boolean = SystemCommands.GO_BACK == titleId
 
     fun isRefreshCommand(): Boolean = SystemCommands.REFRESH == titleId
+
+    fun isNothingCommand(): Boolean = SystemCommands.NOTHING == titleId
 }
