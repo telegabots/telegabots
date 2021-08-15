@@ -4,9 +4,9 @@ import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.LocalizeProvider
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.SubCommand
-import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandDef
+import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.util.Validation
@@ -35,6 +35,9 @@ class UserStateService(
 
     fun getLastBlock(): CommandBlock? = dbProvider.findLastBlockByUserId(userId)
 
+    fun getLastBlocks(lastIndexFrom: Int, pageSize: Int): List<CommandBlock> =
+        dbProvider.getLastBlocks(userId, lastIndexFrom, pageSize)
+
     fun findLastPage(blockId: Long): CommandPage? = dbProvider.findLastPageByBlockId(blockId)
 
     fun getLastPage(blockId: Long): CommandPage =
@@ -45,6 +48,10 @@ class UserStateService(
     fun removePage(pageId: Long): CommandPage? = dbProvider.removePage(pageId)
 
     fun findPageById(pageId: Long): CommandPage? = dbProvider.findPageById(pageId)
+
+    fun pageExists(pageId: Long): Boolean = findPageById(pageId) != null
+
+    fun blockExists(blockId: Long): Boolean = findBlockById(blockId) != null
 
     fun saveBlock(messageId: Int, messageType: MessageType): CommandBlock =
         dbProvider.saveBlock(
@@ -103,6 +110,8 @@ class UserStateService(
             localStates.getOrPut(pageId) { LocalStateProvider(pageId, dbProvider, jsonService) }
         }
     }
+
+    fun getSharedStateProvider(messageId: Int): StateProvider = getSharedState(messageId)
 
     /**
      * Flushes dirty states to db

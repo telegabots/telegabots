@@ -23,6 +23,7 @@ import org.github.telegabots.api.SystemCommands
 import org.github.telegabots.api.TaskContext
 import org.github.telegabots.api.TaskManager
 import org.github.telegabots.api.UserService
+import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.state.UserStateService
 import org.github.telegabots.task.TaskManagerFactory
@@ -139,26 +140,34 @@ class BaseContextImpl(
         return updatePageExplicit(page, blockId, finalPageId = pageId)
     }
 
-    override fun refreshPage(pageIdIn: Long, state: StateRef?) {
-        val pageId = if (pageIdIn > 0) pageIdIn else pageId()
-        val page = userState.findPageById(pageId)
+    override fun refreshPage(pageId: Long, state: StateRef?) {
+        val finalPageId = if (pageId > 0) pageId else pageId()
+        val page = userState.findPageById(finalPageId)
 
         if (page == null) {
-            log.warn("Page not found by id: {}", pageId)
+            log.warn("Page not found by id: {}", finalPageId)
             return
         }
 
         val block = userState.getBlockById(page.blockId)
 
         if (block.messageType != MessageType.Inline) {
-            log.warn("Page (id={}) can not be refreshed. Required Inline page, but found {}", pageId, block.messageType)
+            log.warn(
+                "Page (id={}) can not be refreshed. Required Inline page, but found {}",
+                finalPageId,
+                block.messageType
+            )
             return
         }
 
         val handler = commandHandlers.getCommandHandler(page.handler)
         // TODO: improve userState to not use jsonService.toStateDef
         val states =
-            userState.getStates(messageId = block.messageId, pageId = pageId, state = jsonService.toStateDef(state))
+            userState.getStates(
+                messageId = block.messageId,
+                pageId = finalPageId,
+                state = jsonService.toStateDef(state)
+            )
         val newInput = input.copy(
             type = MessageType.Inline,
             query = SystemCommands.REFRESH,
@@ -179,9 +188,9 @@ class BaseContextImpl(
         callContext.execute()
     }
 
-    override fun deletePage(pageIdIn: Long) {
-        val pageId = if (pageIdIn > 0) pageIdIn else pageId()
-        val block = userState.findBlockByPageId(pageId)
+    override fun deletePage(pageId: Long) {
+        val finalPageId = if (pageId > 0) pageId else pageId()
+        val block = userState.findBlockByPageId(finalPageId)
 
         if (block != null) {
             val pages = userState.getPages(block.id)
@@ -190,7 +199,7 @@ class BaseContextImpl(
                 userState.deletePage(block.id)
 
                 if (block.messageType == MessageType.Inline) {
-                    val lastPage = pages.last { it.id != pageId }
+                    val lastPage = pages.last { it.id != finalPageId }
                     refreshPage(lastPage.id)
                 }
             } else {
@@ -200,15 +209,15 @@ class BaseContextImpl(
         }
     }
 
-    override fun deleteBlock(blockIdIn: Long) {
-        val blockId = if (blockIdIn > 0) blockIdIn else blockId()
-        val block = userState.findBlockById(blockId)
+    override fun deleteBlock(blockId: Long) {
+        val finalBlockId = if (blockId > 0) blockId else blockId()
+        val block = userState.findBlockById(finalBlockId)
 
         if (block != null) {
             userState.deleteBlock(block.id)
             messageSender.deleteMessage(input.chatId.toString(), block.messageId)
         } else {
-            log.warn("Block not found by id: {}", blockId)
+            log.warn("Block not found by id: {}", finalBlockId)
         }
     }
 
@@ -222,37 +231,64 @@ class BaseContextImpl(
         messageSender.deleteMessage(input.chatId.toString(), messageId)
     }
 
-    override fun canUpdate(pageId: Long) {
-        TODO("Not yet implemented")
+    override fun pageVisible(pageId: Long): Boolean {
+        val finalPageId = if (pageId > 0) pageId else pageId()
+        val block = userState.findBlockByPageId(finalPageId)
+        val lastPage = block?.id?.let { userState.findLastPage(it) }
+
+        return finalPageId != 0L && lastPage?.id == finalPageId
     }
 
     override fun pageExists(pageId: Long): Boolean {
-        TODO("Not yet implemented")
+        val finalPageId = if (pageId > 0) pageId else pageId()
+        return userState.pageExists(finalPageId)
     }
 
     override fun blockExists(blockId: Long): Boolean {
-        TODO("Not yet implemented")
+        val finalBlockId = if (blockId > 0) blockId else blockId()
+        return userState.blockExists(finalBlockId)
     }
 
     override fun getLastBlocks(lastIndexFrom: Int): List<BlockInfo> {
-        TODO("Not yet implemented")
+        val pages = userState.getLastBlocks(lastIndexFrom, 10)
+
+        return pages.map { mapBlockInfo(it) }
     }
 
-    override fun getLastBlock(): BlockInfo? {
-        TODO("Not yet implemented")
-    }
+    override fun getLastBlock(): BlockInfo? = userState.getLastBlock()?.let { mapBlockInfo(it) }
 
     override fun getBlockPages(blockId: Long): List<PageInfo> {
-        TODO("Not yet implemented")
+        val finalBlockId = if (blockId > 0) blockId else blockId()
+        return userState.getPages(finalBlockId).map { mapPageInfo(it) }
     }
 
     override fun getPageState(pageId: Long): PageStateInfo {
-        TODO("Not yet implemented")
+        val finalPageId = if (pageId > 0) pageId else pageId()
+
+        if (userState.pageExists(finalPageId)) {
+            val provider = userState.getLocalStateProvider(finalPageId)
+            return PageStateInfo(finalPageId, states = provider.getAll())
+        }
+
+        return PageStateInfo(finalPageId, emptyList())
     }
 
     override fun getBlockState(blockId: Long): BlockStateInfo {
-        TODO("Not yet implemented")
+        val finalBlockId = if (blockId > 0) blockId else blockId()
+        val block = userState.findBlockById(finalBlockId)
+
+        if (block != null) {
+            val provider = userState.getSharedStateProvider(block.messageId)
+            return BlockStateInfo(pageId, states = provider.getAll())
+        }
+
+        return BlockStateInfo(pageId, emptyList())
     }
+
+    private fun mapBlockInfo(it: CommandBlock) = BlockInfo(it.id, createdAt = it.createdAt)
+
+    private fun mapPageInfo(it: CommandPage): PageInfo =
+        PageInfo(it.id, createdAt = it.createdAt, updatedAt = it.updatedAt)
 
     /**
      * Adds page to specified block

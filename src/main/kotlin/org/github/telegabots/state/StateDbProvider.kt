@@ -29,6 +29,8 @@ interface StateDbProvider {
 
     fun getBlockPages(blockId: Long): List<CommandPage>
 
+    fun getLastBlocks(userId: Int, lastIndexFrom: Int, pageSize: Int): List<CommandBlock>
+
     fun saveLocalState(pageId: Long, state: StateDef)
 
     /**

@@ -49,7 +49,7 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
 
     override fun deleteMessage(messageId: Int) = current().deleteMessage(messageId)
 
-    override fun canUpdate(pageId: Long) = current().canUpdate(pageId)
+    override fun pageVisible(pageId: Long) = current().pageVisible(pageId)
 
     override fun pageExists(pageId: Long): Boolean = current().pageExists(pageId)
 

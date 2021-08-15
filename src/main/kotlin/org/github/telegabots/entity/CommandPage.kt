@@ -1,5 +1,7 @@
 package org.github.telegabots.entity
 
+import java.time.LocalDateTime
+
 /**
  * Entity related with block and concrete command page
  */
@@ -19,7 +21,17 @@ data class CommandPage(
     /**
      * Command definitions under message
      */
-    val commandDefs: List<List<CommandDef>>
+    val commandDefs: List<List<CommandDef>>,
+
+    /**
+     * Time when page created
+     */
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+
+    /**
+     * Time when page was updated
+     */
+    val updatedAt: LocalDateTime = LocalDateTime.now()
 ) {
     fun isValid(): Boolean = blockId != 0L && handler.isNotBlank()
 }

@@ -80,6 +80,12 @@ class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : L
         }
     }
 
+    override fun getLastBlocks(userId: Int, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> {
+        readLock.runIn {
+            return delegate.getLastBlocks(userId, lastIndexFrom, pageSize)
+        }
+    }
+
     override fun saveLocalState(pageId: Long, state: StateDef) {
         writeLock.runIn {
             return delegate.saveLocalState(pageId, state)

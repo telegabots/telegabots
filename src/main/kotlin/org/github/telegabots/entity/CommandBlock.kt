@@ -1,6 +1,7 @@
 package org.github.telegabots.entity
 
 import org.github.telegabots.api.MessageType
+import java.time.LocalDateTime
 
 /**
  * Entity related with message and user
@@ -8,7 +9,8 @@ import org.github.telegabots.api.MessageType
 data class CommandBlock(val id: Long,
                         val messageId: Int,
                         val userId: Int,
-                        val messageType: MessageType
+                        val messageType: MessageType,
+                        val createdAt: LocalDateTime = LocalDateTime.now()
 ) {
     fun isValid(): Boolean = messageId != 0 && userId != 0
 }

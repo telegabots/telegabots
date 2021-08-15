@@ -3,6 +3,7 @@ package org.github.telegabots.state
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.StateDef
+import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -39,12 +40,13 @@ class MemoryStateDbProvider : StateDbProvider {
             val pages = commandPages.getOrPut(block.id) { mutableListOf() }
             val index = pages.indexOfFirst { it.id == page.id }
             check(index >= 0) { "Page not found by id: ${page.id}, blockId: ${page.blockId}" }
-            pages.removeAt(index)
-            pages.add(index, page)
+            val oldPage = pages.removeAt(index)
+            pages.add(index, page.copy(updatedAt = LocalDateTime.now(), createdAt = oldPage.createdAt))
 
             return page
         } else {
-            val savedPage = page.copy(id = pageIds.getAndIncrement())
+            val now = LocalDateTime.now()
+            val savedPage = page.copy(id = pageIds.getAndIncrement(), createdAt = now, updatedAt = now)
             val pages = commandPages.getOrPut(block.id) { mutableListOf() }
             pages.add(savedPage)
 
@@ -159,6 +161,13 @@ class MemoryStateDbProvider : StateDbProvider {
 
     override fun getBlockPages(blockId: Long): List<CommandPage> {
         return commandPages[blockId] ?: emptyList()
+    }
+
+    override fun getLastBlocks(userId: Int, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> {
+        return commandBlocks.filter { it.userId == userId }
+            .reversed()
+            .drop(lastIndexFrom)
+            .take(pageSize)
     }
 
     fun getUserBlocks(userId: Int): List<CommandBlock> {

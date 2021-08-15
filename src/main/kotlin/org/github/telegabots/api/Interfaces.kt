@@ -78,19 +78,19 @@ interface BaseContext : CommandExecutor {
     /**
      * Page is visible and can be updated/refreshed
      */
-    fun canUpdate(pageId: Long)
+    fun pageVisible(pageId: Long = 0): Boolean
 
     /**
      * Returns true if page not removed yet
      *
      * Page can exists but not visible
      */
-    fun pageExists(pageId: Long): Boolean
+    fun pageExists(pageId: Long = 0): Boolean
 
     /**
      * Returns true if page not removed yet
      */
-    fun blockExists(blockId: Long): Boolean
+    fun blockExists(blockId: Long = 0): Boolean
 
     /**
      * Returns list of block. Default chunk size - 10
@@ -107,17 +107,17 @@ interface BaseContext : CommandExecutor {
     /**
      * Returns all pages of specified block
      */
-    fun getBlockPages(blockId: Long): List<PageInfo>
+    fun getBlockPages(blockId: Long = 0): List<PageInfo>
 
     /**
      * Returns page related state
      */
-    fun getPageState(pageId: Long): PageStateInfo
+    fun getPageState(pageId: Long = 0): PageStateInfo
 
     /**
      * Returns state related with block
      */
-    fun getBlockState(blockId: Long): BlockStateInfo
+    fun getBlockState(blockId: Long = 0): BlockStateInfo
 
     /**
      * Sends document to the current or specified chat
@@ -223,9 +223,15 @@ data class PageInfo(
     val updatedAt: LocalDateTime
 )
 
-data class PageStateInfo(val pageId: Long)
+data class PageStateInfo(
+    val pageId: Long,
+    val states: List<StateItem>
+)
 
-data class BlockStateInfo(val blockId: Long)
+data class BlockStateInfo(
+    val blockId: Long,
+    val states: List<StateItem>
+)
 
 interface AlertService : Service {
     fun sendHtmlMessage(message: String, disablePreview: Boolean = false)
