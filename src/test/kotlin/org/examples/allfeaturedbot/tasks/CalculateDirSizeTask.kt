@@ -33,7 +33,7 @@ class CalculateDirSizeTask(private val dirPath: String) : BaseTask() {
             progress.set(0)
             val fileCount = AtomicInteger()
             val root = File(dirPath)
-            val dirSize = calculateDirSize(root, fileCount) { file: File, index: Int, size: Int ->
+            val dirSize = calculateDirSize(root, fileCount) { file: File, index: Int, size: Int, dirSize: Long ->
                 val percent = ((index + 1).toDouble() * 100 / size).toInt()
                 status.set("Scanned " + file.absolutePath)
                 val oldPercent = progress.getAndSet(percent)
@@ -41,13 +41,18 @@ class CalculateDirSizeTask(private val dirPath: String) : BaseTask() {
                 if (oldPercent != percent) {
                     sleep(1000)
                     context.refreshPage(
-                        state = StateRef.of(CalculateDirSizeProgressInfo(status.get(), percent)),
+                        state = StateRef.of(CalculateDirSizeProgressInfo(status.get(), percent, dirSize)),
                         pageId = context.pageId()
                     )
                 }
             }
             status.set("Scanned ${fileCount.get()} files")
             progress.set(100)
+
+            context.refreshPage(
+                state = StateRef.of(CalculateDirSizeProgressInfo(status.get(), 100, dirSize)),
+                pageId = context.pageId()
+            )
 
             log.info("Calculated size: $dirSize bytes after scanned ${fileCount.get()} files in ${root.absolutePath}")
         }
@@ -58,7 +63,7 @@ class CalculateDirSizeTask(private val dirPath: String) : BaseTask() {
     private fun calculateDirSize(
         file: File,
         fileCount: AtomicInteger,
-        handler: ((File, Int, Int) -> Unit)? = null
+        handler: ((File, Int, Int, Long) -> Unit)? = null
     ): Long {
         if (file.exists()) {
             if (file.isDirectory) {
@@ -74,7 +79,7 @@ class CalculateDirSizeTask(private val dirPath: String) : BaseTask() {
                     }
 
                     if (handler != null) {
-                        handler(fileChild, index, files.size)
+                        handler(fileChild, index, files.size, curDirSize)
                     }
                 }
 
@@ -89,4 +94,4 @@ class CalculateDirSizeTask(private val dirPath: String) : BaseTask() {
     }
 }
 
-data class CalculateDirSizeProgressInfo(val status: String, val percent: Int)
+data class CalculateDirSizeProgressInfo(val status: String, val percent: Int, val size: Long)

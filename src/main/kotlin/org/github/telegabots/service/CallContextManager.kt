@@ -273,7 +273,7 @@ class CallContextManager(
         input: InputMessage,
         pageId: Long = 0L
     ): CommandContext {
-        return CommandContextImpl(
+        return BaseContextImpl(
             blockId = blockId,
             pageId = pageId,
             currentMessageId = currentMessageId,

@@ -4,7 +4,7 @@ import org.github.telegabots.api.ServiceProvider
 import org.github.telegabots.api.Task
 import org.github.telegabots.api.TaskContext
 import org.github.telegabots.api.TaskManager
-import org.github.telegabots.service.CommandContextImpl
+import org.github.telegabots.service.BaseContextImpl
 import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
 
@@ -18,7 +18,7 @@ class TaskManagerFactory(val serviceProvider: ServiceProvider) {
 
     fun create(context: TaskContext): TaskManager {
         if (log.isDebugEnabled) {
-            val realContext = context as? CommandContextImpl
+            val realContext = context as? BaseContextImpl
 
             log.debug(
                 "Create taskManager, blockId: {}, pageId: {}, messageId: {}, user: {}",

@@ -2,10 +2,13 @@ package org.github.telegabots.context
 
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.BaseContext
+import org.github.telegabots.api.BlockInfo
+import org.github.telegabots.api.BlockStateInfo
 import org.github.telegabots.api.ContentType
 import org.github.telegabots.api.Document
-import org.github.telegabots.api.InputUser
 import org.github.telegabots.api.Page
+import org.github.telegabots.api.PageInfo
+import org.github.telegabots.api.PageStateInfo
 import org.github.telegabots.api.Service
 import org.github.telegabots.api.StateRef
 import org.github.telegabots.api.TaskManager
@@ -36,7 +39,7 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
 
     override fun addPage(page: Page): Long = current().addPage(page)
 
-    override fun updatePage(page: Page): Long = current().updatePage(page)
+    override fun updatePage(page: Page): Long? = current().updatePage(page)
 
     override fun refreshPage(pageId: Long, state: StateRef?) = current().refreshPage(pageId, state)
 
@@ -45,6 +48,22 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
     override fun deleteBlock(blockId: Long) = current().deleteBlock(blockId)
 
     override fun deleteMessage(messageId: Int) = current().deleteMessage(messageId)
+
+    override fun canUpdate(pageId: Long) = current().canUpdate(pageId)
+
+    override fun pageExists(pageId: Long): Boolean = current().pageExists(pageId)
+
+    override fun blockExists(blockId: Long): Boolean = current().blockExists(blockId)
+
+    override fun getLastBlocks(lastIndexFrom: Int): List<BlockInfo> = current().getLastBlocks(lastIndexFrom)
+
+    override fun getLastBlock(): BlockInfo? = current().getLastBlock()
+
+    override fun getBlockPages(blockId: Long): List<PageInfo> = current().getBlockPages(blockId)
+
+    override fun getPageState(pageId: Long): PageStateInfo = current().getPageState(pageId)
+
+    override fun getBlockState(blockId: Long): BlockStateInfo = current().getBlockState(blockId)
 
     override fun sendDocument(document: Document) = current().sendDocument(document)
 

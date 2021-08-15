@@ -1,6 +1,8 @@
 package org.github.telegabots.service
 
 import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.BlockInfo
+import org.github.telegabots.api.BlockStateInfo
 import org.github.telegabots.api.CommandContext
 import org.github.telegabots.api.ContentType
 import org.github.telegabots.api.Document
@@ -10,6 +12,8 @@ import org.github.telegabots.api.LocalizeProvider
 import org.github.telegabots.api.MessageSender
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.Page
+import org.github.telegabots.api.PageInfo
+import org.github.telegabots.api.PageStateInfo
 import org.github.telegabots.api.Service
 import org.github.telegabots.api.ServiceProvider
 import org.github.telegabots.api.StateItem
@@ -31,7 +35,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 import java.util.function.Consumer
 
-class CommandContextImpl(
+class BaseContextImpl(
     private val blockId: Long,
     private val pageId: Long,
     /**
@@ -47,7 +51,7 @@ class CommandContextImpl(
     private val messageSender: MessageSender,
     private val taskManagerFactory: TaskManagerFactory
 ) : CommandContext, TaskContext {
-    private val log = LoggerFactory.getLogger(CommandContextImpl::class.java)!!
+    private val log = LoggerFactory.getLogger(BaseContextImpl::class.java)!!
     private val jsonService = serviceProvider.getService(JsonService::class.java)!!
     private val taskManager = lazy { taskManagerFactory.create(this) }
 
@@ -216,6 +220,38 @@ class CommandContextImpl(
         }
 
         messageSender.deleteMessage(input.chatId.toString(), messageId)
+    }
+
+    override fun canUpdate(pageId: Long) {
+        TODO("Not yet implemented")
+    }
+
+    override fun pageExists(pageId: Long): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun blockExists(blockId: Long): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun getLastBlocks(lastIndexFrom: Int): List<BlockInfo> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getLastBlock(): BlockInfo? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getBlockPages(blockId: Long): List<PageInfo> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getPageState(pageId: Long): PageStateInfo {
+        TODO("Not yet implemented")
+    }
+
+    override fun getBlockState(blockId: Long): BlockStateInfo {
+        TODO("Not yet implemented")
     }
 
     /**
@@ -448,7 +484,7 @@ class CommandContextImpl(
         input: InputMessage,
         pageId: Long = 0
     ): CommandContext {
-        return CommandContextImpl(
+        return BaseContextImpl(
             blockId = blockId,
             pageId = pageId,
             currentMessageId = currentMessageId,

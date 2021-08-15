@@ -1,5 +1,6 @@
 package org.examples.allfeaturedbot.commands
 
+import org.apache.commons.io.FileUtils
 import org.examples.allfeaturedbot.tasks.CalculateDirSizeProgressInfo
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.CommandBehaviour
@@ -39,7 +40,9 @@ class FileExplorerCommand : BaseCommand() {
 
                 val st = if (it.status.isNotBlank()) "```\nStatus: ${it.status}\n```" else ""
 
-                "Progress: ${it.percent}%\n$st"
+                """Size: ${FileUtils.byteCountToDisplaySize(it.size)}
+                   |Progress: ${it.percent}%
+                   |$st""".trimMargin()
             } ?: ""
 
             if (progressInfo != null) {

@@ -49,12 +49,12 @@ interface BaseContext : CommandExecutor {
     /**
      * Updates current page. If page/block not exists creates new
      *
-     * Returns updated/created page id
+     * Returns updated/created page id or null if page already removed
      */
-    fun updatePage(page: Page): Long
+    fun updatePage(page: Page): Long?
 
     /**
-     * Refresh page content by page id
+     * Refresh content of current page or by specified pageId
      */
     fun refreshPage(pageId: Long = 0, state: StateRef? = null)
 
@@ -71,9 +71,53 @@ interface BaseContext : CommandExecutor {
     fun deleteBlock(blockId: Long)
 
     /**
-     * Deletes message by id and related block
+     * Deletes message and related block by messageId
      */
     fun deleteMessage(messageId: Int)
+
+    /**
+     * Page is visible and can be updated/refreshed
+     */
+    fun canUpdate(pageId: Long)
+
+    /**
+     * Returns true if page not removed yet
+     *
+     * Page can exists but not visible
+     */
+    fun pageExists(pageId: Long): Boolean
+
+    /**
+     * Returns true if page not removed yet
+     */
+    fun blockExists(blockId: Long): Boolean
+
+    /**
+     * Returns list of block. Default chunk size - 10
+     *
+     * @param lastIndexFrom index from the end
+     */
+    fun getLastBlocks(lastIndexFrom: Int = 0): List<BlockInfo>
+
+    /**
+     * Returns last block
+     */
+    fun getLastBlock(): BlockInfo?
+
+    /**
+     * Returns all pages of specified block
+     */
+    fun getBlockPages(blockId: Long): List<PageInfo>
+
+    /**
+     * Returns page related state
+     */
+    fun getPageState(pageId: Long): PageStateInfo
+
+    /**
+     * Returns state related with block
+     */
+    fun getBlockState(blockId: Long): BlockStateInfo
 
     /**
      * Sends document to the current or specified chat
@@ -161,6 +205,27 @@ interface CommandExecutor {
 
     fun executeInlineCommand(handler: Class<out BaseCommand>, query: String): Boolean
 }
+
+/**
+ * Info about block
+ */
+data class BlockInfo(
+    val id: Long,
+    val createdAt: LocalDateTime
+)
+
+/**
+ * Info about page
+ */
+data class PageInfo(
+    val id: Long,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
+)
+
+data class PageStateInfo(val pageId: Long)
+
+data class BlockStateInfo(val blockId: Long)
 
 interface AlertService : Service {
     fun sendHtmlMessage(message: String, disablePreview: Boolean = false)
@@ -321,18 +386,6 @@ interface UserContext {
     fun isAdmin(): Boolean
 
     fun user(): InputUser
-}
-
-interface UserStateService : Service {
-    fun getState(key: String): Any?
-
-    fun setState(key: String, value: Any?): Any?
-
-    fun clearState(key: String)
-}
-
-interface UserStateServiceFactory : Service {
-    fun get(userId: Int): UserStateService
 }
 
 enum class ContentType {
