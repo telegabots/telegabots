@@ -3,6 +3,7 @@ package org.github.telegabots.state
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.StateDef
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicLong
 
@@ -12,6 +13,7 @@ import java.util.concurrent.atomic.AtomicLong
  * For thead-safe case use with InternalLockableStateDbProvider
  */
 class MemoryStateDbProvider : StateDbProvider {
+
     private val commandBlocks = mutableListOf<CommandBlock>()
     private val commandPages = mutableMapOf<Long, MutableList<CommandPage>>()
     private val localStates = mutableMapOf<Long, StateDef>()
@@ -30,11 +32,15 @@ class MemoryStateDbProvider : StateDbProvider {
         return savedBlock
     }
 
-    override fun savePage(page: CommandPage): CommandPage {
+    override fun savePage(page: CommandPage): CommandPage? {
         check(page.isValid()) { "page is invalid: $page" }
 
         val block = commandBlocks.find { it.id == page.blockId }
-            ?: throw IllegalStateException("Block not found: ${page.blockId}")
+
+        if (block == null) {
+            log.warn("Block not found: {} while saving page: {}", page.blockId, page)
+            return null
+        }
 
         if (page.id > 0) {
             val pages = commandPages.getOrPut(block.id) { mutableListOf() }
@@ -172,5 +178,9 @@ class MemoryStateDbProvider : StateDbProvider {
 
     fun getUserBlocks(userId: Int): List<CommandBlock> {
         return commandBlocks.filter { it.userId == userId }
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(MemoryStateDbProvider::class.java)!!
     }
 }

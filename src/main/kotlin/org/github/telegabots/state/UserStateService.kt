@@ -11,6 +11,7 @@ import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.util.Validation
 import org.github.telegabots.util.runIn
+import java.util.concurrent.locks.Lock
 
 /**
  * Stores commands tree and all user-related states
@@ -25,6 +26,10 @@ class UserStateService(
     private val sharedStates: MutableMap<Int, StateProvider> = mutableMapOf()
     private val localStates: MutableMap<Long, StateProvider> = mutableMapOf()
     private val userState = UserStateProvider(userId, dbProvider, jsonService)
+
+    fun getReadLock(): Lock = dbProvider.readLock()
+
+    fun getWriteLock(): Lock = dbProvider.writeLock()
 
     fun getBlockByMessageId(messageId: Int): CommandBlock? = dbProvider.findBlockByMessageId(userId, messageId)
 
@@ -68,7 +73,7 @@ class UserStateService(
         handler: Class<out BaseCommand>,
         subCommands: List<List<SubCommand>> = emptyList(),
         pageId: Long = 0
-    ): CommandPage =
+    ): CommandPage? =
         dbProvider.savePage(
             CommandPage(
                 id = pageId,
@@ -136,15 +141,14 @@ class UserStateService(
                 CommandBlock(
                     messageId = newMessageId,
                     userId = userId,
-                    messageType = block.messageType,
-                    id = 0
+                    messageType = block.messageType
                 )
             )
 
             dbProvider.saveSharedState(userId, newMessageId, sharedState)
 
             val newPages = pages.map { page ->
-                val newPage = dbProvider.savePage(page.copy(blockId = newBlock.id, id = 0))
+                val newPage = dbProvider.savePage(page.copy(blockId = newBlock.id, id = 0))!!
                 val state = localStates[page.id]
 
                 if (state != null) {

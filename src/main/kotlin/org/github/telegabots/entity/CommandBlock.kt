@@ -6,10 +6,10 @@ import java.time.LocalDateTime
 /**
  * Entity related with message and user
  */
-data class CommandBlock(val id: Long,
-                        val messageId: Int,
+data class CommandBlock(val messageId: Int,
                         val userId: Int,
                         val messageType: MessageType,
+                        val id: Long = 0L,
                         val createdAt: LocalDateTime = LocalDateTime.now()
 ) {
     fun isValid(): Boolean = messageId != 0 && userId != 0

@@ -9,9 +9,15 @@ import java.util.concurrent.locks.Lock
  * Database state provider
  */
 interface StateDbProvider {
+    /**
+     * Creates new block
+     */
     fun saveBlock(block: CommandBlock): CommandBlock
 
-    fun savePage(page: CommandPage): CommandPage
+    /**
+     * Create or update page
+     */
+    fun savePage(page: CommandPage): CommandPage?
 
     fun removePage(pageId: Long): CommandPage?
 

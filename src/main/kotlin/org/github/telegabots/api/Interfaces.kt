@@ -40,11 +40,11 @@ interface BaseContext : CommandExecutor {
     fun createPage(page: Page): Long
 
     /**
-     * Creates new page into existing (current) block. If block not exists creates new
+     * Creates new page into existing (current) or specified block
      *
-     * Returns created page id
+     * Returns created page id or null if specified block not found
      */
-    fun addPage(page: Page): Long
+    fun addPage(page: Page): Long?
 
     /**
      * Updates current page. If page/block not exists creates new
@@ -55,20 +55,26 @@ interface BaseContext : CommandExecutor {
 
     /**
      * Refresh content of current page or by specified pageId
+     *
+     * Returns refreshed page id or null if page already removed
      */
-    fun refreshPage(pageId: Long = 0, state: StateRef? = null)
+    fun refreshPage(pageId: Long = 0, state: StateRef? = null): Long?
 
     /**
      * Removes page by page id
      *
-     * If page is last message will be deleted
+     * If page is last message and related block will be deleted
+     *
+     * Returns deleted page id or null if page already removed
      */
-    fun deletePage(pageId: Long)
+    fun deletePage(pageId: Long): Long?
 
     /**
      * Removes all pages by blockId and related message
+     *
+     * Returns deleted block id or null if block already removed
      */
-    fun deleteBlock(blockId: Long)
+    fun deleteBlock(blockId: Long): Long?
 
     /**
      * Deletes message and related block by messageId

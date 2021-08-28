@@ -26,7 +26,7 @@ class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : L
         }
     }
 
-    override fun savePage(page: CommandPage): CommandPage {
+    override fun savePage(page: CommandPage): CommandPage? {
         writeLock.runIn {
             return delegate.savePage(page)
         }
