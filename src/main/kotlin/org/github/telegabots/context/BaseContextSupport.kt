@@ -37,7 +37,7 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
 
     override fun createPage(page: Page): Long = current().createPage(page)
 
-    override fun addPage(page: Page): Long = current().addPage(page)
+    override fun addPage(page: Page): Long? = current().addPage(page)
 
     override fun updatePage(page: Page): Long? = current().updatePage(page)
 

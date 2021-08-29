@@ -17,7 +17,9 @@ import org.github.telegabots.entity.StateDef
 import org.github.telegabots.state.UserStateService
 import org.github.telegabots.state.UsersStatesManager
 import org.github.telegabots.task.TaskManagerFactory
+import org.github.telegabots.util.runIn
 import org.slf4j.LoggerFactory
+import java.lang.IllegalStateException
 
 class CallContextManager(
     private val messageSender: MessageSender,
@@ -62,39 +64,41 @@ class CallContextManager(
         block: CommandBlock?, input: InputMessage, userState: UserStateService
     ): CommandCallContext {
         if (block != null) {
-            val lastPage = userState.getLastPage(block.id)
+            userState.getWriteLock().runIn {
+                val lastPage = userState.findLastPage(block.id)
 
-            if (lastPage != null) {
-                val commandDef = findCommandDef(block, lastPage, input)
+                if (lastPage != null) {
+                    val commandDef = findCommandDef(block, lastPage, input)
 
-                if (commandDef != null) {
-                    val context = createCallContextByCommandDef(
-                        commandDef,
-                        userState,
-                        block,
-                        lastPage,
-                        input
-                    )
+                    if (commandDef != null) {
+                        val context = createCallContextByCommandDef(
+                            commandDef,
+                            userState,
+                            block,
+                            lastPage,
+                            input
+                        )
 
-                    if (context != null) {
-                        return context
+                        if (context != null) {
+                            return context
+                        }
                     }
-                }
 
-                // send input into last page command
-                return createCallContextByBehaviour(
-                    block,
-                    lastPage.handler,
-                    userState,
-                    input,
-                    pageId = lastPage.id,
-                    behaviour = CommandBehaviour.ParentPageState
-                )
-            } else {
-                log.warn("Last command not found. Input: {}", input)
+                    // send input into last page command
+                    return createCallContextByBehaviour(
+                        block,
+                        lastPage.handler,
+                        userState,
+                        input,
+                        pageId = lastPage.id,
+                        behaviour = CommandBehaviour.ParentPageState
+                    )
+                } else {
+                    log.warn("Last command not found. Input: {}", input)
+                }
             }
         } else {
-            log.warn("Last block not found by input: {}", input)
+            log.warn("Block not found by input: {}", input)
         }
 
         return getRootCallContext(userState, input)
@@ -188,7 +192,8 @@ class CallContextManager(
 
         val (states, context) = when (behaviour) {
             CommandBehaviour.SeparatePage -> {
-                val finalPageId = userState.savePage(block.id, cmdHandler.commandClass).id
+                val savedPage = userState.savePage(block.id, cmdHandler.commandClass) ?: throw IllegalStateException("Page not created in block: ${block.id}")
+                val finalPageId = savedPage.id
                 if (state != null) {
                     userState.mergeLocalStateByPageId(finalPageId, state)
                 }
