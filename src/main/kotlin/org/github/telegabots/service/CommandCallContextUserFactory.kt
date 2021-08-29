@@ -19,9 +19,9 @@ import org.github.telegabots.util.runIn
 import org.slf4j.LoggerFactory
 
 /**
- * User and input related CallContextManager
+ * User input related CommandCallContextFactory
  */
-class UserCallContextManager(
+class CommandCallContextUserFactory(
     private val input: InputMessage,
     private val messageSender: MessageSender,
     private val serviceProvider: ServiceProvider,
@@ -31,7 +31,7 @@ class UserCallContextManager(
     private val taskManagerFactory: TaskManagerFactory,
     private val rootCommand: Class<out BaseCommand>
 ) {
-    fun get(input: InputMessage): CommandCallContext =
+    fun get(): CommandCallContext =
         when (input.type) {
             MessageType.Text -> getTextMessageContext()
             MessageType.Inline -> getInlineMessageContext()
@@ -267,6 +267,6 @@ class UserCallContextManager(
     }
 
     private companion object {
-        val log = LoggerFactory.getLogger(UserCallContextManager::class.java)!!
+        val log = LoggerFactory.getLogger(CommandCallContextUserFactory::class.java)!!
     }
 }

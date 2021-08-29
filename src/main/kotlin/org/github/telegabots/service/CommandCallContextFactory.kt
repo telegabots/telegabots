@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 /**
  * Service of creating CommandCallContext by user input
  */
-class CallContextManager(
+class CommandCallContextFactory(
     private val messageSender: MessageSender,
     private val serviceProvider: ServiceProvider,
     private val commandHandlers: CommandHandlers,
@@ -29,10 +29,10 @@ class CallContextManager(
         check(rootHandler.canHandle(MessageType.Text)) { "Root command (${rootCommand.name}) have to implement text handler. Annotate method with @TextHandler" }
     }
 
-    fun get(input: InputMessage): CommandCallContext = getUserCallContextManager(input).get(input)
+    fun get(input: InputMessage): CommandCallContext = getUserCommandCallContextFactory(input).get()
 
-    private fun getUserCallContextManager(input: InputMessage): UserCallContextManager =
-        UserCallContextManager(
+    private fun getUserCommandCallContextFactory(input: InputMessage): CommandCallContextUserFactory =
+        CommandCallContextUserFactory(
             input,
             messageSender,
             serviceProvider,
@@ -44,6 +44,6 @@ class CallContextManager(
         )
 
     private companion object {
-        val log = LoggerFactory.getLogger(CallContextManager::class.java)!!
+        val log = LoggerFactory.getLogger(CommandCallContextFactory::class.java)!!
     }
 }

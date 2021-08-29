@@ -2,7 +2,7 @@ package org.github.telegabots.api
 
 import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.service.AlertServiceImpl
-import org.github.telegabots.service.CallContextManager
+import org.github.telegabots.service.CommandCallContextFactory
 import org.github.telegabots.service.CommandHandlers
 import org.github.telegabots.service.InternalServiceProvider
 import org.github.telegabots.service.JsonService
@@ -36,7 +36,7 @@ class TelegaBot(
     private val finalServiceProvider = InternalServiceProvider(serviceProvider, jsonService)
     private val userLocalizationFactory = finalServiceProvider.getService(UserLocalizationFactory::class.java)!!
     private val usersStatesManager = UsersStatesManager(finalDbProvider, userLocalizationFactory, jsonService)
-    private val callContextManager = CallContextManager(
+    private val callContextManager = CommandCallContextFactory(
         messageSender,
         finalServiceProvider,
         commandHandlers,
