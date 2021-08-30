@@ -60,19 +60,6 @@ class MemoryStateDbProvider : StateDbProvider {
         }
     }
 
-    override fun removePage(pageId: Long): CommandPage? {
-        // TODO: optimize
-        commandPages.forEach { (_, pages) ->
-            val index = pages.indexOfFirst { it.id == pageId }
-
-            if (index >= 0) {
-                return pages.removeAt(index)
-            }
-        }
-
-        return null
-    }
-
     override fun findPageById(pageId: Long): CommandPage? {
         return commandPages.values.flatten().find { it.id == pageId }
     }
@@ -144,25 +131,35 @@ class MemoryStateDbProvider : StateDbProvider {
         globalState = state
     }
 
-    override fun deleteBlock(blockId: Long) {
+    override fun deleteBlock(blockId: Long): CommandBlock? {
         commandPages.remove(blockId)
-        commandBlocks.removeIf { it.id == blockId }
+        val index = commandBlocks.indexOfFirst { it.id == blockId }
+
+        return if (index >= 0) commandBlocks.removeAt(index) else null
     }
 
-    override fun deletePage(pageId: Long) {
+    override fun deletePage(pageId: Long): CommandPage? {
         val block = findBlockByPageId(pageId)
 
         if (block != null) {
             val pages = commandPages[block.id]
 
             if (pages != null) {
-                pages.removeIf { it.id == pageId }
+                val index = pages.indexOfFirst { it.id == pageId }
+
+                val page = if (index >= 0) {
+                    pages.removeAt(index)
+                } else null
 
                 if (pages.isEmpty()) {
                     deleteBlock(block.id)
                 }
+
+                return page
             }
         }
+
+        return null
     }
 
     override fun getBlockPages(blockId: Long): List<CommandPage> {

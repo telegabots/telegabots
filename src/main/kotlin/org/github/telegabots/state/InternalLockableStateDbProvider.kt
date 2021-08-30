@@ -32,11 +32,6 @@ class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : L
         }
     }
 
-    override fun removePage(pageId: Long): CommandPage? {
-        writeLock.runIn {
-            return delegate.removePage(pageId)
-        }
-    }
 
     override fun findPageById(pageId: Long): CommandPage? {
         readLock.runIn {
@@ -140,13 +135,13 @@ class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : L
         }
     }
 
-    override fun deleteBlock(blockId: Long) {
+    override fun deleteBlock(blockId: Long): CommandBlock? {
         writeLock.runIn {
             return delegate.deleteBlock(blockId)
         }
     }
 
-    override fun deletePage(pageId: Long) {
+    override fun deletePage(pageId: Long): CommandPage? {
         writeLock.runIn {
             return delegate.deletePage(pageId)
         }

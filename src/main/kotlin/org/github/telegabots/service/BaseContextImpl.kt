@@ -159,7 +159,7 @@ class BaseContextImpl(
                 return null
             }
 
-            val block = userState.getBlockById(page.blockId)
+            val block = userState.findBlockById(page.blockId)!!
 
             if (block.messageType != MessageType.Inline) {
                 log.warn(
@@ -553,7 +553,7 @@ class BaseContextImpl(
 
     override fun user(): InputUser = input.user
 
-    private fun cloneFromBlock(blockId: Long, newMessageId: Int): CommandPage {
+    private fun cloneFromBlock(blockId: Long, newMessageId: Int): CommandPage? {
         return userState.cloneFromBlock(blockId, newMessageId)
     }
 

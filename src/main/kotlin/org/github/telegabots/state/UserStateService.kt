@@ -35,9 +35,6 @@ class UserStateService(
 
     fun findBlockById(blockId: Long): CommandBlock? = dbProvider.findBlockById(blockId)
 
-    fun getBlockById(blockId: Long): CommandBlock =
-        findBlockById(blockId) ?: throw IllegalStateException("Block by id not found: $blockId")
-
     fun getLastBlock(): CommandBlock? = dbProvider.findLastBlockByUserId(userId)
 
     fun getLastBlocks(lastIndexFrom: Int, pageSize: Int): List<CommandBlock> =
@@ -50,7 +47,7 @@ class UserStateService(
 
     fun getPages(blockId: Long): List<CommandPage> = dbProvider.getBlockPages(blockId)
 
-    fun removePage(pageId: Long): CommandPage? = dbProvider.removePage(pageId)
+    fun removePage(pageId: Long): CommandPage? = dbProvider.deletePage(pageId)
 
     fun findPageById(pageId: Long): CommandPage? = dbProvider.findPageById(pageId)
 
@@ -128,38 +125,43 @@ class UserStateService(
     /**
      * Clones specified block and returns last page from cloned block
      */
-    fun cloneFromBlock(blockId: Long, newMessageId: Int): CommandPage {
+    fun cloneFromBlock(blockId: Long, newMessageId: Int): CommandPage? {
         Validation.validateMessageId(newMessageId)
 
         dbProvider.writeLock().runIn {
-            val block = getBlockById(blockId)
-            val pages = getPages(blockId)
-            val sharedState = dbProvider.getSharedState(userId, block.messageId)
-            val localStates = dbProvider.getLocalStates(blockId)
+            val block = findBlockById(blockId)
 
-            val newBlock = dbProvider.saveBlock(
-                CommandBlock(
-                    messageId = newMessageId,
-                    userId = userId,
-                    messageType = block.messageType
+            if (block != null) {
+                val pages = getPages(blockId)
+                val sharedState = dbProvider.getSharedState(userId, block.messageId)
+                val localStates = dbProvider.getLocalStates(blockId)
+
+                val newBlock = dbProvider.saveBlock(
+                    CommandBlock(
+                        messageId = newMessageId,
+                        userId = userId,
+                        messageType = block.messageType
+                    )
                 )
-            )
 
-            dbProvider.saveSharedState(userId, newMessageId, sharedState)
+                dbProvider.saveSharedState(userId, newMessageId, sharedState)
 
-            val newPages = pages.map { page ->
-                val newPage = dbProvider.savePage(page.copy(blockId = newBlock.id, id = 0))!!
-                val state = localStates[page.id]
+                val newPages = pages.map { page ->
+                    val newPage = dbProvider.savePage(page.copy(blockId = newBlock.id, id = 0))!!
+                    val state = localStates[page.id]
 
-                if (state != null) {
-                    dbProvider.saveLocalState(newPage.id, state)
+                    if (state != null) {
+                        dbProvider.saveLocalState(newPage.id, state)
+                    }
+
+                    newPage
                 }
 
-                newPage
+                return newPages.last()
             }
-
-            return newPages.last()
         }
+
+        return null
     }
 
     fun findBlockByPageId(pageId: Long): CommandBlock? = dbProvider.findBlockByPageId(pageId)
