@@ -151,11 +151,11 @@ class BaseContextImpl(
     override fun refreshPage(pageId: Long, state: StateRef?): Long? {
         val finalPageId = if (pageId > 0) pageId else pageId()
 
-        userState.getReadLock().runIn {
+        val callContext = userState.getWriteLock().runIn {
             val page = userState.findPageById(finalPageId)
 
             if (page == null) {
-                log.warn("Page not found by id: {}", finalPageId)
+                log.warn("Page not found by id: {} while refresh", finalPageId)
                 return null
             }
 
@@ -185,19 +185,20 @@ class BaseContextImpl(
             )
             val context = createCommandContext(
                 blockId = block.id,
+                pageId = finalPageId,
                 currentMessageId = block.messageId,
                 command = handler.command,
                 input = newInput
             )
-            val callContext = CommandCallContextImpl(commandHandler = handler,
+            CommandCallContextImpl(commandHandler = handler,
                 states = states,
                 commandContext = context,
                 defaultContext = { null })
-
-            callContext.execute()
-
-            return page.id
         }
+
+        callContext.execute()
+
+        return finalPageId
     }
 
     override fun deletePage(pageId: Long): Long? {
