@@ -105,12 +105,12 @@ interface StateDbProvider {
     fun saveGlobalState(state: StateDef)
 
     /**
-     * Removes block
+     * Removes block and all related pages
      */
     fun deleteBlock(blockId: Long): CommandBlock?
 
     /**
-     * Removes page
+     * Removes page and block if removed page was last
      */
     fun deletePage(pageId: Long): CommandPage?
 }
