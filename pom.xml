@@ -18,8 +18,8 @@
         <logback.version>1.2.3</logback.version>
         <kotlin.version>1.5.21</kotlin.version>
         <jackson.version>2.12.1</jackson.version>
-        <jooq.version>3.10.8</jooq.version>
-        <sqlite.version>3.34.0</sqlite.version>
+        <jooq.version>3.14.14</jooq.version>
+        <sqlite.version>3.36.0.3</sqlite.version>
         <flyway.version>7.15.0</flyway.version>
         <db.url>jdbc:sqlite:TestDB.db</db.url>
     </properties>
