@@ -191,6 +191,31 @@
                         <database>
                            <!-- <name>org.jooq.meta.sqlite.SQLiteDatabase</name>-->
                             <includes>.*</includes>
+                            <forcedTypes>
+                                <forcedType>
+                                    <!-- Specify any data type that is supported in your database, or if unsupported,
+                                         a type from org.jooq.impl.SQLDataType -->
+                                    <name>BIGINT</name>
+
+                                    <!-- A Java regex matching fully-qualified columns, attributes, parameters. Use the pipe to separate several expressions.
+
+                                         If provided, both "includeExpression" and "includeTypes" must match. -->
+                                    <includeExpression>.*\.(BLOCK_ID|ID|CREATED_AT|UPDATED_AT|PAGE_ID)</includeExpression>
+
+                                    <!-- A Java regex matching data types to be forced to have this type.
+
+                                         Data types may be reported by your database as:
+                                         - NUMBER              regexp suggestion: NUMBER
+                                         - NUMBER(5)           regexp suggestion: NUMBER\(5\)
+                                         - NUMBER(5, 2)        regexp suggestion: NUMBER\(5,\s*2\)
+                                         - any other form.
+
+                                         It is thus recommended to use defensive regexes for types.
+
+                                         If provided, both "includeExpression" and "includeTypes" must match. -->
+                                    <includeTypes>.*</includeTypes>
+                                </forcedType>
+                            </forcedTypes>
                         </database>
                         <target>
                             <packageName>org.github.telegabots.jooq</packageName>
