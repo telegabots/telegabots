@@ -1,15 +1,19 @@
 package org.github.telegabots.api
 
 import org.github.telegabots.api.config.BotConfig
+import org.github.telegabots.service.JsonService
 import org.github.telegabots.service.MessageSenderImpl
 import org.github.telegabots.state.MemoryStateDbProvider
 import org.github.telegabots.state.StateDbProvider
+import org.github.telegabots.state.sqlite.SqliteStateDbProvider
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.TelegramBotsApi
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
+import java.sql.Connection
+import java.sql.DriverManager
 import java.util.function.Consumer
 
 /**
@@ -19,7 +23,7 @@ open class TelegaBotStarter(
     private val config: BotConfig,
     private val serviceProvider: ServiceProvider,
     private val rootCommand: Class<out BaseCommand>,
-    private val stateDbProvider: StateDbProvider = MemoryStateDbProvider(),
+    private val stateDbProvider: StateDbProvider = getStateProvider(config),
     private val messageSender: MessageSender? = null
 ) : TelegramLongPollingBot() {
     protected val log = LoggerFactory.getLogger(javaClass)!!
@@ -58,9 +62,17 @@ open class TelegaBotStarter(
 
     fun <T : Service> getService(clazz: Class<T>): T? = telegaBot.getService(clazz)
 
-    companion object {
+    private companion object {
         init {
             ApiContextInitializer.init()
         }
+
+        fun getStateProvider(config: BotConfig): StateDbProvider =
+            if (config.stateDbPath.isNotBlank())
+                SqliteStateDbProvider(getConnection(config.stateDbPath), JsonService())
+            else
+                MemoryStateDbProvider()
+
+        fun getConnection(dbFiPath: String): Connection = DriverManager.getConnection("jdbc:sqlite:$dbFiPath", "", "")
     }
 }

@@ -23,6 +23,9 @@ class BotConfig private constructor(prop: Properties) {
     val alertChatId: Long
         get() = getProperty("alert.chatId", "0").toLong()
 
+    val stateDbPath: String
+        get() = getProperty("state.dbPath", "")
+
     val notModifiedMessageErrorIgnore: Boolean
         get() = getProperty("error.notModifiedMessage.ignore", "true").toBoolean()
 
