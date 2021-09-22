@@ -23,6 +23,7 @@ import org.github.telegabots.util.TimeUtil
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import java.sql.Connection
+import java.sql.DriverManager
 
 /**
  * Sqlite-based implementation of StateDbProvider
@@ -256,4 +257,12 @@ class SqliteStateDbProvider(
         if (defs.isNotEmpty()) jsonService.toJson(CommandDefsRoot(defs)) else null
 
     private data class CommandDefsRoot(val defs: List<List<CommandDef>>)
+
+    companion object {
+        fun create(dbFilePath: String): SqliteStateDbProvider =
+            SqliteStateDbProvider(getConnection(dbFilePath), JsonService())
+
+
+        fun getConnection(dbFilePath: String): Connection = DriverManager.getConnection("jdbc:sqlite:$dbFilePath", "", "")
+    }
 }
