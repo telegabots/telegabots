@@ -21,7 +21,7 @@ data class CommandPage(
     /**
      * Command definitions under message
      */
-    val commandDefs: List<List<CommandDef>>,
+    val commandDefs: List<List<CommandDef>> = emptyList(),
 
     /**
      * Time when page created
@@ -33,5 +33,5 @@ data class CommandPage(
      */
     val updatedAt: LocalDateTime = LocalDateTime.now()
 ) {
-    fun isValid(): Boolean = blockId != 0L && handler.isNotBlank()
+    fun isValid(): Boolean = blockId > 0L && handler.isNotBlank()
 }

@@ -35,13 +35,15 @@ class SqliteStateDbProvider(
     private val context: DSLContext = DSL.using(conn)
 
     override fun saveBlock(block: CommandBlock): CommandBlock {
+        check(block.isValid()) { "Block is invalid: $block" }
+
         val blockRecord = context.selectFrom(BLOCKS)
             .where(BLOCKS.USER_ID.eq(block.userId).and(BLOCKS.MESSAGE_ID.eq(block.messageId)))
             .fetchOne() ?: context.newRecord(BLOCKS)
 
         with(blockRecord) {
             userId = block.userId
-            messageId = block.userId
+            messageId = block.messageId
             messageType = block.messageType.name
             createdAt = TimeUtil.toEpochMillis(block.createdAt)
 
@@ -52,6 +54,8 @@ class SqliteStateDbProvider(
     }
 
     override fun savePage(page: CommandPage): CommandPage? {
+        check(page.isValid()) { "Page is invalid: $page" }
+
         val pagesRecord = (if (page.id > 0) context.selectFrom(PAGES)
             .where(PAGES.ID.eq(page.id))
             .fetchOne() else null) ?: context.newRecord(PAGES)
@@ -212,6 +216,16 @@ class SqliteStateDbProvider(
         return oldPage
     }
 
+    fun getAllPages(): List<CommandPage> =
+        context.selectFrom(PAGES)
+            .fetch()
+            .map { it.toDto() }
+
+    fun getAllBlocks(): List<CommandBlock> =
+        context.selectFrom(BLOCKS)
+            .fetch()
+            .map { it.toDto() }
+
     private fun findSharedStateInternal(userId: Int, messageId: Int): SharedStatesRecord? =
         context.select(SHARED_STATES.asterisk())
             .from(SHARED_STATES.join(BLOCKS).on(SHARED_STATES.BLOCK_ID.eq(BLOCKS.ID)))
@@ -263,6 +277,7 @@ class SqliteStateDbProvider(
             SqliteStateDbProvider(getConnection(dbFilePath), JsonService())
 
 
-        fun getConnection(dbFilePath: String): Connection = DriverManager.getConnection("jdbc:sqlite:$dbFilePath", "", "")
+        fun getConnection(dbFilePath: String): Connection =
+            DriverManager.getConnection("jdbc:sqlite:$dbFilePath", "", "")
     }
 }
