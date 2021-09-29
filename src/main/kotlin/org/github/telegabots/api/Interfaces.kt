@@ -691,7 +691,7 @@ interface UserLocalizationFactory : Service {
     /**
      * Returns LocalizeProvider for user by id
      */
-    fun getProvider(userId: Int): LocalizeProvider
+    fun getProvider(userId: Long): LocalizeProvider
 }
 
 /**
@@ -771,14 +771,14 @@ data class InputMessage(
     val type: MessageType,
     val query: String,
     val chatId: Long,
-    val userId: Int,
+    val userId: Long,
     val isAdmin: Boolean,
     val user: InputUser,
     val messageId: Int,
     val inlineMessageId: Int?
 ) {
     init {
-        check(userId != 0) { "UserId cannot be $userId" }
+        check(userId != 0L) { "UserId cannot be $userId" }
         check(chatId != 0L) { "ChatId cannot be $chatId" }
     }
 
@@ -786,7 +786,7 @@ data class InputMessage(
 }
 
 data class InputUser(
-    val id: Int,
+    val id: Long,
     val firstName: String,
     val lastName: String,
     val userName: String,

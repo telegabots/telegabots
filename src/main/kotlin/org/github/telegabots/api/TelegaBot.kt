@@ -116,6 +116,6 @@ class TelegaBot(
             user.id, firstName = user.firstName ?: "",
             lastName = user.lastName ?: "",
             userName = user.userName ?: "",
-            isBot = user.bot == true
+            isBot = user.isBot
         )
 }

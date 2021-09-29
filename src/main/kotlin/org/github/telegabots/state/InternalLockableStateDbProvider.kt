@@ -45,13 +45,13 @@ class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : L
         }
     }
 
-    override fun findBlockByMessageId(userId: Int, messageId: Int): CommandBlock? {
+    override fun findBlockByMessageId(userId: Long, messageId: Int): CommandBlock? {
         readLock.runIn {
             return delegate.findBlockByMessageId(userId, messageId)
         }
     }
 
-    override fun findLastBlockByUserId(userId: Int): CommandBlock? {
+    override fun findLastBlockByUserId(userId: Long): CommandBlock? {
         readLock.runIn {
             return delegate.findLastBlockByUserId(userId)
         }
@@ -75,7 +75,7 @@ class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : L
         }
     }
 
-    override fun getLastBlocks(userId: Int, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> {
+    override fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> {
         readLock.runIn {
             return delegate.getLastBlocks(userId, lastIndexFrom, pageSize)
         }
@@ -99,25 +99,25 @@ class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : L
         }
     }
 
-    override fun saveSharedState(userId: Int, messageId: Int, state: StateDef) {
+    override fun saveSharedState(userId: Long, messageId: Int, state: StateDef) {
         writeLock.runIn {
             return delegate.saveSharedState(userId, messageId, state)
         }
     }
 
-    override fun findSharedState(userId: Int, messageId: Int): StateDef? {
+    override fun findSharedState(userId: Long, messageId: Int): StateDef? {
         readLock.runIn {
             return delegate.findSharedState(userId, messageId)
         }
     }
 
-    override fun findUserState(userId: Int): StateDef? {
+    override fun findUserState(userId: Long): StateDef? {
         readLock.runIn {
             return delegate.findUserState(userId)
         }
     }
 
-    override fun saveUserState(userId: Int, state: StateDef) {
+    override fun saveUserState(userId: Long, state: StateDef) {
         writeLock.runIn {
             return delegate.saveUserState(userId, state)
         }

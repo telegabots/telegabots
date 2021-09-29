@@ -32,12 +32,12 @@ interface StateDbProvider {
     /**
      * Find block by related message id
      */
-    fun findBlockByMessageId(userId: Int, messageId: Int): CommandBlock?
+    fun findBlockByMessageId(userId: Long, messageId: Int): CommandBlock?
 
     /**
      * Find last block
      */
-    fun findLastBlockByUserId(userId: Int): CommandBlock?
+    fun findLastBlockByUserId(userId: Long): CommandBlock?
 
     /**
      * Find last page by block id
@@ -57,7 +57,7 @@ interface StateDbProvider {
     /**
      * Returns last blocks from the end
      */
-    fun getLastBlocks(userId: Int, lastIndexFrom: Int, pageSize: Int): List<CommandBlock>
+    fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<CommandBlock>
 
     /**
      * Creates or updates local state related with page
@@ -77,22 +77,22 @@ interface StateDbProvider {
     /**
      * Creates or updates local state related with message
      */
-    fun saveSharedState(userId: Int, messageId: Int, state: StateDef)
+    fun saveSharedState(userId: Long, messageId: Int, state: StateDef)
 
     /**
      * Returns shared state related with specified block (message)
      */
-    fun findSharedState(userId: Int, messageId: Int): StateDef?
+    fun findSharedState(userId: Long, messageId: Int): StateDef?
 
     /**
      * Returns user state related with specified user
      */
-    fun findUserState(userId: Int): StateDef?
+    fun findUserState(userId: Long): StateDef?
 
     /**
      * Creates or updates user state
      */
-    fun saveUserState(userId: Int, state: StateDef)
+    fun saveUserState(userId: Long, state: StateDef)
 
     /**
      * Returns global state related with all users
@@ -117,10 +117,10 @@ interface StateDbProvider {
 
 fun StateDbProvider.getLocalState(pageId: Long): StateDef = findLocalState(pageId) ?: StateDef.Empty
 
-fun StateDbProvider.getSharedState(userId: Int, messageId: Int): StateDef =
+fun StateDbProvider.getSharedState(userId: Long, messageId: Int): StateDef =
     findSharedState(userId, messageId) ?: StateDef.Empty
 
-fun StateDbProvider.getUserState(userId: Int): StateDef = findUserState(userId) ?: StateDef.Empty
+fun StateDbProvider.getUserState(userId: Long): StateDef = findUserState(userId) ?: StateDef.Empty
 
 fun StateDbProvider.getGlobalState(): StateDef = findGlobalState() ?: StateDef.Empty
 

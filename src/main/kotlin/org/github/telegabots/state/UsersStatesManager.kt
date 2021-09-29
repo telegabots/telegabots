@@ -12,13 +12,13 @@ class UsersStatesManager(
     private val localizationFactory: UserLocalizationFactory,
     private val jsonService: JsonService
 ) {
-    private val userStatesServices: MutableMap<Int, UserStateService> = mutableMapOf()
+    private val userStatesServices: MutableMap<Long, UserStateService> = mutableMapOf()
     private val globalState: GlobalStateProvider = GlobalStateProvider(dbProvider, jsonService)
 
     /**
      * Returns state service for specified user
      */
-    fun get(userId: Int): UserStateService {
+    fun get(userId: Long): UserStateService {
         return synchronized(userStatesServices) {
             val localizeProvider = localizationFactory.getProvider(userId)
 

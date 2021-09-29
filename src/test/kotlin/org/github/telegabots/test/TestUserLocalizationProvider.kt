@@ -3,7 +3,7 @@ package org.github.telegabots.test
 import org.github.telegabots.api.LocalizeProvider
 import org.slf4j.LoggerFactory
 
-class TestUserLocalizationProvider(private val userId: Int) : LocalizeProvider {
+class TestUserLocalizationProvider(private val userId: Long) : LocalizeProvider {
     private val log = LoggerFactory.getLogger(TestUserLocalizationProvider::class.java)!!
     private val map = mutableMapOf<String, String>()
 

@@ -6,11 +6,11 @@ import org.github.telegabots.state.MemoryStateDbProvider
 import org.github.telegabots.state.StateDbProvider
 import org.github.telegabots.state.sqlite.SqliteStateDbProvider
 import org.slf4j.LoggerFactory
-import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.TelegramBotsApi
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 import java.util.function.Consumer
 
 /**
@@ -46,7 +46,7 @@ open class TelegaBotStarter(
      * Starts bot with rootCommand as entry point
      */
     fun start(onSuccessHandler: Consumer<MessageSender> = Consumer { }) {
-        val telegramBotsApi = TelegramBotsApi()
+        val telegramBotsApi = TelegramBotsApi(DefaultBotSession::class.java)
 
         try {
             telegramBotsApi.registerBot(this)
@@ -60,10 +60,6 @@ open class TelegaBotStarter(
     fun <T : Service> getService(clazz: Class<T>): T? = telegaBot.getService(clazz)
 
     private companion object {
-        init {
-            ApiContextInitializer.init()
-        }
-
         fun createStateProvider(config: BotConfig): StateDbProvider =
             if (config.stateDbPath.isNotBlank())
                 SqliteStateDbProvider.create(config.stateDbPath)

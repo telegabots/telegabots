@@ -85,13 +85,13 @@ class SqliteStateDbProvider(
             .fetchOne()
             ?.toDto()
 
-    override fun findBlockByMessageId(userId: Int, messageId: Int): CommandBlock? =
+    override fun findBlockByMessageId(userId: Long, messageId: Int): CommandBlock? =
         context.selectFrom(BLOCKS)
             .where(BLOCKS.USER_ID.eq(userId).and(BLOCKS.MESSAGE_ID.eq(messageId)))
             .fetchOne()
             ?.toDto()
 
-    override fun findLastBlockByUserId(userId: Int): CommandBlock? =
+    override fun findLastBlockByUserId(userId: Long): CommandBlock? =
         context.selectFrom(BLOCKS)
             .where(BLOCKS.USER_ID.eq(userId))
             .orderBy(BLOCKS.ID.desc())
@@ -120,7 +120,7 @@ class SqliteStateDbProvider(
             .fetch()
             .map { it.toDto() }
 
-    override fun getLastBlocks(userId: Int, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> =
+    override fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> =
         context.selectFrom(BLOCKS)
             .where(BLOCKS.USER_ID.eq(userId))
             .orderBy(BLOCKS.ID.desc())
@@ -156,7 +156,7 @@ class SqliteStateDbProvider(
             .map { it.pageId to it.toDto() }
             .toMap()
 
-    override fun saveSharedState(userId: Int, messageId: Int, state: StateDef) {
+    override fun saveSharedState(userId: Long, messageId: Int, state: StateDef) {
         val stateRecord = findSharedStateInternal(userId, messageId) ?: context.newRecord(SHARED_STATES)
 
         stateRecord.stateDef = state.toRaw()
@@ -164,16 +164,16 @@ class SqliteStateDbProvider(
         stateRecord.store()
     }
 
-    override fun findSharedState(userId: Int, messageId: Int): StateDef? =
+    override fun findSharedState(userId: Long, messageId: Int): StateDef? =
         findSharedStateInternal(userId, messageId)?.toDto()
 
-    override fun findUserState(userId: Int): StateDef? =
+    override fun findUserState(userId: Long): StateDef? =
         context.selectFrom(USER_STATES)
             .where(USER_STATES.USER_ID.eq(userId))
             .fetchOne()
             ?.toDto()
 
-    override fun saveUserState(userId: Int, state: StateDef) {
+    override fun saveUserState(userId: Long, state: StateDef) {
         val statesRecord = context.selectFrom(USER_STATES)
             .where(USER_STATES.USER_ID.eq(userId))
             .fetchOne() ?: context.newRecord(USER_STATES)
@@ -226,7 +226,7 @@ class SqliteStateDbProvider(
             .fetch()
             .map { it.toDto() }
 
-    private fun findSharedStateInternal(userId: Int, messageId: Int): SharedStatesRecord? =
+    private fun findSharedStateInternal(userId: Long, messageId: Int): SharedStatesRecord? =
         context.select(SHARED_STATES.asterisk())
             .from(SHARED_STATES.join(BLOCKS).on(SHARED_STATES.BLOCK_ID.eq(BLOCKS.ID)))
             .where(BLOCKS.USER_ID.eq(userId).and(BLOCKS.MESSAGE_ID.eq(messageId)))

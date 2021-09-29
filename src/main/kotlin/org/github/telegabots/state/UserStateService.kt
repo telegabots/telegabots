@@ -17,7 +17,7 @@ import java.util.concurrent.locks.Lock
  * Stores commands tree and all user-related states
  */
 class UserStateService(
-    private val userId: Int,
+    private val userId: Long,
     private val dbProvider: LockableStateDbProvider,
     private val localizeProvider: LocalizeProvider,
     private val jsonService: JsonService,

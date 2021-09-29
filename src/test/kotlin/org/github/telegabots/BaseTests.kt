@@ -21,17 +21,17 @@ abstract class BaseTests {
     protected fun createAnyTextMessage(
         messageText: String = "Message does not matter " + LocalDateTime.now(),
         chatId: Long = random.nextLong(),
-        userId: Int = random.nextInt()
+        userId: Long = random.nextLong()
     ): Update = createMessage(messageText, chatId, userId)
 
     protected fun createAnyInlineMessage(
         messageId: Int = random.nextInt(),
         callbackData: String = "make_jvm_great_again_" + System.currentTimeMillis(),
         chatId: Long = random.nextLong(),
-        userId: Int = random.nextInt()
+        userId: Long = random.nextLong()
     ): Update = createCallbackMessage(messageId, callbackData, chatId, userId)
 
-    private fun createMessage(messageText: String, chatId: Long, userId: Int): Update {
+    private fun createMessage(messageText: String, chatId: Long, userId: Long): Update {
         val fromUser = Mockito.mock(User::class.java)
         Mockito.`when`(fromUser.id).thenReturn(userId)
         val message = Mockito.mock(Message::class.java)
@@ -45,7 +45,7 @@ abstract class BaseTests {
         return update
     }
 
-    private fun createCallbackMessage(messageId: Int, callbackData: String, chatId: Long, userId: Int): Update {
+    private fun createCallbackMessage(messageId: Int, callbackData: String, chatId: Long, userId: Long): Update {
         val fromUser = Mockito.mock(User::class.java)
         Mockito.`when`(fromUser.id).thenReturn(userId)
         val message = Mockito.mock(Message::class.java)

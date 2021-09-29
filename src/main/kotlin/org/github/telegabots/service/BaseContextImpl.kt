@@ -641,15 +641,18 @@ class BaseContextImpl(
     }
 
     private fun mapInlineKeyboardMarkup(subCommands: List<List<SubCommand>>): InlineKeyboardMarkup =
-        InlineKeyboardMarkup().setKeyboard(subCommands.map { mapInlineButtonsRow(it) }
-            .filter { it.isNotEmpty() }
-            .toMutableList())
+        InlineKeyboardMarkup().apply {
+            keyboard = subCommands.map { mapInlineButtonsRow(it) }
+                .filter { it.isNotEmpty() }
+                .toMutableList()
+        }
 
     private fun mapReplyKeyboardMarkup(subCommands: List<List<SubCommand>>): ReplyKeyboardMarkup =
-        ReplyKeyboardMarkup()
-            .setKeyboard(subCommands.map { mapTextButtonsRow(it) }
+        ReplyKeyboardMarkup().apply {
+            keyboard = subCommands.map { mapTextButtonsRow(it) }
                 .filter { it.isNotEmpty() }
-                .toMutableList())
+                .toMutableList()
+        }
 
     private fun mapTextButtonsRow(cmds: List<SubCommand>): KeyboardRow =
         KeyboardRow().apply {
@@ -658,9 +661,10 @@ class BaseContextImpl(
 
     private fun mapInlineButtonsRow(cmds: List<SubCommand>): MutableList<InlineKeyboardButton> =
         cmds.map { cmd ->
-            InlineKeyboardButton()
-                .setText(getTitle(cmd))
-                .setCallbackData(cmd.titleId)
+            InlineKeyboardButton().apply {
+                text = getTitle(cmd)
+                callbackData = cmd.titleId
+            }
         }.toMutableList()
 
     private fun getTitle(cmd: SubCommand) = cmd.title ?: localizeProvider.getString(cmd.titleId)

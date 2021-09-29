@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Assertions.*
 import java.time.LocalDateTime
 
 class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>) : BaseTests() {
-    private val userId = nextRandomInt()
+    private val userId = nextRandomLong()
     private val chatId = nextRandomLong()
     private val executor = createExecutor(rootCommand)
     private val assertBuilder = AssertBuilder()

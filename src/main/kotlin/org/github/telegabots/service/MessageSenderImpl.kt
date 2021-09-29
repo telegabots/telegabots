@@ -5,9 +5,14 @@ import org.github.telegabots.api.MessageSender
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.ParseMode
-import org.telegram.telegrambots.meta.api.methods.send.*
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument
+import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
+import org.telegram.telegrambots.meta.api.methods.send.SendVideo
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
+import org.telegram.telegrambots.meta.api.objects.InputFile
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
@@ -92,7 +97,14 @@ class MessageSenderImpl(
                     return
                 }
 
-                log.error("edit message failed: {} ({}), chatId: {}, message: {}", e.message, e.apiResponse, chatId, editMessageText, e)
+                log.error(
+                    "edit message failed: {} ({}), chatId: {}, message: {}",
+                    e.message,
+                    e.apiResponse,
+                    chatId,
+                    editMessageText,
+                    e
+                )
                 throw e
             }
 
@@ -110,7 +122,7 @@ class MessageSenderImpl(
     ) {
         val doc = SendDocument()
         doc.chatId = chatId
-        doc.setDocument(file)
+        doc.document = InputFile(file)
 
         doc.parseMode = when (captionContentType) {
             ContentType.Markdown -> ParseMode.MARKDOWN
@@ -143,7 +155,7 @@ class MessageSenderImpl(
         disableNotification: Boolean
     ) {
         val video = SendVideo()
-        video.setVideo(fileId)
+        video.video = InputFile(fileId)
 
         sendVideoInternal(video, chatId, captionContentType, disableNotification, caption)
     }
@@ -156,7 +168,7 @@ class MessageSenderImpl(
         disableNotification: Boolean
     ) {
         val video = SendVideo()
-        video.setVideo(file)
+        video.video = InputFile(file)
 
         sendVideoInternal(video, chatId, captionContentType, disableNotification, caption)
     }
@@ -169,7 +181,7 @@ class MessageSenderImpl(
         disableNotification: Boolean
     ) {
         val images = SendMediaGroup()
-        images.media = files.map { imageIds -> InputMediaPhoto().setMedia(imageIds) }
+        images.medias = files.map { imageId -> InputMediaPhoto().apply { media = imageId } }
 
         sendImagesInternal(images, chatId, disableNotification, caption, captionContentType)
     }
@@ -187,7 +199,7 @@ class MessageSenderImpl(
         }
 
         val images = SendMediaGroup()
-        images.media = files.map { file -> InputMediaPhoto().setMedia(file, file.name) }
+        images.medias = files.map { file -> InputMediaPhoto().apply { setMedia(file, file.name) } }
 
         sendImagesInternal(images, chatId, disableNotification, caption, captionContentType)
     }
@@ -201,7 +213,7 @@ class MessageSenderImpl(
     ) {
         val image = SendPhoto()
         image.chatId = chatId
-        image.setPhoto(file)
+        image.photo = InputFile(file)
 
         if (disableNotification) {
             image.disableNotification()
@@ -253,7 +265,7 @@ class MessageSenderImpl(
         }
 
         if (caption.isNotBlank()) {
-            val first = images.media.first()
+            val first = images.medias.first()
             first.caption = caption
             first.parseMode = getParseMode(captionContentType, first.parseMode)
         }

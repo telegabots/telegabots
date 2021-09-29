@@ -289,7 +289,7 @@ class StateDbProviderTests {
     }
 
     private companion object {
-        const val USER_ID: Int = 100
+        const val USER_ID: Long = 100
         const val MESSAGE_ID: Int = 10_000
         val NOW: LocalDateTime = LocalDateTime.parse("2021-09-23T23:23:13.467")
     }

@@ -18,7 +18,7 @@ class MemoryStateDbProvider : StateDbProvider {
     private val commandPages = mutableMapOf<Long, MutableList<CommandPage>>()
     private val localStates = mutableMapOf<Long, StateDef>()
     private val sharedStates = mutableMapOf<Long, StateDef>()
-    private val userStates = mutableMapOf<Int, StateDef>()
+    private val userStates = mutableMapOf<Long, StateDef>()
     private val pageIds = AtomicLong(1_000)
     private val blockIds = AtomicLong(10_000)
     private var globalState: StateDef? = null
@@ -64,11 +64,11 @@ class MemoryStateDbProvider : StateDbProvider {
         return commandPages.values.flatten().find { it.id == pageId }
     }
 
-    override fun findBlockByMessageId(userId: Int, messageId: Int): CommandBlock? {
+    override fun findBlockByMessageId(userId: Long, messageId: Int): CommandBlock? {
         return commandBlocks.find { it.userId == userId && it.messageId == messageId }
     }
 
-    override fun findLastBlockByUserId(userId: Int): CommandBlock? {
+    override fun findLastBlockByUserId(userId: Long): CommandBlock? {
         return commandBlocks.filter { it.userId == userId }.maxByOrNull { it.id }
     }
 
@@ -100,27 +100,26 @@ class MemoryStateDbProvider : StateDbProvider {
             .toMap()
     }
 
-    override fun saveSharedState(userId: Int, messageId: Int, state: StateDef) {
+    override fun saveSharedState(userId: Long, messageId: Int, state: StateDef) {
         val block = findBlockByMessageId(userId, messageId)
             ?: throw IllegalStateException("Block not found by messageId: $messageId and userId: $userId")
 
         sharedStates[block.id] = state
     }
 
-    override fun findSharedState(userId: Int, messageId: Int): StateDef? {
+    override fun findSharedState(userId: Long, messageId: Int): StateDef? {
         val block = findBlockByMessageId(userId, messageId)
 
         return if (block != null) sharedStates[block.id] else null
     }
 
-    override fun findUserState(userId: Int): StateDef? {
+    override fun findUserState(userId: Long): StateDef? {
         return userStates[userId]
 
     }
 
-    override fun saveUserState(userId: Int, state: StateDef) {
+    override fun saveUserState(userId: Long, state: StateDef) {
         userStates[userId] = state
-
     }
 
     override fun findGlobalState(): StateDef? {
@@ -166,14 +165,14 @@ class MemoryStateDbProvider : StateDbProvider {
         return commandPages[blockId] ?: emptyList()
     }
 
-    override fun getLastBlocks(userId: Int, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> {
+    override fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> {
         return commandBlocks.filter { it.userId == userId }
             .reversed()
             .drop(lastIndexFrom)
             .take(pageSize)
     }
 
-    fun getUserBlocks(userId: Int): List<CommandBlock> {
+    fun getUserBlocks(userId: Long): List<CommandBlock> {
         return commandBlocks.filter { it.userId == userId }
     }
 

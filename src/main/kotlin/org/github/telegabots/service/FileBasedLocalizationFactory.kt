@@ -17,9 +17,9 @@ open class FileBasedLocalizationFactory(
     /**
      * Returns LocalizeProvider for user by id
      */
-    override fun getProvider(userId: Int): LocalizeProvider = locales[getLangByUser(userId)] ?: DummyLocalizeProvider
+    override fun getProvider(userId: Long): LocalizeProvider = locales[getLangByUser(userId)] ?: DummyLocalizeProvider
 
-    private fun getLangByUser(userId: Int): String {
+    private fun getLangByUser(userId: Long): String {
         // TODO: get current user language and returns specified LocalizeProvider
         return Locale.ENGLISH.language
     }
