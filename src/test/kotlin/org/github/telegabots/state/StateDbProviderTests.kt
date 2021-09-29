@@ -43,6 +43,10 @@ class StateDbProviderTests {
 
             assertEquals(0, pages.size)
 
+            val blockFoundByMessageId = findBlockByMessageId(USER_ID, MESSAGE_ID)
+
+            assertEquals(block, blockFoundByMessageId)
+
             if (this is SqliteStateDbProvider) {
                 assertEquals(1, getAllBlocks().size)
                 assertEquals(0, getAllPages().size)
