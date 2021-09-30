@@ -55,6 +55,11 @@ interface StateDbProvider {
     fun getBlockPages(blockId: Long): List<CommandPage>
 
     /**
+     * Returns blocks count
+     */
+    fun getBlocksCount(userId: Long): Int
+
+    /**
      * Returns last blocks from the end
      */
     fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<CommandBlock>

@@ -120,6 +120,12 @@ class SqliteStateDbProvider(
             .fetch()
             .map { it.toDto() }
 
+    override fun getBlocksCount(userId: Long): Int =
+        context.fetchCount(
+            context.selectFrom(BLOCKS)
+                .where(BLOCKS.USER_ID.eq(userId))
+        )
+
     override fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> =
         context.selectFrom(BLOCKS)
             .where(BLOCKS.USER_ID.eq(userId))

@@ -115,7 +115,6 @@ class MemoryStateDbProvider : StateDbProvider {
 
     override fun findUserState(userId: Long): StateDef? {
         return userStates[userId]
-
     }
 
     override fun saveUserState(userId: Long, state: StateDef) {
@@ -164,6 +163,8 @@ class MemoryStateDbProvider : StateDbProvider {
     override fun getBlockPages(blockId: Long): List<CommandPage> {
         return commandPages[blockId] ?: emptyList()
     }
+
+    override fun getBlocksCount(userId: Long): Int = commandBlocks.size
 
     override fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> {
         return commandBlocks.filter { it.userId == userId }

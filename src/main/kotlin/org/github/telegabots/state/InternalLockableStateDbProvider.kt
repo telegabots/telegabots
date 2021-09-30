@@ -75,6 +75,12 @@ class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : L
         }
     }
 
+    override fun getBlocksCount(userId: Long): Int {
+        readLock.runIn {
+            return delegate.getBlocksCount(userId)
+        }
+    }
+
     override fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> {
         readLock.runIn {
             return delegate.getLastBlocks(userId, lastIndexFrom, pageSize)

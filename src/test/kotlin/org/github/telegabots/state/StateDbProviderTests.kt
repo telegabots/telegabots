@@ -47,6 +47,10 @@ class StateDbProviderTests {
 
             assertEquals(block, blockFoundByMessageId)
 
+            val blockFoundByUser = findLastBlockByUserId(USER_ID)
+
+            assertEquals(block, blockFoundByUser)
+
             if (this is SqliteStateDbProvider) {
                 assertEquals(1, getAllBlocks().size)
                 assertEquals(0, getAllPages().size)
@@ -59,28 +63,37 @@ class StateDbProviderTests {
         open {
             val block =
                 saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
-            val page = savePage(CommandPage(blockId = block.id, handler = "some_handler"))!!
+            val page1 = savePage(CommandPage(blockId = block.id, handler = "some_handler"))!!
+            val page2 = savePage(CommandPage(blockId = block.id, handler = "another_handler"))!!
 
-            assertTrue(page.id > 0)
-            assertEquals("some_handler", page.handler)
-            assertEquals(0, page.commandDefs.size)
-            assertEquals(block.id, page.blockId)
+            assertTrue(page1.id > 0)
+            assertEquals("some_handler", page1.handler)
+            assertEquals(0, page1.commandDefs.size)
+            assertEquals(block.id, page1.blockId)
 
-            val pageFound = findPageById(page.id)
+            val pageFound = findPageById(page1.id)
 
-            assertEquals(page, pageFound)
+            assertEquals(page1, pageFound)
 
             val pagesFoundByBlock = getBlockPages(block.id)
 
-            assertEquals(1, pagesFoundByBlock.size)
-            assertEquals(page, pagesFoundByBlock.first())
+            assertEquals(2, pagesFoundByBlock.size)
+            assertEquals(page1, pagesFoundByBlock.first())
+            assertEquals(page2, pagesFoundByBlock.last())
 
             val lastPage = findLastPageByBlockId(block.id)
-            assertEquals(page, lastPage)
+
+            assertEquals(page2, lastPage)
+
+            val blockByPage1Id = findBlockByPageId(page1.id)
+            val blockByPage2Id = findBlockByPageId(page2.id)
+
+            assertEquals(block, blockByPage1Id)
+            assertEquals(block, blockByPage2Id)
 
             if (this is SqliteStateDbProvider) {
                 assertEquals(1, getAllBlocks().size)
-                assertEquals(1, getAllPages().size)
+                assertEquals(2, getAllPages().size)
             }
         }
     }
@@ -155,6 +168,47 @@ class StateDbProviderTests {
             if (this is SqliteStateDbProvider) {
                 assertEquals(1, getAllBlocks().size)
                 assertEquals(1, getAllPages().size)
+            }
+        }
+    }
+
+    @Test
+    fun testGetLastBlocks() {
+        open {
+            (0..9).forEach { index ->
+                saveBlock(
+                    CommandBlock(
+                        messageId = MESSAGE_ID + index,
+                        userId = USER_ID,
+                        messageType = if ((index % 2) == 0) MessageType.Inline else MessageType.Text
+                    )
+                )
+            }
+
+            (0..4).forEach { index ->
+                val pages = getLastBlocks(USER_ID, index * 2, 2)
+
+                assertEquals(2, pages.size)
+                assertEquals(USER_ID, pages[0].userId)
+                assertEquals(USER_ID, pages[1].userId)
+                assertEquals(MessageType.Text, pages[0].messageType)
+                assertEquals(MessageType.Inline, pages[1].messageType)
+                assertEquals(MESSAGE_ID + 9 - 2 * index, pages[0].messageId)
+                assertEquals(MESSAGE_ID + 8 - 2 * index, pages[1].messageId)
+            }
+
+            val allBlocks = getLastBlocks(USER_ID, 0, 100)
+
+            assertEquals(10, allBlocks.size)
+
+            val emptyBlocks = getLastBlocks(USER_ID, 10, 1)
+
+            assertEquals(0, emptyBlocks.size)
+            assertEquals(10, getBlocksCount(USER_ID))
+
+            if (this is SqliteStateDbProvider) {
+                assertEquals(10, getAllBlocks().size)
+                assertEquals(0, getAllPages().size)
             }
         }
     }
