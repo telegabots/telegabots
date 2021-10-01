@@ -4,6 +4,7 @@ import com.google.common.io.Files
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.service.JsonService
 import org.github.telegabots.state.sqlite.SqliteStateDbProvider
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -214,6 +215,23 @@ class StateDbProviderTests {
     }
 
     @Test
+    fun testSaveLocalState() {
+        open {
+            val block =
+                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+            val page1 = savePage(CommandPage(blockId = block.id, handler = "some_handler"))!!
+
+            val state = jsonService.toStateDefFrom(FooState(123L, "foo1"))
+
+            saveLocalState(page1.id, state)
+
+            val loadedState = findLocalState(page1.id)
+
+            assertEquals(state, loadedState)
+        }
+    }
+
+    @Test
     fun testCreateBlock_Failed_When_MessageId_IsInvalid() {
         open {
             val ex = assertThrows<IllegalStateException> {
@@ -342,9 +360,12 @@ class StateDbProviderTests {
         return SqliteStateDbProvider.create(target.absolutePath)
     }
 
+    internal data class FooState(val id: Long, val title: String)
+
     private companion object {
         const val USER_ID: Long = 100
         const val MESSAGE_ID: Int = 10_000
         val NOW: LocalDateTime = LocalDateTime.parse("2021-09-23T23:23:13.467")
+        val jsonService = JsonService()
     }
 }

@@ -3,6 +3,7 @@ package org.github.telegabots.state
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.StateDef
+import org.github.telegabots.jooq.Tables
 import java.util.concurrent.locks.Lock
 
 /**
@@ -33,6 +34,11 @@ interface StateDbProvider {
      * Find block by related message id
      */
     fun findBlockByMessageId(userId: Long, messageId: Int): CommandBlock?
+
+    /**
+     * Returns block id by message id
+     */
+    fun findBlockIdByMessageId(userId: Long, messageId: Int): Long?
 
     /**
      * Find last block

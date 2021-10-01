@@ -51,6 +51,12 @@ class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : L
         }
     }
 
+    override fun findBlockIdByMessageId(userId: Long, messageId: Int): Long? {
+        readLock.runIn {
+            return delegate.findBlockIdByMessageId(userId, messageId)
+        }
+    }
+
     override fun findLastBlockByUserId(userId: Long): CommandBlock? {
         readLock.runIn {
             return delegate.findLastBlockByUserId(userId)

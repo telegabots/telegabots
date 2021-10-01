@@ -68,6 +68,9 @@ class MemoryStateDbProvider : StateDbProvider {
         return commandBlocks.find { it.userId == userId && it.messageId == messageId }
     }
 
+    override fun findBlockIdByMessageId(userId: Long, messageId: Int): Long? =
+        findBlockByMessageId(userId, messageId)?.id
+
     override fun findLastBlockByUserId(userId: Long): CommandBlock? {
         return commandBlocks.filter { it.userId == userId }.maxByOrNull { it.id }
     }

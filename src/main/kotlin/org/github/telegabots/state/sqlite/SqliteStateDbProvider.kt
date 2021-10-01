@@ -22,6 +22,7 @@ import org.github.telegabots.state.StateDbProvider
 import org.github.telegabots.util.TimeUtil
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
+import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.sql.DriverManager
 
@@ -91,6 +92,12 @@ class SqliteStateDbProvider(
             .fetchOne()
             ?.toDto()
 
+    override fun findBlockIdByMessageId(userId: Long, messageId: Int): Long? =
+        context.select(BLOCKS.ID)
+            .where(BLOCKS.USER_ID.eq(userId).and(BLOCKS.MESSAGE_ID.eq(messageId)))
+            .fetchOne()
+            ?.value1()
+
     override fun findLastBlockByUserId(userId: Long): CommandBlock? =
         context.selectFrom(BLOCKS)
             .where(BLOCKS.USER_ID.eq(userId))
@@ -141,6 +148,7 @@ class SqliteStateDbProvider(
             .fetchOne() ?: context.newRecord(LOCAL_STATES)
 
         stateRecord.stateDef = state.toRaw()
+        stateRecord.pageId = pageId
 
         stateRecord.store()
     }
@@ -163,11 +171,14 @@ class SqliteStateDbProvider(
             .toMap()
 
     override fun saveSharedState(userId: Long, messageId: Int, state: StateDef) {
-        val stateRecord = findSharedStateInternal(userId, messageId) ?: context.newRecord(SHARED_STATES)
+        val stateRecord = findSharedStateInternal(userId, messageId)
 
-        stateRecord.stateDef = state.toRaw()
-
-        stateRecord.store()
+        if (stateRecord != null) {
+            stateRecord.stateDef = state.toRaw()
+            stateRecord.store()
+        } else {
+            log.warn("Block not found by userId: {}, messageId: {}", userId, messageId)
+        }
     }
 
     override fun findSharedState(userId: Long, messageId: Int): StateDef? =
@@ -285,5 +296,7 @@ class SqliteStateDbProvider(
 
         fun getConnection(dbFilePath: String): Connection =
             DriverManager.getConnection("jdbc:sqlite:$dbFilePath", "", "")
+
+        private val log = LoggerFactory.getLogger(SqliteStateDbProvider::class.java)
     }
 }

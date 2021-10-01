@@ -34,6 +34,8 @@ open class JsonService : Service {
     fun toStateDef(state: StateRef?): StateDef? =
         state?.let { StateDef(items = state.items.map { toStateItemDef(it) }) }
 
+    fun toStateDefFrom(vararg objs: Any): StateDef = toStateDef(StateRef.of(*objs))!!
+
     fun toState(stateDef: StateDef?): StateRef? =
         stateDef?.let { StateRef(items = stateDef.items.map { toStateItem(it) }) }
 }
