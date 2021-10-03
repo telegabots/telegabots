@@ -3,5 +3,5 @@ Telegram Bots Framework
 
 
 ## Features
-* States
+* State Control
 * Dependency Manager
