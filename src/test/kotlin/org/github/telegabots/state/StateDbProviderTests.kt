@@ -6,12 +6,14 @@ import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.state.sqlite.SqliteStateDbProvider
+import org.jooq.exception.DataAccessException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.io.File
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class StateDbProviderTests {
@@ -220,14 +222,158 @@ class StateDbProviderTests {
             val block =
                 saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
             val page1 = savePage(CommandPage(blockId = block.id, handler = "some_handler"))!!
+            val page2 = savePage(CommandPage(blockId = block.id, handler = "another_handler"))!!
 
+            val state1 = jsonService.toStateDefFrom(FooState(123L, "foo1"))
+            val state2 = jsonService.toStateDefFrom(FooState(888L, "bar2"))
+
+            saveLocalState(page1.id, state1)
+            saveLocalState(page2.id, state2)
+
+            val loadedState1 = findLocalState(page1.id)
+            val loadedState2 = findLocalState(page2.id)
+            val states = getLocalStates(block.id)
+
+            assertEquals(state1, loadedState1)
+            assertEquals(state2, loadedState2)
+            assertEquals(2, states.size)
+            assertEquals(state1, states[page1.id])
+            assertEquals(state2, states[page2.id])
+        }
+    }
+
+    @Test
+    fun testSaveGlobalState() {
+        open {
             val state = jsonService.toStateDefFrom(FooState(123L, "foo1"))
 
-            saveLocalState(page1.id, state)
+            saveGlobalState(state)
 
-            val loadedState = findLocalState(page1.id)
+            val loadedState = findGlobalState()
 
             assertEquals(state, loadedState)
+        }
+    }
+
+    @Test
+    fun testSaveUserState() {
+        open {
+            val state1 = jsonService.toStateDefFrom(FooState(123L, "user1"))
+            val state2 = jsonService.toStateDefFrom(FooState(567L, "user2"))
+
+            saveUserState(USER_ID, state1)
+            saveUserState(USER_ID + 1, state2)
+
+            val loadedState1 = findUserState(USER_ID)
+            val loadedState2 = findUserState(USER_ID + 1)
+
+            assertEquals(state1, loadedState1)
+            assertEquals(state2, loadedState2)
+        }
+    }
+
+    @Test
+    fun testUpdateUserState() {
+        open {
+            val state1 = jsonService.toStateDefFrom(FooState(123L, "user1"))
+
+            saveUserState(USER_ID, state1)
+
+            val state2 = jsonService.toStateDefFrom(FooState(678L, "user1_fixed"))
+
+            saveUserState(USER_ID, state2)
+
+            val loadedState = findUserState(USER_ID)
+
+            assertEquals(state2, loadedState)
+        }
+    }
+
+    @Test
+    fun testSaveSharedState() {
+        open {
+            saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+            saveBlock(CommandBlock(messageId = MESSAGE_ID + 1, userId = USER_ID, messageType = MessageType.Text))
+
+            val state1 = jsonService.toStateDefFrom(FooState(123L, "foo1"))
+            val state2 = jsonService.toStateDefFrom(FooState(666L, "bar1"))
+
+            saveSharedState(USER_ID, MESSAGE_ID, state1)
+            saveSharedState(USER_ID, MESSAGE_ID + 1, state2)
+
+            val loadedState1 = findSharedState(USER_ID, MESSAGE_ID)
+            val loadedState2 = findSharedState(USER_ID, MESSAGE_ID + 1)
+
+            assertEquals(state1, loadedState1)
+            assertEquals(state2, loadedState2)
+        }
+    }
+
+    @Test
+    fun testUpdateSharedState() {
+        open {
+            saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+
+            val state1 = jsonService.toStateDefFrom(FooState(123L, "foo1"))
+
+            saveSharedState(USER_ID, MESSAGE_ID, state1)
+
+            val state2 = jsonService.toStateDefFrom(FooState(666L, "bar1"))
+
+            saveSharedState(USER_ID, MESSAGE_ID, state2)
+
+            val loadedState = findSharedState(USER_ID, MESSAGE_ID)
+
+            assertEquals(state2, loadedState)
+        }
+    }
+
+    @Test
+    fun testDeleteBlock() {
+        open {
+            val block =
+                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+            savePage(CommandPage(blockId = block.id, handler = "some_handler"))!!
+            val state = jsonService.toStateDefFrom(FooState(123L, "foo1"))
+
+            saveSharedState(USER_ID, MESSAGE_ID, state)
+
+            val oldBlock = deleteBlock(block.id)
+
+            assertEquals(block, oldBlock)
+            assertNull(findSharedState(USER_ID, MESSAGE_ID))
+
+            if (this is SqliteStateDbProvider) {
+                assertEquals(0, getAllBlocks().size)
+                assertEquals(0, getAllPages().size)
+            }
+        }
+    }
+
+    @Test
+    fun testDeletePage() {
+        open {
+            val block =
+                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+            val page = savePage(CommandPage(blockId = block.id, handler = "some_handler"))!!
+            val state = jsonService.toStateDefFrom(FooState(123L, "foo1"))
+
+            saveLocalState(page.id, state)
+
+            if (this is SqliteStateDbProvider) {
+                assertEquals(1, getAllBlocks().size)
+                assertEquals(1, getAllPages().size)
+            }
+
+            val oldPage = deletePage(page.id)
+
+            assertEquals(page, oldPage)
+            assertNull(findLocalState(page.id))
+
+            if (this is SqliteStateDbProvider) {
+                assertEquals(1, getAllBlocks().size)
+                assertEquals(0, getAllPages().size)
+            }
         }
     }
 
@@ -334,6 +480,38 @@ class StateDbProviderTests {
                 "Page is invalid: CommandPage(id=0, blockId=-100, handler=foo_bar2, commandDefs=[], createdAt=2021-09-23T23:23:13.467, updatedAt=2021-09-23T23:23:13.467)",
                 ex2.message
             )
+
+            if (this is SqliteStateDbProvider) {
+                assertEquals(0, getAllBlocks().size)
+                assertEquals(0, getAllPages().size)
+            }
+        }
+    }
+
+    @Test
+    fun testCreatePage_Failed_When_BlockId_IsNotExists() {
+        open {
+            val ex = assertThrows<DataAccessException> {
+                savePage(CommandPage(blockId = 123, handler = "foo_bar"))!!
+            }
+
+            assertTrue(ex.message!!.contains("A foreign key constraint failed"))
+
+            if (this is SqliteStateDbProvider) {
+                assertEquals(0, getAllBlocks().size)
+                assertEquals(0, getAllPages().size)
+            }
+        }
+    }
+
+    @Test
+    fun testSaveLocalState_Failed_When_PageId_IsNotExists() {
+        open {
+            val ex = assertThrows<DataAccessException> {
+                saveLocalState(456, jsonService.toStateDefFrom(FooState(123L, "foo1")))
+            }
+
+            assertTrue(ex.message!!.contains("A foreign key constraint failed"))
 
             if (this is SqliteStateDbProvider) {
                 assertEquals(0, getAllBlocks().size)

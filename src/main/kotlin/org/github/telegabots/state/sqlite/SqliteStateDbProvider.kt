@@ -38,9 +38,7 @@ class SqliteStateDbProvider(
     override fun saveBlock(block: CommandBlock): CommandBlock {
         check(block.isValid()) { "Block is invalid: $block" }
 
-        val blockRecord = context.selectFrom(BLOCKS)
-            .where(BLOCKS.USER_ID.eq(block.userId).and(BLOCKS.MESSAGE_ID.eq(block.messageId)))
-            .fetchOne() ?: context.newRecord(BLOCKS)
+        val blockRecord = findBlockByMessageIdInternal(block.userId, block.messageId) ?: context.newRecord(BLOCKS)
 
         with(blockRecord) {
             userId = block.userId
@@ -87,10 +85,7 @@ class SqliteStateDbProvider(
             ?.toDto()
 
     override fun findBlockByMessageId(userId: Long, messageId: Int): CommandBlock? =
-        context.selectFrom(BLOCKS)
-            .where(BLOCKS.USER_ID.eq(userId).and(BLOCKS.MESSAGE_ID.eq(messageId)))
-            .fetchOne()
-            ?.toDto()
+        findBlockByMessageIdInternal(userId, messageId)?.toDto()
 
     override fun findBlockIdByMessageId(userId: Long, messageId: Int): Long? =
         context.select(BLOCKS.ID)
@@ -172,6 +167,11 @@ class SqliteStateDbProvider(
 
     override fun saveSharedState(userId: Long, messageId: Int, state: StateDef) {
         val stateRecord = findSharedStateInternal(userId, messageId)
+            ?: findBlockByMessageIdInternal(userId, messageId)?.let { block ->
+                context.newRecord(SHARED_STATES).apply {
+                    blockId = block.id
+                }
+            }
 
         if (stateRecord != null) {
             stateRecord.stateDef = state.toRaw()
@@ -196,6 +196,7 @@ class SqliteStateDbProvider(
             .fetchOne() ?: context.newRecord(USER_STATES)
 
         statesRecord.stateDef = state.toRaw()
+        statesRecord.userId = userId
 
         statesRecord.store()
     }
@@ -249,6 +250,11 @@ class SqliteStateDbProvider(
             .where(BLOCKS.USER_ID.eq(userId).and(BLOCKS.MESSAGE_ID.eq(messageId)))
             .fetchOneInto(SharedStatesRecord::class.java)
 
+    private fun findBlockByMessageIdInternal(userId: Long, messageId: Int): BlocksRecord? =
+        context.selectFrom(BLOCKS)
+            .where(BLOCKS.USER_ID.eq(userId).and(BLOCKS.MESSAGE_ID.eq(messageId)))
+            .fetchOne()
+
     private fun PagesRecord.toDto(): CommandPage =
         CommandPage(
             id = this.id,
@@ -296,6 +302,9 @@ class SqliteStateDbProvider(
 
         fun getConnection(dbFilePath: String): Connection =
             DriverManager.getConnection("jdbc:sqlite:$dbFilePath", "", "")
+                .apply {
+                    this.prepareStatement("PRAGMA foreign_keys = ON;").execute()
+                }
 
         private val log = LoggerFactory.getLogger(SqliteStateDbProvider::class.java)
     }

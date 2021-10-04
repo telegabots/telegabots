@@ -3,7 +3,6 @@ package org.github.telegabots.state
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.StateDef
-import org.github.telegabots.jooq.Tables
 import java.util.concurrent.locks.Lock
 
 /**

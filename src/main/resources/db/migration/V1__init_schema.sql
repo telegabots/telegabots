@@ -17,7 +17,7 @@ CREATE TABLE pages
     command_defs TEXT,
     created_at   INTEGER NOT NULL,
     updated_at   INTEGER NOT NULL,
-    FOREIGN KEY (block_id) REFERENCES blocks (id)
+    FOREIGN KEY (block_id) REFERENCES blocks (id) ON DELETE CASCADE
 );
 
 CREATE TABLE local_states
@@ -25,7 +25,7 @@ CREATE TABLE local_states
     id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     page_id      INTEGER NOT NULL,
     state_def    TEXT,
-    FOREIGN KEY (page_id) REFERENCES pages (id)
+    FOREIGN KEY (page_id) REFERENCES pages (id) ON DELETE CASCADE
 );
 
 CREATE TABLE shared_states
@@ -33,7 +33,7 @@ CREATE TABLE shared_states
     id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     block_id      INTEGER NOT NULL,
     state_def    TEXT,
-    FOREIGN KEY (block_id) REFERENCES blocks (id)
+    FOREIGN KEY (block_id) REFERENCES blocks (id) ON DELETE CASCADE
 );
 
 CREATE TABLE user_states
