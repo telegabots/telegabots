@@ -1,5 +1,7 @@
 package org.github.telegabots.state.sqlite
 
+import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.configuration.ClassicConfiguration
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandDef
@@ -299,12 +301,17 @@ class SqliteStateDbProvider(
         fun create(dbFilePath: String): SqliteStateDbProvider =
             SqliteStateDbProvider(getConnection(dbFilePath), JsonService())
 
+        fun getConnection(dbFilePath: String): Connection {
+            val config = ClassicConfiguration()
+            config.setDataSource("jdbc:sqlite:$dbFilePath", "", "")
+            val flyway = Flyway(config)
+            flyway.migrate()
 
-        fun getConnection(dbFilePath: String): Connection =
-            DriverManager.getConnection("jdbc:sqlite:$dbFilePath", "", "")
+            return DriverManager.getConnection("jdbc:sqlite:$dbFilePath", "", "")
                 .apply {
                     this.prepareStatement("PRAGMA foreign_keys = ON;").execute()
                 }
+        }
 
         private val log = LoggerFactory.getLogger(SqliteStateDbProvider::class.java)
     }

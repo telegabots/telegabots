@@ -1,6 +1,5 @@
 package org.github.telegabots.state
 
-import com.google.common.io.Files
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
@@ -533,8 +532,6 @@ class StateDbProviderTests {
     }
 
     private fun create(target: File): StateDbProvider {
-        Files.copy(File("TestDB.db"), target)
-
         return SqliteStateDbProvider.create(target.absolutePath)
     }
 
