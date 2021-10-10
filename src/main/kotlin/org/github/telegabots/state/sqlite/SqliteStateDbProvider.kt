@@ -301,16 +301,24 @@ class SqliteStateDbProvider(
         fun create(dbFilePath: String): SqliteStateDbProvider =
             SqliteStateDbProvider(getConnection(dbFilePath), JsonService())
 
-        fun getConnection(dbFilePath: String): Connection {
-            val config = ClassicConfiguration()
-            config.setDataSource("jdbc:sqlite:$dbFilePath", "", "")
-            val flyway = Flyway(config)
-            flyway.migrate()
+        private fun getConnection(dbFilePath: String): Connection {
+            migrateDb(dbFilePath)
 
             return DriverManager.getConnection("jdbc:sqlite:$dbFilePath", "", "")
                 .apply {
                     this.prepareStatement("PRAGMA foreign_keys = ON;").execute()
                 }
+        }
+
+        private fun migrateDb(dbFilePath: String) {
+            try {
+                val config = ClassicConfiguration()
+                config.setDataSource("jdbc:sqlite:$dbFilePath", "", "")
+                val flyway = Flyway(config)
+                flyway.migrate()
+            } catch (e: Exception) {
+                throw IllegalStateException("Migration failed in file $dbFilePath", e)
+            }
         }
 
         private val log = LoggerFactory.getLogger(SqliteStateDbProvider::class.java)
