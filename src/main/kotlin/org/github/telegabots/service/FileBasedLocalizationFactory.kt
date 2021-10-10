@@ -2,6 +2,7 @@ package org.github.telegabots.service
 
 import org.github.telegabots.api.LocalizeProvider
 import org.github.telegabots.api.UserLocalizationFactory
+import org.slf4j.LoggerFactory
 import java.util.*
 
 open class FileBasedLocalizationFactory(
@@ -26,14 +27,22 @@ open class FileBasedLocalizationFactory(
 
     private fun loadLocales(): Map<String, LocalizeProvider> {
         try {
-            val fileRef =
-                javaClass.classLoader.getResourceAsStream(file) ?: throw IllegalStateException("Resource not found")
-            val root = jsonService.parse(fileRef.bufferedReader(Charsets.UTF_8).readText(), FileRoot::class.java)
+            val fileRef = javaClass.classLoader.getResourceAsStream(file)
 
-            return root.locales.map { it.lang to MapLocalizeProvider(it.lang, it.items) }.toMap()
+            if (fileRef == null) {
+                log.warn("Localization file not found: {}", file)
+                return emptyMap()
+            }
+
+            val root = jsonService.parse(fileRef.bufferedReader(Charsets.UTF_8).readText(), FileRoot::class.java)
+            return root.locales.associate { it.lang to MapLocalizeProvider(it.lang, it.items) }
         } catch (e: Exception) {
             throw IllegalStateException("Localization file parsing failed: ${e.message}, file: $file", e)
         }
+    }
+
+    private companion object {
+        val log = LoggerFactory.getLogger(FileBasedLocalizationFactory::class.java)!!
     }
 }
 
