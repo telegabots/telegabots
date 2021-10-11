@@ -2,20 +2,24 @@ package org.github.telegabots.service
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import java.lang.IllegalStateException
+import java.util.*
 
 class FileBasedLocalizationFactoryTests {
     @Test
-    fun testFail_WhenResourceNotFound() {
-        val ex = assertThrows<IllegalStateException> {
-            FileBasedLocalizationFactory(
-                jsonService = JsonService(),
-                file = "file-xyz.json"
-            )
-        }
+    fun testFactoryWhenResourceNotFound() {
+        val factory = FileBasedLocalizationFactory(
+            jsonService = JsonService(),
+            file = "file-xyz.json"
+        )
 
-        assertEquals("Localization file parsing failed: Resource not found, file: file-xyz.json", ex.message)
+        assertEquals(0, factory.locales.size)
+
+        val provider = factory.getProvider(123)
+        assertEquals("default", provider.language())
+
+        val key = UUID.randomUUID().toString()
+        assertEquals(key, provider.getString(key))
+        assertEquals(provider.javaClass.name, "org.github.telegabots.service.DummyLocalizeProvider")
     }
 
     @Test

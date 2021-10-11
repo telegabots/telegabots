@@ -1,6 +1,7 @@
 package org.github.telegabots.state.sqlite
 
 import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.Location
 import org.flywaydb.core.api.configuration.ClassicConfiguration
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.entity.CommandBlock
@@ -314,6 +315,7 @@ class SqliteStateDbProvider(
             try {
                 val config = ClassicConfiguration()
                 config.setDataSource("jdbc:sqlite:$dbFilePath", "", "")
+                config.setLocations(Location("db/sqlite-migration"))
                 val flyway = Flyway(config)
                 flyway.migrate()
             } catch (e: Exception) {

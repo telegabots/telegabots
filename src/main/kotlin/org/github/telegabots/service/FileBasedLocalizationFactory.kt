@@ -9,7 +9,7 @@ open class FileBasedLocalizationFactory(
     val jsonService: JsonService,
     val file: String = "telegabots-locales.json"
 ) : UserLocalizationFactory {
-    private val locales: Map<String, LocalizeProvider>
+    internal val locales: Map<String, LocalizeProvider>
 
     init {
         locales = loadLocales()
