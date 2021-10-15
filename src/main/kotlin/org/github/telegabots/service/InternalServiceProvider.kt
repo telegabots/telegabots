@@ -10,6 +10,10 @@ class InternalServiceProvider(
     private val delegate: ServiceProvider,
     private val jsonService: JsonService
 ) : ServiceProvider {
+    init {
+        delegate.setInternalService(this)
+    }
+
     override fun <T : Service> getService(clazz: Class<T>): T? =
         (getServiceInternalPre(clazz) ?: delegate.getService(clazz)) ?: getServiceInternalPost(clazz)
 
