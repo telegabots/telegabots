@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import java.io.File
 import java.time.LocalDateTime
+import java.util.*
 import java.util.function.Consumer
 import java.util.regex.Pattern
 
@@ -694,6 +695,11 @@ interface UserLocalizationFactory : Service {
      * Returns LocalizeProvider for user by id
      */
     fun getProvider(userId: Long): LocalizeProvider
+
+    /**
+     * Returns LocalizeProvider by locale
+     */
+    fun getProvider(locale: Locale): LocalizeProvider
 }
 
 /**
@@ -740,7 +746,7 @@ interface Service
  * User related service
  */
 interface UserService : Service {
-    fun userId(): Int
+    fun userId(): Long
 }
 
 /**
