@@ -22,9 +22,13 @@ open class FileBasedLocalizationFactory(
 
     override fun getProvider(locale: Locale): LocalizeProvider = locales[locale.language] ?: DummyLocalizeProvider
 
+    override fun getUserLocale(userId: Long): Locale {
+        // TODO: get current user language and returns specified Locale
+        return Locale.ENGLISH
+    }
+
     private fun getLangByUser(userId: Long): String {
-        // TODO: get current user language and returns specified LocalizeProvider
-        return Locale.ENGLISH.language
+        return getUserLocale(userId).language
     }
 
     private fun loadLocales(): Map<String, LocalizeProvider> {

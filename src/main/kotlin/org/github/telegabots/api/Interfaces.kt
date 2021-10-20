@@ -700,6 +700,11 @@ interface UserLocalizationFactory : Service {
      * Returns LocalizeProvider by locale
      */
     fun getProvider(locale: Locale): LocalizeProvider
+
+    /**
+     * Returns current Locale of the user
+     */
+    fun getUserLocale(userId: Long): Locale
 }
 
 /**
