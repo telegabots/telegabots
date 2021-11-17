@@ -16,7 +16,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.version>5.8.1</junit.version>
         <logback.version>1.2.6</logback.version>
-        <kotlin.version>1.5.31</kotlin.version>
+        <kotlin.version>1.6.0</kotlin.version>
         <jackson.version>2.12.5</jackson.version>
         <jooq.version>3.14.14</jooq.version>
         <sqlite.version>3.36.0.3</sqlite.version>
