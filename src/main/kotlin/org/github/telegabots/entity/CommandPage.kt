@@ -1,5 +1,6 @@
 package org.github.telegabots.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import java.time.LocalDateTime
 
 /**
@@ -33,5 +34,6 @@ data class CommandPage(
      */
     val updatedAt: LocalDateTime = LocalDateTime.now()
 ) {
+    @JsonIgnore
     fun isValid(): Boolean = blockId > 0L && handler.isNotBlank()
 }

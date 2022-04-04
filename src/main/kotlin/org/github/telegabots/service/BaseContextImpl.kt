@@ -375,8 +375,8 @@ class BaseContextImpl(
                 saveLocalState(savedPage.id, page.state.items)
             }
 
-            if (log.isDebugEnabled) {
-                log.debug(
+            if (log.isTraceEnabled) {
+                log.trace(
                     "Add page. blockId: {}, pageId: {}, input: {},\npage: {}",
                     blockId,
                     savedPage.id,
@@ -448,8 +448,8 @@ class BaseContextImpl(
                 saveLocalState(savedPage.id, page.state.items)
             }
 
-            if (log.isDebugEnabled) {
-                log.debug(
+            if (log.isTraceEnabled) {
+                log.trace(
                     "Update page. blockId: {}, pageId: {}, input: {},\npage: {}",
                     blockId,
                     savedPage.id,
