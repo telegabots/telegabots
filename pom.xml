@@ -14,13 +14,13 @@
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <junit.version>5.8.2</junit.version>
-        <logback.version>1.2.11</logback.version>
-        <kotlin.version>1.6.10</kotlin.version>
-        <jackson.version>2.13.2</jackson.version>
-        <jooq.version>3.16.5</jooq.version>
-        <sqlite.version>3.36.0.3</sqlite.version>
-        <flyway.version>8.5.4</flyway.version>
+        <junit.version>5.10.2</junit.version>
+        <logback.version>1.5.5</logback.version>
+        <kotlin.version>1.9.23</kotlin.version>
+        <jackson.version>2.17.0</jackson.version>
+        <jooq.version>3.19.7</jooq.version>
+        <sqlite.version>3.45.2.0</sqlite.version>
+        <flyway.version>10.11.0</flyway.version>
         <db.url>jdbc:sqlite:TestDB.db</db.url>
     </properties>
 
@@ -33,7 +33,7 @@
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots</artifactId>
-            <version>5.7.1</version>
+            <version>6.9.7.1</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -96,14 +96,14 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
+            <version>3.14.0</version>
         </dependency>
 
         <!-- logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.36</version>
+            <version>2.0.13</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
