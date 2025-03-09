@@ -40,6 +40,7 @@ class BotConfig private constructor(prop: Properties) {
     }
 
     companion object {
+        @JvmStatic
         fun load(fileName: String, throwOnError: Boolean = true): BotConfig {
             val props = Properties()
 

@@ -299,6 +299,7 @@ class SqliteStateDbProvider(
     private data class CommandDefsRoot(val defs: List<List<CommandDef>>)
 
     companion object {
+        @JvmStatic
         fun create(dbFilePath: String): SqliteStateDbProvider =
             SqliteStateDbProvider(getConnection(dbFilePath), JsonService())
 

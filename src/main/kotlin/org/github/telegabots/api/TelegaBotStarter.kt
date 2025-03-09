@@ -59,7 +59,8 @@ open class TelegaBotStarter(
 
     fun <T : Service> getService(clazz: Class<T>): T? = telegaBot.getService(clazz)
 
-    private companion object {
+    companion object {
+        @JvmStatic
         fun createStateProvider(config: BotConfig): StateDbProvider =
             if (config.stateDbPath.isNotBlank())
                 SqliteStateDbProvider.create(config.stateDbPath)
