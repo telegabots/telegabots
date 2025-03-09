@@ -6,7 +6,7 @@
 
     <groupId>org.github.telegabots</groupId>
     <artifactId>telegabots</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.1-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -15,12 +15,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.version>5.10.2</junit.version>
-        <logback.version>1.5.5</logback.version>
-        <kotlin.version>1.9.23</kotlin.version>
-        <jackson.version>2.17.0</jackson.version>
-        <jooq.version>3.19.7</jooq.version>
-        <sqlite.version>3.45.2.0</sqlite.version>
-        <flyway.version>10.11.0</flyway.version>
+        <logback.version>1.5.17</logback.version>
+        <kotlin.version>2.1.10</kotlin.version>
+        <jackson.version>2.18.3</jackson.version>
+        <jooq.version>3.20.1</jooq.version>
+        <sqlite.version>3.49.1.0</sqlite.version>
+        <flyway.version>11.3.4</flyway.version>
         <db.url>jdbc:sqlite:TestDB.db</db.url>
     </properties>
 
@@ -96,14 +96,14 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.14.0</version>
+            <version>3.17.0</version>
         </dependency>
 
         <!-- logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>2.0.13</version>
+            <version>2.0.17</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

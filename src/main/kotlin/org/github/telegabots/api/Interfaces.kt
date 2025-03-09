@@ -572,7 +572,7 @@ data class SubCommand(
 
         @JvmStatic
         fun titleIdOf(handler: Class<out BaseCommand>): String =
-            CAMEL_CASE_PAT.matcher(handler.simpleName).replaceAll("$1_$2").toUpperCase()
+            CAMEL_CASE_PAT.matcher(handler.simpleName).replaceAll("$1_$2").uppercase()
                 .let { if (it.endsWith(PREFIX)) it.substring(0, it.length - PREFIX.length) else it }
 
         val REFRESH = SubCommand.of(SystemCommands.REFRESH)
