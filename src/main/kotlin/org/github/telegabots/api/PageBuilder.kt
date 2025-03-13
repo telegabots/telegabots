@@ -77,6 +77,13 @@ interface PageBuilder {
     }
 
     /**
+     * Set sub-commands by [BaseCommand].
+     */
+    fun subCommands(vararg commands: Class<out BaseCommand>): PageBuilder {
+        return subCommands(listOf(commands.map { cmd -> SubCommand.of(cmd) }))
+    }
+
+    /**
      * Set handler for [Page]
      */
     fun handler(handler: Class<out BaseCommand>): PageBuilder

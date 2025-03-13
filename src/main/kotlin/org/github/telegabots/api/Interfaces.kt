@@ -563,6 +563,42 @@ data class SubCommand(
         )
 
         @JvmStatic
+        fun of(titleId: String): SubCommand = of(titleId, null)
+
+        @JvmStatic
+        fun of(titleId: String, title: String): SubCommand = of(titleId, title, null, CommandBehaviour.SeparatePage)
+
+        @JvmStatic
+        fun of(titleId: String, title: String, state: StateRef): SubCommand =
+            of(titleId, title, state, CommandBehaviour.SeparatePage)
+
+        @JvmStatic
+        fun of(titleId: String, title: String, behaviour: CommandBehaviour): SubCommand =
+            of(titleId, title, null, behaviour)
+
+        @JvmStatic
+        fun of(handler: Class<out BaseCommand>): SubCommand = of(handler, null)
+
+        @JvmStatic
+        fun of(handler: Class<out BaseCommand>, state: StateRef): SubCommand = of(handler, state, "")
+
+        @JvmStatic
+        fun of(handler: Class<out BaseCommand>, state: StateRef, titleId: String): SubCommand =
+            of(handler, state, titleId, null)
+
+        @JvmStatic
+        fun of(handler: Class<out BaseCommand>, state: StateRef, titleId: String, title: String): SubCommand =
+            of(handler, state, titleId, title, CommandBehaviour.SeparatePage)
+
+        @JvmStatic
+        fun of(handler: Class<out BaseCommand>, titleId: String, title: String): SubCommand =
+            of(handler, null, titleId, title, CommandBehaviour.SeparatePage)
+
+        @JvmStatic
+        fun of(handler: Class<out BaseCommand>, titleId: String): SubCommand =
+            of(handler, null, titleId, null, CommandBehaviour.SeparatePage)
+
+        @JvmStatic
         fun of(
             handler: Class<out BaseCommand>,
             state: StateRef? = null,
@@ -582,8 +618,13 @@ data class SubCommand(
             CAMEL_CASE_PAT.matcher(handler.simpleName).replaceAll("$1_$2").uppercase()
                 .let { if (it.endsWith(PREFIX)) it.substring(0, it.length - PREFIX.length) else it }
 
+        @JvmField
         val REFRESH = SubCommand.of(SystemCommands.REFRESH)
+
+        @JvmField
         val GO_BACK = SubCommand.of(SystemCommands.GO_BACK)
+
+        @JvmField
         val NOTHING = SubCommand.of(SystemCommands.NOTHING)
         private const val PREFIX = "_COMMAND"
         private val CAMEL_CASE_PAT = Pattern.compile("([a-z\\d])([A-Z]+)")
