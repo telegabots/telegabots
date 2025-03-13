@@ -179,6 +179,13 @@ interface BaseContext : CommandExecutor {
     fun <T : Service> getService(clazz: Class<T>): T?
 
     fun <T : UserService> getUserService(clazz: Class<T>): T?
+
+    // === Builder methods ===
+
+    /**
+     * Creates new [PageBuilder].
+     */
+    fun page(message: String): PageBuilder
 }
 
 /**

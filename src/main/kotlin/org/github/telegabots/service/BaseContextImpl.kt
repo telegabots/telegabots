@@ -1,28 +1,6 @@
 package org.github.telegabots.service
 
-import org.github.telegabots.api.BaseCommand
-import org.github.telegabots.api.BlockInfo
-import org.github.telegabots.api.BlockStateInfo
-import org.github.telegabots.api.CommandContext
-import org.github.telegabots.api.ContentType
-import org.github.telegabots.api.Document
-import org.github.telegabots.api.InputMessage
-import org.github.telegabots.api.InputUser
-import org.github.telegabots.api.LocalizeProvider
-import org.github.telegabots.api.MessageSender
-import org.github.telegabots.api.MessageType
-import org.github.telegabots.api.Page
-import org.github.telegabots.api.PageInfo
-import org.github.telegabots.api.PageStateInfo
-import org.github.telegabots.api.Service
-import org.github.telegabots.api.ServiceProvider
-import org.github.telegabots.api.StateItem
-import org.github.telegabots.api.StateRef
-import org.github.telegabots.api.SubCommand
-import org.github.telegabots.api.SystemCommands
-import org.github.telegabots.api.TaskContext
-import org.github.telegabots.api.TaskManager
-import org.github.telegabots.api.UserService
+import org.github.telegabots.api.*
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.state.UserStateService
@@ -548,6 +526,8 @@ class BaseContextImpl(
 
     override fun <T : UserService> getUserService(clazz: Class<T>): T? =
         serviceProvider.getUserService(clazz, input.user)
+
+    override fun page(message: String): PageBuilder = PageBuilderImpl(message, this)
 
     override fun isAdmin(): Boolean = input.isAdmin
 

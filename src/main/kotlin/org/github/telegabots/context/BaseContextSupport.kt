@@ -1,18 +1,6 @@
 package org.github.telegabots.context
 
-import org.github.telegabots.api.BaseCommand
-import org.github.telegabots.api.BaseContext
-import org.github.telegabots.api.BlockInfo
-import org.github.telegabots.api.BlockStateInfo
-import org.github.telegabots.api.ContentType
-import org.github.telegabots.api.Document
-import org.github.telegabots.api.Page
-import org.github.telegabots.api.PageInfo
-import org.github.telegabots.api.PageStateInfo
-import org.github.telegabots.api.Service
-import org.github.telegabots.api.StateRef
-import org.github.telegabots.api.TaskManager
-import org.github.telegabots.api.UserService
+import org.github.telegabots.api.*
 
 /**
  * Base methods of Context for current executing command or task
@@ -91,4 +79,6 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
 
     override fun executeInlineCommand(handler: Class<out BaseCommand>, query: String): Boolean =
         current().executeInlineCommand(handler, query)
+
+    override fun page(message: String): PageBuilder = current().page(message)
 }

@@ -1,9 +1,6 @@
 package org.github.telegabots.context
 
-import org.github.telegabots.api.BaseCommand
-import org.github.telegabots.api.CommandContext
-import org.github.telegabots.api.InputMessage
-import org.github.telegabots.api.InputUser
+import org.github.telegabots.api.*
 
 /**
  * Supports CommandContext for current executing command

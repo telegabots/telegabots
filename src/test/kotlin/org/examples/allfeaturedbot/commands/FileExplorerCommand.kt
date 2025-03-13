@@ -2,15 +2,7 @@ package org.examples.allfeaturedbot.commands
 
 import org.apache.commons.io.FileUtils
 import org.examples.allfeaturedbot.tasks.CalculateDirSizeProgressInfo
-import org.github.telegabots.api.BaseCommand
-import org.github.telegabots.api.CommandBehaviour
-import org.github.telegabots.api.ContentType
-import org.github.telegabots.api.MessageType
-import org.github.telegabots.api.Page
-import org.github.telegabots.api.State
-import org.github.telegabots.api.StateRef
-import org.github.telegabots.api.SubCommand
-import org.github.telegabots.api.SystemCommands
+import org.github.telegabots.api.*
 import org.github.telegabots.api.annotation.InlineHandler
 import java.io.File
 import java.util.*
@@ -68,42 +60,38 @@ class FileExplorerCommand : BaseCommand() {
                 val index = i * rowSize
                 subCommands.add(allFiles.subList(index, Math.min(index + rowSize, allFiles.size)))
             }
-            context.updatePage(
-                Page(
-                    """
-                        Files of directory: *$nextPath*
-                        Count: ${allFiles.size - 1}
-                        $progressStatus
-                    """.trimIndent(),
-                    contentType = ContentType.Markdown,
-                    messageType = MessageType.Inline,
-                    subCommands = subCommands
-                )
+            context.page(
+                """
+                Files of directory: *$nextPath*
+                Count: ${allFiles.size - 1}
+                $progressStatus
+                """.trimIndent()
             )
+                .messageType(MessageType.Inline)
+                .contentType(ContentType.Markdown)
+                .subCommands(subCommands)
+                .update()
         } else {
             val lastModified = Date(currentFile.lastModified())
 
-            context.updatePage(
-                Page(
-                    """
+            context.page(
+                """
                         Information about file: *$nextPath*
                         Size: ${currentFile.length()} bytes
                         Last modified: $lastModified
-                    """.trimIndent(),
-                    contentType = ContentType.Markdown,
-                    messageType = MessageType.Inline,
-                    subCommands = listOf(
-                        listOf(
-                            SubCommand.of(UP_DIR),
-                            SubCommand.of<FileDownloadCommand>(
-                                title = "Download",
-                                state = StateRef.of(nextPath),
-                                behaviour = CommandBehaviour.ParentPage
-                            )
-                        )
+                    """.trimIndent()
+            )
+                .contentType(ContentType.Markdown)
+                .messageType(MessageType.Inline)
+                .subCommands(
+                    SubCommand.of(UP_DIR),
+                    SubCommand.of<FileDownloadCommand>(
+                        title = "Download",
+                        state = StateRef.of(nextPath),
+                        behaviour = CommandBehaviour.ParentPage
                     )
                 )
-            )
+                .update()
         }
     }
 
