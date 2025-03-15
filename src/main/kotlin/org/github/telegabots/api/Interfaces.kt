@@ -150,17 +150,62 @@ interface BaseContext : CommandExecutor {
         chatId: String = ""
     ): Int
 
+    /**
+     * Sends message to the chat
+     */
+    fun sendMessage(
+        message: String,
+        disablePreview: Boolean = false,
+    ): Int = sendMessage(message, ContentType.Plain, disablePreview, "")
+
+    /**
+     * Sends message to the chat
+     */
+    fun sendMessage(message: String): Int = sendMessage(message, ContentType.Plain, false, "")
+
+    /**
+     * Sends message to the chat as html
+     */
     fun sendHtmlMessage(
         message: String,
         disablePreview: Boolean = false,
         chatId: String = ""
     ): Int = sendMessage(message, ContentType.Html, disablePreview, chatId)
 
+    /**
+     * Sends message to the chat as html
+     */
+    fun sendHtmlMessage(
+        message: String,
+        disablePreview: Boolean = false
+    ): Int = sendMessage(message, ContentType.Html, disablePreview, "")
+
+    /**
+     * Sends message to the chat as html
+     */
+    fun sendHtmlMessage(message: String): Int = sendMessage(message, ContentType.Html, false, "")
+
+    /**
+     * Sends message to the chat as markdown
+     */
     fun sendMarkdownMessage(
         message: String,
         disablePreview: Boolean = false,
         chatId: String = ""
     ): Int = sendMessage(message, ContentType.Markdown, disablePreview, chatId)
+
+    /**
+     * Sends message to the chat as markdown
+     */
+    fun sendMarkdownMessage(
+        message: String,
+        disablePreview: Boolean = false,
+    ): Int = sendMessage(message, ContentType.Markdown, disablePreview, "")
+
+    /**
+     * Sends message to the chat as markdown
+     */
+    fun sendMarkdownMessage(message: String): Int = sendMessage(message, ContentType.Markdown, false, "")
 
     // TODO: probably remove
     fun enterCommand(command: BaseCommand)
