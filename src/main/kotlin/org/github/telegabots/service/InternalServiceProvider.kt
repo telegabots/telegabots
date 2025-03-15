@@ -3,7 +3,7 @@ package org.github.telegabots.service
 import org.github.telegabots.api.InputUser
 import org.github.telegabots.api.Service
 import org.github.telegabots.api.ServiceProvider
-import org.github.telegabots.api.UserLocalizationFactory
+import org.github.telegabots.api.LocalizationFactory
 import org.github.telegabots.api.UserService
 
 class InternalServiceProvider(
@@ -33,7 +33,7 @@ class InternalServiceProvider(
     @Suppress("UNCHECKED_CAST")
     private fun <T : Service> getServiceInternalPost(clazz: Class<T>): T? {
         val service = when (clazz) {
-            UserLocalizationFactory::class.java -> FileBasedLocalizationFactory(jsonService)
+            LocalizationFactory::class.java -> FileBasedLocalizationFactory(jsonService)
             else -> null
         }
 

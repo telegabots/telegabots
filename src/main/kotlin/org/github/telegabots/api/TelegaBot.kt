@@ -34,14 +34,14 @@ class TelegaBot(
     private val finalDbProvider: LockableStateDbProvider =
         if (dbProvider is LockableStateDbProvider) dbProvider else InternalLockableStateDbProvider(dbProvider)
     private val finalServiceProvider = InternalServiceProvider(serviceProvider, jsonService)
-    private val userLocalizationFactory = finalServiceProvider.getService(UserLocalizationFactory::class.java)!!
-    private val usersStatesManager = UsersStatesManager(finalDbProvider, userLocalizationFactory, jsonService)
+    private val localizationFactory = finalServiceProvider.getService(LocalizationFactory::class.java)!!
+    private val usersStatesManager = UsersStatesManager(finalDbProvider, localizationFactory, jsonService)
     private val callContextManager = CommandCallContextFactory(
         messageSender,
         finalServiceProvider,
         commandHandlers,
         usersStatesManager,
-        userLocalizationFactory,
+        localizationFactory,
         rootCommand
     )
     private val alertService = AlertServiceImpl(messageSender, config.alertChatId)

@@ -783,21 +783,13 @@ interface ServiceProvider {
 /**
  * Factory of getting LocalizeProvider by specified user
  */
-interface UserLocalizationFactory : Service {
-    /**
-     * Returns LocalizeProvider for user by id
-     */
-    fun getProvider(userId: Long): LocalizeProvider
+interface LocalizationFactory : Service {
+    fun getSupportedLanguages(): List<Language>
 
     /**
-     * Returns LocalizeProvider by locale
+     * Returns LocalizeProvider by language code
      */
-    fun getProvider(locale: Locale): LocalizeProvider
-
-    /**
-     * Returns current Locale of the user
-     */
-    fun getUserLocale(userId: Long): Locale
+    fun getProvider(langCode: String): LocalizeProvider
 }
 
 /**
@@ -805,14 +797,24 @@ interface UserLocalizationFactory : Service {
  */
 interface LocalizeProvider {
     /**
-     * Language code
+     * Language
      */
-    fun language(): String
+    fun language(): Language
 
     /**
      * Returns localized string of key itself
      */
     fun getString(key: String): String
+}
+
+interface Language {
+    fun code(): String
+
+    fun name(): String
+
+    fun nativeName(): String
+
+    fun flag(): String
 }
 
 /**

@@ -8,7 +8,7 @@ import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.Service
 import org.github.telegabots.api.ServiceProvider
 import org.github.telegabots.api.TelegaBot
-import org.github.telegabots.api.UserLocalizationFactory
+import org.github.telegabots.api.LocalizationFactory
 import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.state.MemoryStateDbProvider
 import org.github.telegabots.test.TestUserLocalizationProvider
@@ -30,16 +30,16 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     private val messageIdCounter = AtomicInteger(100_000)
     private val serviceProvider = mock(ServiceProvider::class.java)
     private val dbProvider = MemoryStateDbProvider()
-    private val userLocalizationFactory = mock(UserLocalizationFactory::class.java)
+    private val localizationFactory = mock(LocalizationFactory::class.java)
     private val localProviders = mutableMapOf<Long, TestUserLocalizationProvider>()
     private val telegaBot: TelegaBot
     private val sentMessages = mutableMapOf<Int, String>()
     private val config = BotConfig.load(Properties())
 
     init {
-        Mockito.`when`(serviceProvider.getService(UserLocalizationFactory::class.java))
-            .thenReturn(userLocalizationFactory)
-        Mockito.`when`(userLocalizationFactory.getProvider(anyLong()))
+        Mockito.`when`(serviceProvider.getService(LocalizationFactory::class.java))
+            .thenReturn(localizationFactory)
+        Mockito.`when`(localizationFactory.getProvider(anyLong()))
             .thenAnswer { mock -> getLocalizationProvider(mock.arguments[0] as Long) }
 
         telegaBot = TelegaBot(

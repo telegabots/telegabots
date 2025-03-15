@@ -1,6 +1,6 @@
 package org.github.telegabots.state
 
-import org.github.telegabots.api.UserLocalizationFactory
+import org.github.telegabots.api.LocalizationFactory
 import org.github.telegabots.service.JsonService
 
 
@@ -9,7 +9,7 @@ import org.github.telegabots.service.JsonService
  */
 class UsersStatesManager(
     private val dbProvider: LockableStateDbProvider,
-    private val localizationFactory: UserLocalizationFactory,
+    private val localizationFactory: LocalizationFactory,
     private val jsonService: JsonService
 ) {
     private val userStatesServices: MutableMap<Long, UserStateService> = mutableMapOf()

@@ -5,7 +5,7 @@ import org.github.telegabots.api.InputMessage
 import org.github.telegabots.api.MessageSender
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.ServiceProvider
-import org.github.telegabots.api.UserLocalizationFactory
+import org.github.telegabots.api.LocalizationFactory
 import org.github.telegabots.state.UsersStatesManager
 import org.github.telegabots.task.TaskManagerFactory
 import org.slf4j.LoggerFactory
@@ -18,7 +18,7 @@ class CommandCallContextFactory(
     private val serviceProvider: ServiceProvider,
     private val commandHandlers: CommandHandlers,
     private val usersStatesManager: UsersStatesManager,
-    private val userLocalizationFactory: UserLocalizationFactory,
+    private val localizationFactory: LocalizationFactory,
     private val rootCommand: Class<out BaseCommand>
 ) {
     private val taskManagerFactory = TaskManagerFactory(serviceProvider)
@@ -38,7 +38,7 @@ class CommandCallContextFactory(
             serviceProvider,
             commandHandlers,
             usersStatesManager.get(input.userId),
-            userLocalizationFactory.getProvider(input.userId),
+            localizationFactory.getProvider(input.userId),
             taskManagerFactory,
             rootCommand
         )

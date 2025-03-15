@@ -1,37 +1,26 @@
 package org.github.telegabots.service
 
+import org.github.telegabots.api.Language
+import org.github.telegabots.api.LocalizationFactory
 import org.github.telegabots.api.LocalizeProvider
-import org.github.telegabots.api.UserLocalizationFactory
 import org.slf4j.LoggerFactory
-import java.util.*
 
 open class FileBasedLocalizationFactory(
     val jsonService: JsonService,
     val file: String = "telegabots-locales.json"
-) : UserLocalizationFactory {
-    internal val locales: Map<String, LocalizeProvider>
+) : LocalizationFactory {
+    internal val locales: Map<Language, LocalizeProvider>
 
     init {
         locales = loadLocales()
     }
 
-    /**
-     * Returns LocalizeProvider for user by id
-     */
-    override fun getProvider(userId: Long): LocalizeProvider = locales[getLangByUser(userId)] ?: DummyLocalizeProvider
+    override fun getSupportedLanguages(): List<Language> = locales.keys.toList()
 
-    override fun getProvider(locale: Locale): LocalizeProvider = locales[locale.language] ?: DummyLocalizeProvider
+    override fun getProvider(langCode: String): LocalizeProvider =
+        locales[LanguageImpl.valueOf(langCode)] ?: DummyLocalizeProvider
 
-    override fun getUserLocale(userId: Long): Locale {
-        // TODO: get current user language and returns specified Locale
-        return Locale.ENGLISH
-    }
-
-    private fun getLangByUser(userId: Long): String {
-        return getUserLocale(userId).language
-    }
-
-    private fun loadLocales(): Map<String, LocalizeProvider> {
+    private fun loadLocales(): Map<Language, LocalizeProvider> {
         try {
             val fileRef = javaClass.classLoader.getResourceAsStream(file)
 
@@ -41,7 +30,10 @@ open class FileBasedLocalizationFactory(
             }
 
             val root = jsonService.parse(fileRef.bufferedReader(Charsets.UTF_8).readText(), FileRoot::class.java)
-            return root.locales.associate { it.lang to MapLocalizeProvider(it.lang, it.items) }
+            return root.locales
+                .map { LanguageImpl.valueOf(it.lang) to it.items }
+                .filter { it.first != null }
+                .associate { it.first!! to MapLocalizeProvider(it.first!!, it.second) }
         } catch (e: Exception) {
             throw IllegalStateException("Localization file parsing failed: ${e.message}, file: $file", e)
         }
@@ -52,14 +44,14 @@ open class FileBasedLocalizationFactory(
     }
 }
 
-private class MapLocalizeProvider(val language: String, val map: Map<String, String>) : LocalizeProvider {
-    override fun language(): String = language
+private class MapLocalizeProvider(val language: Language, val map: Map<String, String>) : LocalizeProvider {
+    override fun language(): Language = language
 
     override fun getString(key: String): String = map.getOrDefault(key, defaultValue = key)
 }
 
 private object DummyLocalizeProvider : LocalizeProvider {
-    override fun language(): String = "default"
+    override fun language(): Language = LanguageImpl.DEFAULT
 
     override fun getString(key: String): String = key
 }
@@ -70,3 +62,42 @@ private object DummyLocalizeProvider : LocalizeProvider {
 private data class FileRoot(val locales: List<Local>)
 
 private data class Local(val lang: String, val items: Map<String, String>)
+
+private data class LanguageImpl(
+    private val code: String,
+    private val name: String,
+    private val nativeName: String,
+    private val flag: String
+) : Language {
+    override fun code(): String = code
+
+    override fun name(): String = name
+
+    override fun nativeName(): String = nativeName
+
+    override fun flag(): String = flag
+
+    override fun toString(): String = "$code - $name ($nativeName)"
+
+    companion object {
+        fun valueOf(code: String): Language? {
+            return when (code) {
+                "en" -> return ENGLISH
+                "ru" -> return RUSSIAN
+                "de" -> return GERMAN
+                "uk" -> return UKRAINIAN
+                else -> null
+            }
+        }
+
+        val DEFAULT = LanguageImpl("default", "Default", "Default", "")
+
+        val ENGLISH = LanguageImpl("en", "English", "English", "🇬🇧")
+
+        val GERMAN = LanguageImpl("de", "German", "Deutsch", "🇩🇪")
+
+        val RUSSIAN = LanguageImpl("ru", "Russian", "Русский", "🇷🇺")
+
+        val UKRAINIAN = LanguageImpl("uk", "Ukrainian", "Українська", "🇺🇦")
+    }
+}
