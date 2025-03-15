@@ -40,12 +40,20 @@ interface StateProvider {
     /**
      * Gets state by state key
      */
-    fun get(stateKey: StateKey): StateItem?
+    fun get(key: StateKey): StateItem?
+
+    /**
+     * Gets state by state key
+     */
+    fun <T> get(key: StateKey, clazz: Class<T>): T? {
+        check(key.type == clazz) { "State type mismatch: ${key.type} != $clazz. Key: $key" }
+        return get(key)?.value as T?
+    }
 
     /**
      * Sets state by state key. Returns previous state
      */
-    fun set(stateKey: StateKey, value: Any?): StateItem?
+    fun set(key: StateKey, value: Any?): StateItem?
 
     /**
      * Returns all state items

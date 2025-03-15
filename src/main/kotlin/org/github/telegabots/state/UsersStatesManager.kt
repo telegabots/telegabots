@@ -20,13 +20,11 @@ class UsersStatesManager(
      */
     fun get(userId: Long): UserStateService {
         return synchronized(userStatesServices) {
-            val localizeProvider = localizationFactory.getProvider(userId)
-
             userStatesServices.getOrPut(userId) {
                 UserStateService(
                     userId,
                     dbProvider,
-                    localizeProvider,
+                    localizationFactory,
                     jsonService,
                     globalState
                 )

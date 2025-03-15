@@ -6,7 +6,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import java.io.File
 import java.time.LocalDateTime
-import java.util.*
 import java.util.function.Consumer
 import java.util.regex.Pattern
 
@@ -564,6 +563,9 @@ data class StateKey(val type: Class<*>, val name: String) {
     companion object {
         @JvmStatic
         fun from(obj: Any, name: String = "") = StateKey(type = obj.javaClass, name = name)
+
+        @JvmStatic
+        fun from(type: Class<*>, name: String = "") = StateKey(type = type, name = name)
     }
 }
 
@@ -790,6 +792,11 @@ interface LocalizationFactory : Service {
      * Returns LocalizeProvider by language code
      */
     fun getProvider(langCode: String): LocalizeProvider
+
+    /**
+     * Returns Language by language code from supported languages
+     */
+    fun getLanguage(langCode: String): Language?
 }
 
 /**
@@ -805,6 +812,12 @@ interface LocalizeProvider {
      * Returns localized string of key itself
      */
     fun getString(key: String): String
+}
+
+interface UserLanguageService : UserService {
+    fun getLanguage(): Language
+
+    fun setLanguage(language: Language)
 }
 
 interface Language {

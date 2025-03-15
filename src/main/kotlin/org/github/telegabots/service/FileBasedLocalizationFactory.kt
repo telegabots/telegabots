@@ -20,6 +20,8 @@ open class FileBasedLocalizationFactory(
     override fun getProvider(langCode: String): LocalizeProvider =
         locales[LanguageImpl.valueOf(langCode)] ?: DummyLocalizeProvider
 
+    override fun getLanguage(langCode: String): Language? = getSupportedLanguages().firstOrNull { it.code() == langCode }
+
     private fun loadLocales(): Map<Language, LocalizeProvider> {
         try {
             val fileRef = javaClass.classLoader.getResourceAsStream(file)
@@ -51,7 +53,7 @@ private class MapLocalizeProvider(val language: Language, val map: Map<String, S
 }
 
 private object DummyLocalizeProvider : LocalizeProvider {
-    override fun language(): Language = LanguageImpl.DEFAULT
+    override fun language(): Language = LanguageImpl.DUMMY
 
     override fun getString(key: String): String = key
 }
@@ -63,41 +65,4 @@ private data class FileRoot(val locales: List<Local>)
 
 private data class Local(val lang: String, val items: Map<String, String>)
 
-private data class LanguageImpl(
-    private val code: String,
-    private val name: String,
-    private val nativeName: String,
-    private val flag: String
-) : Language {
-    override fun code(): String = code
 
-    override fun name(): String = name
-
-    override fun nativeName(): String = nativeName
-
-    override fun flag(): String = flag
-
-    override fun toString(): String = "$code - $name ($nativeName)"
-
-    companion object {
-        fun valueOf(code: String): Language? {
-            return when (code) {
-                "en" -> return ENGLISH
-                "ru" -> return RUSSIAN
-                "de" -> return GERMAN
-                "uk" -> return UKRAINIAN
-                else -> null
-            }
-        }
-
-        val DEFAULT = LanguageImpl("default", "Default", "Default", "")
-
-        val ENGLISH = LanguageImpl("en", "English", "English", "🇬🇧")
-
-        val GERMAN = LanguageImpl("de", "German", "Deutsch", "🇩🇪")
-
-        val RUSSIAN = LanguageImpl("ru", "Russian", "Русский", "🇷🇺")
-
-        val UKRAINIAN = LanguageImpl("uk", "Ukrainian", "Українська", "🇺🇦")
-    }
-}

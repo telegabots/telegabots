@@ -8,6 +8,9 @@ class UserStateProvider(
     private val dbProvider: StateDbProvider,
     private val jsonService: JsonService
 ) : AbstractStateProvider(jsonService) {
+
+    fun userId(): Long = userId
+
     override fun saveState(state: StateDef) = dbProvider.saveUserState(userId, state)
 
     override fun loadState(): StateDef = dbProvider.getUserState(userId)

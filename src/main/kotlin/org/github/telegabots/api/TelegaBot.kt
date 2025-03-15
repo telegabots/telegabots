@@ -41,7 +41,6 @@ class TelegaBot(
         finalServiceProvider,
         commandHandlers,
         usersStatesManager,
-        localizationFactory,
         rootCommand
     )
     private val alertService = AlertServiceImpl(messageSender, config.alertChatId)

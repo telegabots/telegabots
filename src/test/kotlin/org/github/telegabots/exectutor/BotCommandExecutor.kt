@@ -1,20 +1,14 @@
 package org.github.telegabots.exectutor
 
-import org.github.telegabots.api.BaseCommand
-import org.github.telegabots.api.CommandInterceptor
-import org.github.telegabots.api.ContentType
-import org.github.telegabots.api.MessageSender
-import org.github.telegabots.api.MessageType
-import org.github.telegabots.api.Service
-import org.github.telegabots.api.ServiceProvider
-import org.github.telegabots.api.TelegaBot
-import org.github.telegabots.api.LocalizationFactory
+import org.github.telegabots.api.*
 import org.github.telegabots.api.config.BotConfig
+import org.github.telegabots.service.LanguageImpl
 import org.github.telegabots.state.MemoryStateDbProvider
-import org.github.telegabots.test.TestUserLocalizationProvider
+import org.github.telegabots.test.TestLocalizationProvider
 import org.github.telegabots.test.call
-import org.mockito.ArgumentMatchers.anyLong
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
+import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
@@ -31,16 +25,15 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     private val serviceProvider = mock(ServiceProvider::class.java)
     private val dbProvider = MemoryStateDbProvider()
     private val localizationFactory = mock(LocalizationFactory::class.java)
-    private val localProviders = mutableMapOf<Long, TestUserLocalizationProvider>()
+    private val localProvider = TestLocalizationProvider()
     private val telegaBot: TelegaBot
     private val sentMessages = mutableMapOf<Int, String>()
     private val config = BotConfig.load(Properties())
 
     init {
-        Mockito.`when`(serviceProvider.getService(LocalizationFactory::class.java))
-            .thenReturn(localizationFactory)
-        Mockito.`when`(localizationFactory.getProvider(anyLong()))
-            .thenAnswer { mock -> getLocalizationProvider(mock.arguments[0] as Long) }
+        doReturn(localizationFactory).`when`(serviceProvider).getService(LocalizationFactory::class.java)
+        doReturn(localProvider).`when`(localizationFactory).getProvider(anyString())
+        doReturn(listOf(LanguageImpl.ENGLISH)).`when`(localizationFactory).getSupportedLanguages()
 
         telegaBot = TelegaBot(
             messageSender = this,
@@ -61,7 +54,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     }
 
     fun addLocalization(userId: Long, vararg localPairs: Pair<String, String>) {
-        getLocalizationProvider(userId).addLocalization(*localPairs)
+        localProvider.addLocalization(*localPairs)
     }
 
     fun lastUserMessageId(): Int? = sentMessages.keys.lastOrNull()
@@ -168,9 +161,4 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
     override fun executed(command: BaseCommand, messageType: MessageType) {
         command::class.call()
     }
-
-    private fun getLocalizationProvider(userId: Long): TestUserLocalizationProvider =
-        localProviders.computeIfAbsent(userId) {
-            TestUserLocalizationProvider(userId)
-        }
 }

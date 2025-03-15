@@ -27,10 +27,11 @@ class CommandCallContextUserFactory(
     private val serviceProvider: ServiceProvider,
     private val commandHandlers: CommandHandlers,
     private val userState: UserStateService,
-    private val localizeProvider: LocalizeProvider,
     private val taskManagerFactory: TaskManagerFactory,
     private val rootCommand: Class<out BaseCommand>
 ) {
+    private val localizeProvider: LocalizeProvider = userState.getLocalizeProvider()
+
     fun get(): CommandCallContext =
         when (input.type) {
             MessageType.Text -> getTextMessageContext()

@@ -1,9 +1,6 @@
 package org.github.telegabots.state
 
-import org.github.telegabots.api.BaseCommand
-import org.github.telegabots.api.LocalizeProvider
-import org.github.telegabots.api.MessageType
-import org.github.telegabots.api.SubCommand
+import org.github.telegabots.api.*
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandDef
 import org.github.telegabots.entity.CommandPage
@@ -19,13 +16,15 @@ import java.util.concurrent.locks.Lock
 class UserStateService(
     private val userId: Long,
     private val dbProvider: LockableStateDbProvider,
-    private val localizeProvider: LocalizeProvider,
+    private val localizationFactory: LocalizationFactory,
     private val jsonService: JsonService,
     private val globalState: StateProvider
 ) {
     private val sharedStates: MutableMap<Int, StateProvider> = mutableMapOf()
     private val localStates: MutableMap<Long, StateProvider> = mutableMapOf()
     private val userState = UserStateProvider(userId, dbProvider, jsonService)
+    private val userSettings = UserSettingsService(userState)
+    private val userLanguageService = UserLanguageServiceImpl(localizationFactory, userSettings)
 
     fun getReadLock(): Lock = dbProvider.readLock()
 
@@ -76,7 +75,7 @@ class UserStateService(
                 id = pageId,
                 blockId = blockId,
                 handler = handler.name,
-                commandDefs = toCommandDefs(subCommands)
+                commandDefs = toCommandDefs(subCommands, getLocalizeProvider())
             )
         )
 
@@ -180,17 +179,18 @@ class UserStateService(
         else
             getLocalStateProvider(pageId)
 
-    private fun toCommandDefs(subCommands: List<List<SubCommand>>): List<List<CommandDef>> =
-        subCommands.map { it.map { cmd -> toCommandDef(cmd) } }
+    private fun toCommandDefs(subCommands: List<List<SubCommand>>, localizeProvider: LocalizeProvider): List<List<CommandDef>> =
+        subCommands.map { it.map { cmd -> toCommandDef(cmd, localizeProvider) } }
 
-    private fun toCommandDef(cmd: SubCommand): CommandDef =
-        CommandDef(
+    private fun toCommandDef(cmd: SubCommand, localizeProvider: LocalizeProvider): CommandDef {
+        return CommandDef(
             titleId = cmd.titleId,
             title = cmd.title ?: localizeProvider.getString(cmd.titleId),
             handler = cmd.handler?.name,
             state = jsonService.toStateDef(cmd.state),
             behaviour = cmd.behaviour
         )
+    }
 
     fun deleteBlock(blockId: Long) {
         dbProvider.deleteBlock(blockId)
@@ -202,5 +202,10 @@ class UserStateService(
 
     fun mergeLocalStateByPageId(pageId: Long, state: StateDef) {
         getLocalStateProvider(pageId).mergeAll(jsonService.toState(state)!!.items)
+    }
+
+    fun getLocalizeProvider(): LocalizeProvider {
+        val language = userLanguageService.getLanguage()
+        return localizationFactory.getProvider(language.code())
     }
 }

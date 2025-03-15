@@ -14,8 +14,8 @@ class FileBasedLocalizationFactoryTests {
 
         assertEquals(0, factory.locales.size)
 
-        val provider = factory.getProvider(123)
-        assertEquals("default", provider.language())
+        val provider = factory.getProvider("xx")
+        assertEquals("dummy", provider.language().code())
 
         val key = UUID.randomUUID().toString()
         assertEquals(key, provider.getString(key))
@@ -25,9 +25,12 @@ class FileBasedLocalizationFactoryTests {
     @Test
     fun testLoadDefaultLocale() {
         val factory = FileBasedLocalizationFactory(jsonService = JsonService())
-        val provider = factory.getProvider(123)
+        val provider = factory.getProvider("en")
+        val language = provider.language()
 
-        assertEquals("en", provider.language())
+        assertEquals("en", language.code())
+        assertEquals("English", language.name())
+        assertEquals("English", language.nativeName())
         assertEquals("Back", provider.getString("_BACK"))
     }
 }
