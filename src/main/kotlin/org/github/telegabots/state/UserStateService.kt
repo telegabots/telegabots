@@ -13,18 +13,18 @@ import java.util.concurrent.locks.Lock
 /**
  * Stores commands tree and all user-related states
  */
-class UserStateService(
+internal class UserStateService(
     private val userId: Long,
     private val dbProvider: LockableStateDbProvider,
-    private val localizationFactory: LocalizationFactory,
     private val jsonService: JsonService,
-    private val globalState: StateProvider
-) {
+    private val globalState: StateProvider,
+    private val serviceProvider: ServiceProvider
+) : UserService {
     private val sharedStates: MutableMap<Int, StateProvider> = mutableMapOf()
     private val localStates: MutableMap<Long, StateProvider> = mutableMapOf()
-    private val userState = UserStateProvider(userId, dbProvider, jsonService)
-    private val userSettings = UserSettingsService(userState)
-    private val userLanguageService = UserLanguageServiceImpl(localizationFactory, userSettings)
+    private val userState = serviceProvider.getUserService(UserStateProvider::class.java, userId)!!
+
+    override fun userId(): Long = userId
 
     fun getReadLock(): Lock = dbProvider.readLock()
 
@@ -205,7 +205,8 @@ class UserStateService(
     }
 
     fun getLocalizeProvider(): LocalizeProvider {
-        val language = userLanguageService.getLanguage()
-        return localizationFactory.getProvider(language.code())
+        val userLanguageService = serviceProvider.getUserService(UserLanguageService::class.java, userId)!!
+        val localizationFactory = serviceProvider.getService(LocalizationFactory::class.java)!!
+        return localizationFactory.getProvider(userLanguageService.getLanguage().code())
     }
 }

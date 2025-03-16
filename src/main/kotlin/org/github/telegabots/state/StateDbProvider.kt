@@ -1,5 +1,6 @@
 package org.github.telegabots.state
 
+import org.github.telegabots.api.Service
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.StateDef
@@ -8,7 +9,7 @@ import java.util.concurrent.locks.Lock
 /**
  * Database state provider
  */
-interface StateDbProvider {
+interface StateDbProvider : Service {
     /**
      * Creates new block
      */

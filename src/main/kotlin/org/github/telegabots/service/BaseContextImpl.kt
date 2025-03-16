@@ -15,7 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 import java.util.function.Consumer
 
-class BaseContextImpl(
+internal class BaseContextImpl(
     private val blockId: Long,
     private val pageId: Long,
     /**
@@ -525,7 +525,7 @@ class BaseContextImpl(
     override fun <T : Service> getService(clazz: Class<T>): T? = serviceProvider.getService(clazz)
 
     override fun <T : UserService> getUserService(clazz: Class<T>): T? =
-        serviceProvider.getUserService(clazz, input.user)
+        serviceProvider.getUserService(clazz, input.user.id)
 
     override fun page(message: String): PageBuilder = PageBuilderImpl(message, this)
 

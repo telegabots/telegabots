@@ -1,15 +1,16 @@
 package org.github.telegabots.state
 
+import org.github.telegabots.api.UserService
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 
-class UserStateProvider(
+internal class UserStateProvider(
     private val userId: Long,
     private val dbProvider: StateDbProvider,
     private val jsonService: JsonService
-) : AbstractStateProvider(jsonService) {
+) : AbstractStateProvider(jsonService), UserService {
 
-    fun userId(): Long = userId
+    override fun userId(): Long = userId
 
     override fun saveState(state: StateDef) = dbProvider.saveUserState(userId, state)
 

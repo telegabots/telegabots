@@ -1,5 +1,6 @@
 package org.github.telegabots.state
 
+import org.github.telegabots.api.Service
 import org.github.telegabots.api.StateItem
 import org.github.telegabots.api.StateKey
 
@@ -36,7 +37,7 @@ interface States {
 /**
  * Common interface for specified kind of state implementation
  */
-interface StateProvider {
+interface StateProvider : Service {
     /**
      * Gets state by state key
      */

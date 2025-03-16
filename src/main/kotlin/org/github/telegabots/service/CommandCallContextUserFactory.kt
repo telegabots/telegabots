@@ -21,15 +21,15 @@ import org.slf4j.LoggerFactory
 /**
  * User input related CommandCallContextFactory
  */
-class CommandCallContextUserFactory(
+internal class CommandCallContextUserFactory(
     private val input: InputMessage,
     private val messageSender: MessageSender,
     private val serviceProvider: ServiceProvider,
     private val commandHandlers: CommandHandlers,
-    private val userState: UserStateService,
     private val taskManagerFactory: TaskManagerFactory,
     private val rootCommand: Class<out BaseCommand>
 ) {
+    private val userState: UserStateService = serviceProvider.getUserService(UserStateService::class.java, input.userId)!!
     private val localizeProvider: LocalizeProvider = userState.getLocalizeProvider()
 
     fun get(): CommandCallContext =

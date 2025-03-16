@@ -20,8 +20,6 @@ open class FileBasedLocalizationFactory(
     override fun getProvider(langCode: String): LocalizeProvider =
         locales[LanguageImpl.valueOf(langCode)] ?: DummyLocalizeProvider
 
-    override fun getLanguage(langCode: String): Language? = getSupportedLanguages().firstOrNull { it.code() == langCode }
-
     private fun loadLocales(): Map<Language, LocalizeProvider> {
         try {
             val fileRef = javaClass.classLoader.getResourceAsStream(file)

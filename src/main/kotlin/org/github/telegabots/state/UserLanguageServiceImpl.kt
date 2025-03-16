@@ -15,6 +15,8 @@ internal class UserLanguageServiceImpl(
 
     override fun userId(): Long = userSettingsService.userId()
 
+    override fun getSupportedLanguages(): List<Language>  = localizationFactory.getSupportedLanguages()
+
     override fun getLanguage(): Language {
         val supportedLanguages = localizationFactory.getSupportedLanguages()
         if (language == null) {

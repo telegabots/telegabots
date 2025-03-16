@@ -777,7 +777,7 @@ interface MessageSender {
 interface ServiceProvider {
     fun <T : Service> getService(clazz: Class<T>): T?
 
-    fun <T : UserService> getUserService(clazz: Class<T>, user: InputUser): T?
+    fun <T : UserService> getUserService(clazz: Class<T>, userId: Long): T?
 
     fun setInternalService(internalServiceProvider: ServiceProvider) {}
 }
@@ -796,7 +796,7 @@ interface LocalizationFactory : Service {
     /**
      * Returns Language by language code from supported languages
      */
-    fun getLanguage(langCode: String): Language?
+    fun findLanguage(langCode: String): Language? =  getSupportedLanguages().firstOrNull { it.code() == langCode }
 }
 
 /**
@@ -815,9 +815,13 @@ interface LocalizeProvider {
 }
 
 interface UserLanguageService : UserService {
+    fun getSupportedLanguages(): List<Language>
+
     fun getLanguage(): Language
 
     fun setLanguage(language: Language)
+
+    fun findLanguage(langCode: String): Language? =  getSupportedLanguages().firstOrNull { it.code() == langCode }
 }
 
 interface Language {

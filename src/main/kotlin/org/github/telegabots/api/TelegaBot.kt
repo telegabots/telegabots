@@ -1,15 +1,10 @@
 package org.github.telegabots.api
 
 import org.github.telegabots.api.config.BotConfig
-import org.github.telegabots.service.AlertServiceImpl
-import org.github.telegabots.service.CommandCallContextFactory
-import org.github.telegabots.service.CommandHandlers
-import org.github.telegabots.service.InternalServiceProvider
-import org.github.telegabots.service.JsonService
+import org.github.telegabots.service.*
 import org.github.telegabots.state.InternalLockableStateDbProvider
 import org.github.telegabots.state.LockableStateDbProvider
 import org.github.telegabots.state.StateDbProvider
-import org.github.telegabots.state.UsersStatesManager
 import org.github.telegabots.util.CommandValidatorImpl
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.objects.Update
@@ -33,14 +28,11 @@ class TelegaBot(
     private val commandValidator = CommandValidatorImpl(commandHandlers)
     private val finalDbProvider: LockableStateDbProvider =
         if (dbProvider is LockableStateDbProvider) dbProvider else InternalLockableStateDbProvider(dbProvider)
-    private val finalServiceProvider = InternalServiceProvider(serviceProvider, jsonService)
-    private val localizationFactory = finalServiceProvider.getService(LocalizationFactory::class.java)!!
-    private val usersStatesManager = UsersStatesManager(finalDbProvider, localizationFactory, jsonService)
+    private val finalServiceProvider = InternalServiceProvider(serviceProvider, finalDbProvider, jsonService)
     private val callContextManager = CommandCallContextFactory(
         messageSender,
         finalServiceProvider,
         commandHandlers,
-        usersStatesManager,
         rootCommand
     )
     private val alertService = AlertServiceImpl(messageSender, config.alertChatId)
