@@ -19,7 +19,7 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
-class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : MessageSender, CommandInterceptor {
+class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, services: List<Service>) : MessageSender, CommandInterceptor {
     private val log = LoggerFactory.getLogger(BotCommandExecutor::class.java)!!
     private val messageIdCounter = AtomicInteger(100_000)
     private val serviceProvider = mock(ServiceProvider::class.java)
@@ -34,6 +34,9 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>) : Mess
         doReturn(localizationFactory).`when`(serviceProvider).getService(LocalizationFactory::class.java)
         doReturn(localProvider).`when`(localizationFactory).getProvider(anyString())
         doReturn(listOf(LanguageImpl.ENGLISH)).`when`(localizationFactory).getSupportedLanguages()
+        services.forEach { service ->
+            doReturn(service).`when`(serviceProvider).getService(service.javaClass)
+        }
 
         telegaBot = TelegaBot(
             messageSender = this,

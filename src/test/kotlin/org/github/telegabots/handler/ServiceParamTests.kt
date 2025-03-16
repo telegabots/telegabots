@@ -50,6 +50,37 @@ class ServiceParamTests : BaseTests() {
             }
         }
     }
+
+    @Test
+    fun testServiceCallInCtor_Success_WhenServiceRegistered() {
+        scenario<CommandWithServiceParamInCtor>(listOf(SimpleTestService())) {
+            resetRootCall()
+
+            assertThat {
+                assertFalse(SimpleTestService.calledWith("Polina"))
+            }
+
+            user {
+                sendTextMessage("Hello from client2!")
+            }
+
+            assertThat {
+                rootWasCalled(1)
+                assertTrue(SimpleTestService.calledWith("Polina"))
+            }
+        }
+    }
+
+    @Test
+    fun testServiceCallInCtor_Success_WhenServiceNotRegistered() {
+        val ex = assertThrows<IllegalStateException> {
+            scenario<CommandWithServiceParamInCtor> {
+                fail("Should not be called")
+            }
+        }
+
+        assertEquals("Service not found: class org.github.telegabots.handler.SimpleTestService", ex.message)
+    }
 }
 
 internal class CommandWithServiceParam : BaseCommand() {
@@ -57,6 +88,14 @@ internal class CommandWithServiceParam : BaseCommand() {
     fun handle(msg: String, service: SimpleTestService) {
         assertEquals("Hello from client!", msg)
         assertEquals("Hello from service, Ruslan", service.greet("Ruslan"))
+    }
+}
+
+internal class CommandWithServiceParamInCtor(private val service: SimpleTestService) : BaseCommand() {
+    @TextHandler
+    fun handle(msg: String, ) {
+        assertEquals("Hello from client2!", msg)
+        assertEquals("Hello from service, Polina", service.greet("Polina"))
     }
 }
 

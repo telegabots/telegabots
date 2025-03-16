@@ -24,11 +24,11 @@ class TelegaBot(
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
     private val adminChatId: Long = config.adminChatId
     private val jsonService: JsonService = JsonService()
-    private val commandHandlers = CommandHandlers(commandInterceptor)
-    private val commandValidator = CommandValidatorImpl(commandHandlers)
     private val finalDbProvider: LockableStateDbProvider =
         if (dbProvider is LockableStateDbProvider) dbProvider else InternalLockableStateDbProvider(dbProvider)
     private val finalServiceProvider = InternalServiceProvider(serviceProvider, finalDbProvider, jsonService)
+    private val commandHandlers = CommandHandlers(commandInterceptor, finalServiceProvider)
+    private val commandValidator = CommandValidatorImpl(commandHandlers)
     private val callContextManager = CommandCallContextFactory(
         messageSender,
         finalServiceProvider,

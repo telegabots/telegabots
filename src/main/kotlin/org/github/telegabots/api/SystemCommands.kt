@@ -36,4 +36,10 @@ class EmptyCommand : BaseCommand() {
     fun executeInline(text: String) {
         log.warn("Empty command inline executed: $text")
     }
+
+    companion object {
+        @JvmField
+        val INSTANCE = EmptyCommand()
+    }
 }
+

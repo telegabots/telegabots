@@ -3,18 +3,20 @@ package org.github.telegabots.util
 import org.github.telegabots.CODE_NOT_REACHED
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.EmptyCommand
+import org.github.telegabots.api.ServiceProvider
 import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.commands.AbstractBaseCommand
 import org.github.telegabots.handler.*
 import org.github.telegabots.java.JavaSimpleCommand
 import org.github.telegabots.service.CommandHandlers
+import org.github.telegabots.test.mockStrict
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertNull
 
 class CommandValidatorTests() {
-    private val commandHandlers = CommandHandlers()
+    private val serviceProviderMock = mockStrict(ServiceProvider::class.java)
+    private val commandHandlers = CommandHandlers(serviceProvider = serviceProviderMock)
     private val commandValidator = CommandValidatorImpl(commandHandlers)
 
     @Test
@@ -100,17 +102,16 @@ class CommandValidatorTests() {
 
     @Test
     fun testValidate_Fail_WhenCommandWithoutDefaultConstructor() {
-        val ex = assertThrows<InstantiationException> { commandValidator.validate(CommandWithoutDefaultConstructor::class.java) }
+        val ex = assertThrows<IllegalStateException> { commandValidator.validate(CommandWithoutDefaultConstructor::class.java) }
 
-        assertEquals(NoSuchMethodException::class.java, ex.cause!!::class.java)
-        assertEquals("org.github.telegabots.util.CommandWithoutDefaultConstructor", ex.message)
+        assertEquals("Argument type not implements Service: class java.lang.String. Command: org.github.telegabots.util.CommandWithoutDefaultConstructor", ex.message)
     }
 
     @Test
     fun testValidate_Fail_WhenCommandIsAbstract() {
-        val ex = assertThrows<InstantiationException> { commandValidator.validate(AbstractBaseCommand::class.java) }
+        val ex = assertThrows<IllegalStateException> { commandValidator.validate(AbstractBaseCommand::class.java) }
 
-        assertNull(ex.message)
+        assertEquals("Command class cannot be created : org.github.telegabots.commands.AbstractBaseCommand", ex.message)
     }
 }
 

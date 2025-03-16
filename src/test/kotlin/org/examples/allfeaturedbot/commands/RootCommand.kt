@@ -6,13 +6,14 @@ import org.github.telegabots.api.SubCommand
 import org.github.telegabots.api.SystemCommands
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
+import org.github.telegabots.std.cmd.LanguageCommand
 
 class RootCommand : BaseCommand() {
     @TextHandler
     fun handle(message: String) {
         context.page("Hello from bot! You said: $message")
             .messageType(MessageType.Inline)
-            .subCommands(SubCommand.of<FileExplorerCommand>())
+            .subCommands(FileExplorerCommand::class.java, LanguageCommand::class.java)
             .create()
     }
 
@@ -21,7 +22,7 @@ class RootCommand : BaseCommand() {
         if (message == SystemCommands.REFRESH) {
             context.page("Main menu")
                 .messageType(MessageType.Inline)
-                .subCommands(SubCommand.of<FileExplorerCommand>())
+                .subCommands(FileExplorerCommand::class.java, LanguageCommand::class.java)
                 .update()
         } else {
             TODO(message)

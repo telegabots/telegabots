@@ -8,10 +8,11 @@ import org.github.telegabots.entity.CommandPage
 import org.junit.jupiter.api.Assertions.*
 import java.time.LocalDateTime
 
-class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>) : BaseTests() {
+class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>, services: List<Service> = emptyList()) :
+    BaseTests() {
     private val userId = nextRandomLong()
     private val chatId = nextRandomLong()
-    private val executor = createExecutor(rootCommand)
+    private val executor = createExecutor(rootCommand, services)
     private val assertBuilder = AssertBuilder()
     private val userBuilder = UserBuilder()
     private var lastHandleResult: Boolean? = null
@@ -128,6 +129,10 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>) : BaseTes
 
 inline fun <reified T : BaseCommand> scenario(init: ScenarioBuilder.() -> Unit) {
     ScenarioBuilder(T::class.java).apply(init)
+}
+
+inline fun <reified T : BaseCommand> scenario(services: List<Service>, init: ScenarioBuilder.() -> Unit) {
+    ScenarioBuilder(T::class.java, services).apply(init)
 }
 
 data class Page(

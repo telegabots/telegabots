@@ -1,6 +1,7 @@
 package org.github.telegabots.util
 
 import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.EmptyCommand
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
@@ -10,6 +11,12 @@ object CommandClassUtil {
     fun getHandlers(command: BaseCommand): List<CommandHandlerInfo> {
         return command.javaClass.methods
             .mapNotNull { mapHandler(it, command) }
+            .map { checkHandler(it) }
+    }
+
+    fun checkHandlers(clazz: Class<BaseCommand>) {
+        clazz.methods
+            .mapNotNull { mapHandler(it, EmptyCommand.INSTANCE) }
             .map { checkHandler(it) }
     }
 

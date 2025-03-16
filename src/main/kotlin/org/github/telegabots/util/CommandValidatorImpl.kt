@@ -16,7 +16,7 @@ class CommandValidatorImpl(private val commandHandlers: CommandHandlers) : Comma
     override fun validate(vararg classes: Class<out BaseCommand>) {
         classes.forEach { cmdClass ->
             log.debug("Validating command: {}", cmdClass.name)
-            commandHandlers.getCommandHandler(cmdClass)
+            commandHandlers.validate(cmdClass)
         }
     }
 
