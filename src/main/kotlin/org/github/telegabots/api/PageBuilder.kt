@@ -65,6 +65,18 @@ interface PageBuilder {
     fun disablePreview(disable: Boolean): PageBuilder
 
     /**
+     * Enable back button for [Page]. Default is false
+     */
+    fun enableBack(): PageBuilder {
+        return enableBack(true)
+    }
+
+    /**
+     * Enable back button for [Page]. Default is false
+     */
+    fun enableBack(enable: Boolean): PageBuilder
+
+    /**
      * Set sub-commands for [Page].
      */
     fun subCommands(subCommands: List<List<SubCommand>>): PageBuilder

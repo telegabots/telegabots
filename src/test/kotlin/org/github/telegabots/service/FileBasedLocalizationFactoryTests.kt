@@ -1,5 +1,6 @@
 package org.github.telegabots.service
 
+import org.github.telegabots.api.SystemCommands
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -31,6 +32,6 @@ class FileBasedLocalizationFactoryTests {
         assertEquals("en", language.code())
         assertEquals("English", language.name())
         assertEquals("English", language.nativeName())
-        assertEquals("Back", provider.getString("_BACK"))
+        assertEquals("Back", provider.getString(SystemCommands.GO_BACK))
     }
 }

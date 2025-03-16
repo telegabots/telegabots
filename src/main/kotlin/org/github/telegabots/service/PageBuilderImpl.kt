@@ -11,6 +11,7 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
     private var disablePreview: Boolean = false
     private var subCommands: List<List<SubCommand>> = emptyList()
     private var handler: Class<out BaseCommand>? = null
+    private var enableBack: Boolean = false
     private var id: Long = 0L
     private var blockId: Long = 0L
     private var state: StateRef? = null
@@ -51,6 +52,11 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
         return this
     }
 
+    override fun enableBack(enable: Boolean): PageBuilder {
+        this.enableBack = enable
+        return this
+    }
+
     override fun subCommands(subCommands: List<List<SubCommand>>): PageBuilder {
         this.subCommands = subCommands
         return this
@@ -61,15 +67,23 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
         return this
     }
 
-    private fun createPage(): Page = Page(
-        message,
-        contentType = contentType,
-        messageType = messageType,
-        disablePreview = disablePreview,
-        subCommands = subCommands,
-        handler = handler,
-        id = id,
-        blockId = blockId,
-        state = state
-    )
+    private fun createPage(): Page {
+        val subCommands = if (enableBack) {
+            this.subCommands + listOf(listOf(SubCommand.GO_BACK))
+        } else {
+            this.subCommands
+        }
+
+        return Page(
+            message,
+            contentType = contentType,
+            messageType = messageType,
+            disablePreview = disablePreview,
+            subCommands = subCommands,
+            handler = handler,
+            id = id,
+            blockId = blockId,
+            state = state
+        )
+    }
 }

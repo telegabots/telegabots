@@ -35,6 +35,7 @@ open class LanguageCommand : BaseCommand() {
         // TODO: support text of different languages
         val pageBuilder = context.page("Current language: " + currLanguage.name())
             .messageType(MessageType.Inline)
+            .enableBack()
             .subCommands(subCommands)
 
         if (isUpdate) {
