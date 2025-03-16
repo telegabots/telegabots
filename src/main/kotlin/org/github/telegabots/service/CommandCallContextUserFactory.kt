@@ -1,14 +1,6 @@
 package org.github.telegabots.service
 
-import org.github.telegabots.api.BaseCommand
-import org.github.telegabots.api.CommandBehaviour
-import org.github.telegabots.api.CommandContext
-import org.github.telegabots.api.InputMessage
-import org.github.telegabots.api.LocalizeProvider
-import org.github.telegabots.api.MessageSender
-import org.github.telegabots.api.MessageType
-import org.github.telegabots.api.ServiceProvider
-import org.github.telegabots.api.SystemCommands
+import org.github.telegabots.api.*
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandDef
 import org.github.telegabots.entity.CommandPage
@@ -30,7 +22,6 @@ internal class CommandCallContextUserFactory(
     private val rootCommand: Class<out BaseCommand>
 ) {
     private val userState: UserStateService = serviceProvider.getUserService(UserStateService::class.java, input.userId)!!
-    private val localizeProvider: LocalizeProvider = userState.getLocalizeProvider()
 
     fun get(): CommandCallContext =
         when (input.type) {
@@ -234,6 +225,7 @@ internal class CommandCallContextUserFactory(
         messageType: MessageType,
         query: String
     ): CommandDef? {
+        val localizeProvider = userState.getLocalizeProvider()
         return when (messageType) {
             MessageType.Inline -> SystemCommands.ALL.filter { it == query }
                 .map { CommandDef(it, localizeProvider.getString(it), null, null, null) }
@@ -261,7 +253,6 @@ internal class CommandCallContextUserFactory(
             commandHandlers = commandHandlers,
             messageSender = messageSender,
             serviceProvider = serviceProvider,
-            localizeProvider = localizeProvider,
             userState = userState,
             taskManagerFactory = taskManagerFactory
         )

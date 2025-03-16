@@ -27,7 +27,6 @@ internal class BaseContextImpl(
     private val commandHandlers: CommandHandlers,
     private val userState: UserStateService,
     private val serviceProvider: ServiceProvider,
-    private val localizeProvider: LocalizeProvider,
     private val messageSender: MessageSender,
     private val taskManagerFactory: TaskManagerFactory
 ) : CommandContext, TaskContext {
@@ -55,7 +54,7 @@ internal class BaseContextImpl(
             disablePreview = page.disablePreview,
             message = page.message,
             preSendHandler = { msg ->
-                applyMessageButtons(msg, page.subCommands, page.messageType)
+                applyMessageButtons(msg, page.subCommands, page.messageType, userState.getLocalizeProvider())
             })
 
         userState.getWriteLock().runIn {
@@ -320,6 +319,7 @@ internal class BaseContextImpl(
             check(page.messageType == block.messageType) { "Adding page message type mismatch block's type. Expected: ${block.messageType}" }
 
             if (!ignoreSender) {
+                val localizeProvider = userState.getLocalizeProvider()
                 when (page.messageType) {
                     MessageType.Text -> {
                         messageSender.sendMessage(chatId = input.chatId.toString(),
@@ -327,7 +327,7 @@ internal class BaseContextImpl(
                             disablePreview = page.disablePreview,
                             message = page.message,
                             preSendHandler = Consumer { msg ->
-                                applyMessageButtons(msg, page.subCommands, page.messageType)
+                                applyMessageButtons(msg, page.subCommands, page.messageType, localizeProvider)
                             })
                     }
                     MessageType.Inline -> {
@@ -337,7 +337,7 @@ internal class BaseContextImpl(
                             disablePreview = page.disablePreview,
                             message = page.message,
                             preSendHandler = Consumer { msg ->
-                                applyMessageButtons(msg, page.subCommands)
+                                applyMessageButtons(msg, page.subCommands, localizeProvider)
                             })
                     }
                 }
@@ -387,6 +387,7 @@ internal class BaseContextImpl(
             check(page.messageType == block.messageType) { "Update page message type mismatch block's type. Expected: ${block.messageType}" }
 
             if (!ignoreSender) {
+                val localizeProvider = userState.getLocalizeProvider()
                 when (page.messageType) {
                     MessageType.Text -> {
                         messageSender.sendMessage(chatId = input.chatId.toString(),
@@ -394,7 +395,7 @@ internal class BaseContextImpl(
                             disablePreview = page.disablePreview,
                             message = page.message,
                             preSendHandler = { msg ->
-                                applyMessageButtons(msg, page.subCommands, page.messageType)
+                                applyMessageButtons(msg, page.subCommands, page.messageType, localizeProvider)
                             })
                     }
                     MessageType.Inline -> {
@@ -404,7 +405,7 @@ internal class BaseContextImpl(
                             disablePreview = page.disablePreview,
                             message = page.message,
                             preSendHandler = { msg ->
-                                applyMessageButtons(msg, page.subCommands)
+                                applyMessageButtons(msg, page.subCommands, localizeProvider)
                             })
                     }
                 }
@@ -555,7 +556,6 @@ internal class BaseContextImpl(
             commandHandlers = commandHandlers,
             messageSender = messageSender,
             serviceProvider = serviceProvider,
-            localizeProvider = localizeProvider,
             userState = userState,
             taskManagerFactory = taskManagerFactory
         )
@@ -609,45 +609,46 @@ internal class BaseContextImpl(
             MessageType.Inline -> "InlineHandler"
         }
 
-    private fun applyMessageButtons(msg: SendMessage, subCommands: List<List<SubCommand>>, messageType: MessageType) {
+    private fun applyMessageButtons(msg: SendMessage, subCommands: List<List<SubCommand>>, messageType: MessageType, localizeProvider: LocalizeProvider) {
+        val localizeProvider = userState.getLocalizeProvider()
         msg.replyMarkup = when (messageType) {
-            MessageType.Inline -> mapInlineKeyboardMarkup(subCommands)
-            MessageType.Text -> mapReplyKeyboardMarkup(subCommands)
+            MessageType.Inline -> mapInlineKeyboardMarkup(subCommands, localizeProvider)
+            MessageType.Text -> mapReplyKeyboardMarkup(subCommands, localizeProvider)
         }
     }
 
-    private fun applyMessageButtons(msg: EditMessageText, subCommands: List<List<SubCommand>>) {
-        msg.replyMarkup = mapInlineKeyboardMarkup(subCommands)
+    private fun applyMessageButtons(msg: EditMessageText, subCommands: List<List<SubCommand>>, localizeProvider: LocalizeProvider) {
+        msg.replyMarkup = mapInlineKeyboardMarkup(subCommands, localizeProvider)
     }
 
-    private fun mapInlineKeyboardMarkup(subCommands: List<List<SubCommand>>): InlineKeyboardMarkup =
+    private fun mapInlineKeyboardMarkup(subCommands: List<List<SubCommand>>, localizeProvider: LocalizeProvider): InlineKeyboardMarkup =
         InlineKeyboardMarkup().apply {
-            keyboard = subCommands.map { mapInlineButtonsRow(it) }
+            keyboard = subCommands.map { mapInlineButtonsRow(it, localizeProvider) }
                 .filter { it.isNotEmpty() }
                 .toMutableList()
         }
 
-    private fun mapReplyKeyboardMarkup(subCommands: List<List<SubCommand>>): ReplyKeyboardMarkup =
+    private fun mapReplyKeyboardMarkup(subCommands: List<List<SubCommand>>, localizeProvider: LocalizeProvider): ReplyKeyboardMarkup =
         ReplyKeyboardMarkup().apply {
-            keyboard = subCommands.map { mapTextButtonsRow(it) }
+            keyboard = subCommands.map { mapTextButtonsRow(it, localizeProvider) }
                 .filter { it.isNotEmpty() }
                 .toMutableList()
         }
 
-    private fun mapTextButtonsRow(cmds: List<SubCommand>): KeyboardRow =
+    private fun mapTextButtonsRow(cmds: List<SubCommand>, localizeProvider: LocalizeProvider): KeyboardRow =
         KeyboardRow().apply {
-            cmds.forEach { cmd -> add(getTitle(cmd)) }
+            cmds.forEach { cmd -> add(getTitle(cmd, localizeProvider)) }
         }
 
-    private fun mapInlineButtonsRow(cmds: List<SubCommand>): MutableList<InlineKeyboardButton> =
+    private fun mapInlineButtonsRow(cmds: List<SubCommand>, localizeProvider: LocalizeProvider): MutableList<InlineKeyboardButton> =
         cmds.map { cmd ->
             InlineKeyboardButton().apply {
-                text = getTitle(cmd)
+                text = getTitle(cmd, localizeProvider)
                 callbackData = cmd.titleId
             }
         }.toMutableList()
 
-    private fun getTitle(cmd: SubCommand) = cmd.title ?: localizeProvider.getString(cmd.titleId)
+    private fun getTitle(cmd: SubCommand, localizeProvider: LocalizeProvider) = cmd.title ?: localizeProvider.getString(cmd.titleId)
 
     companion object {
         private const val PAGE_ID_LAST: Long = 0

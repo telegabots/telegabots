@@ -7,7 +7,7 @@ import org.github.telegabots.api.annotation.TextHandler
 /**
  * Show all supported languages and allow user to change current language
  */
-open class LanguageCommand : BaseCommand() {
+open class LanguageCommand (private val localizationFactory: LocalizationFactory) : BaseCommand() {
     @TextHandler
     fun handle(message: String, languageService: UserLanguageService) {
         showLanguagesPage(languageService, false)
@@ -28,12 +28,13 @@ open class LanguageCommand : BaseCommand() {
         isUpdate: Boolean
     ) {
         val currLanguage = languageService.getLanguage()
-        val subCommands: List<List<SubCommand>> = languageService.getSupportedLanguages()
+        val subCommands: List<List<SubCommand>> = localizationFactory.getSupportedLanguages()
             .map { lang -> SubCommand.of(lang.code(), getTitle(lang, currLanguage === lang)) }
             .map { listOf(it) }
 
-        // TODO: support text of different languages
-        val pageBuilder = context.page("Current language: " + currLanguage.name())
+        val provider = localizationFactory.getProvider(currLanguage.code())
+        val pageBuilder = context.page(String.format(provider.getString("LANGUAGE_CURRENT"), currLanguage.nativeName()))
+            .contentType(ContentType.Markdown)
             .messageType(MessageType.Inline)
             .enableBack()
             .subCommands(subCommands)
@@ -46,6 +47,6 @@ open class LanguageCommand : BaseCommand() {
     }
 
     private fun getTitle(lang: Language, isCurrent: Boolean): String {
-        return (lang.flag() + lang.name()) + (if (isCurrent) " ✅" else "")
+        return (lang.flag() + lang.nativeName()) + (if (isCurrent) " ✅" else "")
     }
 }

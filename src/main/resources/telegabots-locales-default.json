@@ -7,7 +7,9 @@
         "_CANCEL": "Cancel",
         "_YES": "Yes",
         "_NO": "No",
-        "_REFRESH": "Refresh"
+        "_REFRESH": "Refresh",
+        "LANGUAGE": "Language",
+        "LANGUAGE_CURRENT": "Current language is *%s*. Select new language:"
       }
     },
     {
@@ -17,18 +19,34 @@
         "_CANCEL": "Отмена",
         "_YES": "Да",
         "_NO": "Нет",
-        "_REFRESH": "Обновить"
+        "_REFRESH": "Обновить",
+        "LANGUAGE": "Язык",
+        "LANGUAGE_CURRENT": "Текущий язык *%s*. Выберите новый язык:"
       }
     },
     {
-        "lang": "de",
-        "items": {
-            "_GO_BACK": "Zurück",
-            "_CANCEL": "Abbrechen",
-            "_YES": "Ja",
-            "_NO": "Nein",
-            "_REFRESH": "Aktualisieren"
-        }
+      "lang": "de",
+      "items": {
+        "_GO_BACK": "Zurück",
+        "_CANCEL": "Abbrechen",
+        "_YES": "Ja",
+        "_NO": "Nein",
+        "_REFRESH": "Aktualisieren",
+        "LANGUAGE": "Sprache",
+        "LANGUAGE_CURRENT": "Die aktuelle Sprache ist *%s*. Wählen Sie eine neue Sprache:"
+      }
+    },
+    {
+      "lang": "uk",
+      "items": {
+        "_GO_BACK": "Назад",
+        "_CANCEL": "Скасувати",
+        "_YES": "Так",
+        "_NO": "Ні",
+        "_REFRESH": "Оновити",
+        "LANGUAGE": "Мова",
+        "LANGUAGE_CURRENT": "Поточна мова *%s*. Виберіть нову мову:"
+      }
     }
   ]
 }
