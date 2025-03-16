@@ -1,0 +1,34 @@
+{
+  "locales": [
+    {
+      "lang": "en",
+      "items": {
+        "_GO_BACK": "Back",
+        "_CANCEL": "Cancel",
+        "_YES": "Yes",
+        "_NO": "No",
+        "_REFRESH": "Refresh"
+      }
+    },
+    {
+      "lang": "ru",
+      "items": {
+        "_GO_BACK": "Назад",
+        "_CANCEL": "Отмена",
+        "_YES": "Да",
+        "_NO": "Нет",
+        "_REFRESH": "Обновить"
+      }
+    },
+    {
+        "lang": "de",
+        "items": {
+            "_GO_BACK": "Zurück",
+            "_CANCEL": "Abbrechen",
+            "_YES": "Ja",
+            "_NO": "Nein",
+            "_REFRESH": "Aktualisieren"
+        }
+    }
+  ]
+}

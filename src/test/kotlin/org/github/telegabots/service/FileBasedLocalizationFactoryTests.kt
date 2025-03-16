@@ -4,6 +4,7 @@ import org.github.telegabots.api.SystemCommands
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
+import kotlin.test.assertSame
 
 class FileBasedLocalizationFactoryTests {
     @Test
@@ -24,14 +25,23 @@ class FileBasedLocalizationFactoryTests {
     }
 
     @Test
-    fun testLoadDefaultLocale() {
+    fun testSupportedLanguages() {
         val factory = FileBasedLocalizationFactory(jsonService = JsonService())
-        val provider = factory.getProvider("en")
-        val language = provider.language()
+        val supportedLanguages = factory.getSupportedLanguages()
+        assertEquals(listOf("en", "de"), supportedLanguages.map { it.code() })
+        { "Only languages from telegabots-locales.json should be supported" }
+        val providerEng = factory.getProvider("en")
 
-        assertEquals("en", language.code())
-        assertEquals("English", language.name())
-        assertEquals("English", language.nativeName())
-        assertEquals("Back", provider.getString(SystemCommands.GO_BACK))
+        assertSame(LanguageImpl.ENGLISH, providerEng.language())
+        assertEquals("Back", providerEng.getString(SystemCommands.GO_BACK))
+        assertEquals("Yes", providerEng.getString("_YES"))
+        assertEquals("No", providerEng.getString("_NO"))
+        assertEquals("This is custom key", providerEng.getString("CUSTOM_KEY"))
+
+        val providerGer = factory.getProvider("de")
+        assertSame(LanguageImpl.GERMAN, providerGer.language())
+        assertEquals("Zurück", providerGer.getString(SystemCommands.GO_BACK))
+        assertEquals("Ja!!!", providerGer.getString("_YES"), "Custom key should override standard key")
+        assertEquals("Dies ist ein benutzerdefinierter Schlüssel", providerGer.getString("CUSTOM_KEY"))
     }
 }

@@ -7,12 +7,15 @@ import org.slf4j.LoggerFactory
 
 open class FileBasedLocalizationFactory(
     val jsonService: JsonService,
-    val file: String = "telegabots-locales.json"
+    val file: String = "telegabots-locales.json",
+    val defaultFile: String = "telegabots-locales-default.json"
 ) : LocalizationFactory {
     internal val locales: Map<Language, LocalizeProvider>
 
     init {
-        locales = loadLocales()
+        val userLocales = loadLocales(file)
+        val defaultLocales = loadLocales(defaultFile)
+        locales = merge(defaultLocales, userLocales)
     }
 
     override fun getSupportedLanguages(): List<Language> = locales.keys.toList()
@@ -20,12 +23,12 @@ open class FileBasedLocalizationFactory(
     override fun getProvider(langCode: String): LocalizeProvider =
         locales[LanguageImpl.valueOf(langCode)] ?: DummyLocalizeProvider
 
-    private fun loadLocales(): Map<Language, LocalizeProvider> {
+    private fun loadLocales(fileName: String): Map<Language, LocalizeProvider> {
         try {
-            val fileRef = javaClass.classLoader.getResourceAsStream(file)
+            val fileRef = javaClass.classLoader.getResourceAsStream(fileName)
 
             if (fileRef == null) {
-                log.warn("Localization file not found: {}", file)
+                log.warn("Localization file not found: {}. Please, define if it", fileName)
                 return emptyMap()
             }
 
@@ -35,8 +38,15 @@ open class FileBasedLocalizationFactory(
                 .filter { it.first != null }
                 .associate { it.first!! to MapLocalizeProvider(it.first!!, it.second) }
         } catch (e: Exception) {
-            throw IllegalStateException("Localization file parsing failed: ${e.message}, file: $file", e)
+            throw IllegalStateException("Localization file parsing failed: ${e.message}, file: $fileName", e)
         }
+    }
+
+    private fun merge(
+        defaultLocales: Map<Language, LocalizeProvider>,
+        userLocales: Map<Language, LocalizeProvider>
+    ): Map<Language, LocalizeProvider> {
+        return userLocales.map { it.key to (it.value as MapLocalizeProvider).merge(defaultLocales[it.key]) }.toMap()
     }
 
     private companion object {
@@ -48,6 +58,15 @@ private class MapLocalizeProvider(val language: Language, val map: Map<String, S
     override fun language(): Language = language
 
     override fun getString(key: String): String = map.getOrDefault(key, defaultValue = key)
+
+    fun merge(defaultProvider: LocalizeProvider?): MapLocalizeProvider {
+        if (defaultProvider is MapLocalizeProvider) {
+            val newMap = defaultProvider.map.toMutableMap()
+            newMap.putAll(map)
+            return MapLocalizeProvider(language, newMap)
+        }
+        return this
+    }
 }
 
 private object DummyLocalizeProvider : LocalizeProvider {

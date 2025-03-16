@@ -1,0 +1,17 @@
+{
+  "locales": [
+    {
+      "lang": "en",
+      "items": {
+        "CUSTOM_KEY": "This is custom key"
+      }
+    },
+    {
+      "lang": "de",
+      "items": {
+        "CUSTOM_KEY": "Dies ist ein benutzerdefinierter Schlüssel",
+        "_YES": "Ja!!!"
+      }
+    }
+  ]
+}
