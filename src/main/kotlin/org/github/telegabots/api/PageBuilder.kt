@@ -73,14 +73,16 @@ interface PageBuilder {
      * Set sub-commands for [Page].
      */
     fun subCommands(vararg subCommands: SubCommand): PageBuilder {
-        return subCommands(listOf(subCommands.toList()))
+        // convert list to vertical layout
+        return subCommands(subCommands.map { cmd -> listOf(cmd) })
     }
 
     /**
      * Set sub-commands by [BaseCommand].
      */
     fun subCommands(vararg commands: Class<out BaseCommand>): PageBuilder {
-        return subCommands(listOf(commands.map { cmd -> SubCommand.of(cmd) }))
+        // convert list to vertical layout
+        return subCommands(commands.map { cmd -> listOf(SubCommand.of(cmd)) })
     }
 
     /**
