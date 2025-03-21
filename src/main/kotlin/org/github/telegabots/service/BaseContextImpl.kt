@@ -15,6 +15,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 import java.util.function.Consumer
 
+/**
+ * Implementation of [CommandContext] and [TaskContext]
+ */
 internal class BaseContextImpl(
     private val blockId: Long,
     private val pageId: Long,

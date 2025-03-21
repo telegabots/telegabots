@@ -28,6 +28,15 @@ interface PageBuilder {
     fun update(): Long?
 
     /**
+     * Alternative way to call methods: [create], [add], [update]
+     */
+    fun apply(operation: PageOperation): Long? = when (operation) {
+        PageOperation.Create -> create()
+        PageOperation.Add -> add()
+        PageOperation.Update -> update()
+    }
+
+    /**
      * Set id for [Page]
      */
     fun id(id: Long): PageBuilder

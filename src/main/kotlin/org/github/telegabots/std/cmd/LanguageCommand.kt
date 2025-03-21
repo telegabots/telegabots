@@ -5,12 +5,12 @@ import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
 
 /**
- * Show all supported languages and allow user to change current language
+ * Shows all supported languages and allow user to change current [Language]
  */
 open class LanguageCommand : BaseCommand() {
     @TextHandler
     fun handle(message: String, provider: UserLocalizationProvider) {
-        showLanguagesPage(provider, false)
+        showLanguagesPage(provider, PageOperation.Create)
     }
 
     @InlineHandler
@@ -20,29 +20,24 @@ open class LanguageCommand : BaseCommand() {
             provider.setLanguage(newLanguage)
         }
 
-        showLanguagesPage(provider, true)
+        showLanguagesPage(provider, PageOperation.Update)
     }
 
     private fun showLanguagesPage(
         provider: UserLocalizationProvider,
-        isUpdate: Boolean
+        operation: PageOperation
     ) {
         val currLanguage = provider.getLanguage()
         val subCommands: List<List<SubCommand>> = provider.getSupportedLanguages()
             .map { lang -> SubCommand.of(lang.code(), getTitle(lang, currLanguage === lang)) }
             .map { listOf(it) }
 
-        val pageBuilder = context.page(String.format(provider.getString("LANGUAGE_CURRENT"), currLanguage.nativeName()))
+        context.page(String.format(provider.getString("LANGUAGE_CURRENT"), currLanguage.nativeName()))
             .contentType(ContentType.Markdown)
             .messageType(MessageType.Inline)
             .enableBack()
             .subCommands(subCommands)
-
-        if (isUpdate) {
-            pageBuilder.update()
-        } else {
-            pageBuilder.create()
-        }
+            .apply(operation)
     }
 
     private fun getTitle(lang: Language, isCurrent: Boolean): String {
