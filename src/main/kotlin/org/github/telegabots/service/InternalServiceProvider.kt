@@ -7,19 +7,14 @@ import org.github.telegabots.state.*
  * Internal implementation of [ServiceProvider]
  */
 internal class InternalServiceProvider(
-    private val delegate: ServiceProvider,
+    private val userServiceProvider: ServiceProvider,
     private val stateDbProvider: LockableStateDbProvider,
     private val jsonService: JsonService
 ) : ServiceProvider {
     private val globalState: GlobalStateProvider = GlobalStateProvider(stateDbProvider, jsonService)
-
-    // TODO: clean cache when needed
+    // TODO: clean cache when needed, use LRU cache
     private val serviceCache: MutableMap<Class<*>, Service?> = HashMap()
     private val userServiceCache: MutableMap<Pair<Class<*>, Long>, UserService?> = HashMap()
-
-    init {
-        delegate.setInternalService(this)
-    }
 
     override fun <T : Service> getService(clazz: Class<T>): T? {
         // TODO: detect circular dependencies
@@ -61,7 +56,7 @@ internal class InternalServiceProvider(
         }
         if (service == null) {
             // get user defined service
-            service = delegate.getService(clazz)
+            service = userServiceProvider.getService(clazz)
 
             if (service == null) {
                 service = when (clazz) {
@@ -107,7 +102,7 @@ internal class InternalServiceProvider(
 
         if (service == null) {
             // get user defined service
-            service = delegate.getUserService(clazz, userId)
+            service = userServiceProvider.getUserService(clazz, userId)
 
             if (service == null) {
                 // TODO: add post init user services
