@@ -97,7 +97,7 @@ internal class InternalServiceProvider(
                 )!!
             )
 
-            UserLanguageService::class.java -> UserLanguageServiceImpl(
+            UserLocalizationProvider::class.java -> UserLocalizationProviderImpl(
                 getService(LocalizationFactory::class.java)!!,
                 getUserService(UserSettingsService::class.java, userId)!!
             )

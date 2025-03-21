@@ -23,6 +23,7 @@ internal class UserStateService(
     private val sharedStates: MutableMap<Int, StateProvider> = mutableMapOf()
     private val localStates: MutableMap<Long, StateProvider> = mutableMapOf()
     private val userState = serviceProvider.getUserService(UserStateProvider::class.java, userId)!!
+    private val localizationProvider = serviceProvider.getUserService(UserLocalizationProvider::class.java, userId)!!
 
     override fun userId(): Long = userId
 
@@ -75,7 +76,7 @@ internal class UserStateService(
                 id = pageId,
                 blockId = blockId,
                 handler = handler.name,
-                commandDefs = toCommandDefs(subCommands, getLocalizeProvider())
+                commandDefs = toCommandDefs(subCommands)
             )
         )
 
@@ -179,13 +180,13 @@ internal class UserStateService(
         else
             getLocalStateProvider(pageId)
 
-    private fun toCommandDefs(subCommands: List<List<SubCommand>>, localizeProvider: LocalizeProvider): List<List<CommandDef>> =
-        subCommands.map { it.map { cmd -> toCommandDef(cmd, localizeProvider) } }
+    private fun toCommandDefs(subCommands: List<List<SubCommand>>): List<List<CommandDef>> =
+        subCommands.map { it.map { cmd -> toCommandDef(cmd) } }
 
-    private fun toCommandDef(cmd: SubCommand, localizeProvider: LocalizeProvider): CommandDef {
+    private fun toCommandDef(cmd: SubCommand): CommandDef {
         return CommandDef(
             titleId = cmd.titleId,
-            title = cmd.title ?: localizeProvider.getString(cmd.titleId),
+            title = cmd.title ?: localizationProvider.getString(cmd.titleId),
             handler = cmd.handler?.name,
             state = jsonService.toStateDef(cmd.state),
             behaviour = cmd.behaviour
@@ -202,11 +203,5 @@ internal class UserStateService(
 
     fun mergeLocalStateByPageId(pageId: Long, state: StateDef) {
         getLocalStateProvider(pageId).mergeAll(jsonService.toState(state)!!.items)
-    }
-
-    fun getLocalizeProvider(): LocalizeProvider {
-        val userLanguageService = serviceProvider.getUserService(UserLanguageService::class.java, userId)!!
-        val localizationFactory = serviceProvider.getService(LocalizationFactory::class.java)!!
-        return localizationFactory.getProvider(userLanguageService.getLanguage().code())
     }
 }

@@ -7,32 +7,31 @@ import org.github.telegabots.api.annotation.TextHandler
 /**
  * Show all supported languages and allow user to change current language
  */
-open class LanguageCommand (private val localizationFactory: LocalizationFactory) : BaseCommand() {
+open class LanguageCommand : BaseCommand() {
     @TextHandler
-    fun handle(message: String, languageService: UserLanguageService) {
-        showLanguagesPage(languageService, false)
+    fun handle(message: String, provider: UserLocalizationProvider) {
+        showLanguagesPage(provider, false)
     }
 
     @InlineHandler
-    fun handleInline(langCode: String, languageService: UserLanguageService) {
-        val newLanguage = languageService.findLanguage(langCode)
-        if (newLanguage != null && languageService.getLanguage() !== newLanguage) {
-            languageService.setLanguage(newLanguage)
+    fun handleInline(langCode: String, provider: UserLocalizationProvider) {
+        val newLanguage = provider.findLanguage(langCode)
+        if (newLanguage != null && provider.getLanguage() !== newLanguage) {
+            provider.setLanguage(newLanguage)
         }
 
-        showLanguagesPage(languageService, true)
+        showLanguagesPage(provider, true)
     }
 
     private fun showLanguagesPage(
-        languageService: UserLanguageService,
+        provider: UserLocalizationProvider,
         isUpdate: Boolean
     ) {
-        val currLanguage = languageService.getLanguage()
-        val subCommands: List<List<SubCommand>> = localizationFactory.getSupportedLanguages()
+        val currLanguage = provider.getLanguage()
+        val subCommands: List<List<SubCommand>> = provider.getSupportedLanguages()
             .map { lang -> SubCommand.of(lang.code(), getTitle(lang, currLanguage === lang)) }
             .map { listOf(it) }
 
-        val provider = localizationFactory.getProvider(currLanguage.code())
         val pageBuilder = context.page(String.format(provider.getString("LANGUAGE_CURRENT"), currLanguage.nativeName()))
             .contentType(ContentType.Markdown)
             .messageType(MessageType.Inline)

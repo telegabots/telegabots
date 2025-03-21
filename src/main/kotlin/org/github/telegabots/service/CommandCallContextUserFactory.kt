@@ -21,7 +21,10 @@ internal class CommandCallContextUserFactory(
     private val taskManagerFactory: TaskManagerFactory,
     private val rootCommand: Class<out BaseCommand>
 ) {
-    private val userState: UserStateService = serviceProvider.getUserService(UserStateService::class.java, input.userId)!!
+    private val userState: UserStateService =
+        serviceProvider.getUserService(UserStateService::class.java, input.userId)!!
+    private val localizationProvider =
+        serviceProvider.getUserService(UserLocalizationProvider::class.java, input.userId)!!
 
     fun get(): CommandCallContext =
         when (input.type) {
@@ -170,6 +173,7 @@ internal class CommandCallContextUserFactory(
 
                 states to context
             }
+
             CommandBehaviour.ParentPage -> {
                 val states = userState.getStates(block.messageId, state, pageId = 0)
                 val context =
@@ -177,6 +181,7 @@ internal class CommandCallContextUserFactory(
 
                 states to context
             }
+
             CommandBehaviour.ParentPageState -> {
                 val states = userState.getStates(block.messageId, state, pageId)
                 val context =
@@ -186,7 +191,8 @@ internal class CommandCallContextUserFactory(
             }
         }
 
-        return CommandCallContextImpl(commandHandler = cmdHandler,
+        return CommandCallContextImpl(
+            commandHandler = cmdHandler,
             states = states,
             commandContext = context,
             defaultContext = { getRootCallContext() })
@@ -202,7 +208,8 @@ internal class CommandCallContextUserFactory(
             input
         )
 
-        return CommandCallContextImpl(commandHandler = handler,
+        return CommandCallContextImpl(
+            commandHandler = handler,
             states = states,
             commandContext = context,
             defaultContext = { null })
@@ -225,12 +232,12 @@ internal class CommandCallContextUserFactory(
         messageType: MessageType,
         query: String
     ): CommandDef? {
-        val localizeProvider = userState.getLocalizeProvider()
         return when (messageType) {
             MessageType.Inline -> SystemCommands.ALL.filter { it == query }
-                .map { CommandDef(it, localizeProvider.getString(it), null, null, null) }
+                .map { CommandDef(it, localizationProvider.getString(it), null, null, null) }
                 .firstOrNull()
-            MessageType.Text -> SystemCommands.ALL.map { it to localizeProvider.getString(it) }
+
+            MessageType.Text -> SystemCommands.ALL.map { it to localizationProvider.getString(it) }
                 .filter { it.second == query }
                 .map { CommandDef(it.first, it.second, null, null, null) }
                 .firstOrNull()

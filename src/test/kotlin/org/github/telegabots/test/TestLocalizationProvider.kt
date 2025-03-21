@@ -1,11 +1,11 @@
 package org.github.telegabots.test
 
 import org.github.telegabots.api.Language
-import org.github.telegabots.api.LocalizeProvider
+import org.github.telegabots.api.LocalizationProvider
 import org.github.telegabots.service.LanguageImpl
 import org.slf4j.LoggerFactory
 
-class TestLocalizationProvider() : LocalizeProvider {
+class TestLocalizationProvider() : LocalizationProvider {
     private val log = LoggerFactory.getLogger(TestLocalizationProvider::class.java)!!
     private val map = mutableMapOf<String, String>()
 
@@ -13,7 +13,7 @@ class TestLocalizationProvider() : LocalizeProvider {
         log.info("TestUserLocalizationProvider created")
     }
 
-    override fun language(): Language = LanguageImpl.ENGLISH
+    override fun getLanguage(): Language = LanguageImpl.ENGLISH
 
     override fun getString(key: String): String = map.getOrDefault(key, defaultValue = key)
 

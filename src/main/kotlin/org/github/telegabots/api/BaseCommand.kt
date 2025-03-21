@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 import org.github.telegabots.context.CommandContextSupport
 
 /**
- * Base command of all commands
+ * Base class of all commands
  */
 abstract class BaseCommand {
     @JvmField

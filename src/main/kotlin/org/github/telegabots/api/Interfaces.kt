@@ -783,15 +783,15 @@ interface ServiceProvider {
 }
 
 /**
- * Factory of getting LocalizeProvider by specified user
+ * Factory of getting [LocalizationProvider]
  */
 interface LocalizationFactory : Service {
     fun getSupportedLanguages(): List<Language>
 
     /**
-     * Returns LocalizeProvider by language code
+     * Returns [LocalizationProvider] by language code
      */
-    fun getProvider(langCode: String): LocalizeProvider
+    fun getProvider(langCode: String): LocalizationProvider
 
     /**
      * Returns Language by language code from supported languages
@@ -802,11 +802,11 @@ interface LocalizationFactory : Service {
 /**
  * Specific language related Localization provider
  */
-interface LocalizeProvider {
+interface LocalizationProvider {
     /**
      * Language
      */
-    fun language(): Language
+    fun getLanguage(): Language
 
     /**
      * Returns localized string of key itself
@@ -814,13 +814,23 @@ interface LocalizeProvider {
     fun getString(key: String): String
 }
 
-interface UserLanguageService : UserService {
-    fun getSupportedLanguages(): List<Language>
-
-    fun getLanguage(): Language
-
+/**
+ * User related Localization provider
+ */
+interface UserLocalizationProvider : LocalizationProvider, UserService {
+    /**
+     * Sets language for the user
+     */
     fun setLanguage(language: Language)
 
+    /**
+     * Returns all supported languages
+     */
+    fun getSupportedLanguages(): List<Language>
+
+    /**
+     * Returns language by language code from supported languages
+     */
     fun findLanguage(langCode: String): Language? =  getSupportedLanguages().firstOrNull { it.code() == langCode }
 }
 

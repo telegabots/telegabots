@@ -17,11 +17,11 @@ class FileBasedLocalizationFactoryTests {
         assertEquals(0, factory.locales.size)
 
         val provider = factory.getProvider("xx")
-        assertEquals("dummy", provider.language().code())
+        assertEquals("dummy", provider.getLanguage().code())
 
         val key = UUID.randomUUID().toString()
         assertEquals(key, provider.getString(key))
-        assertEquals(provider.javaClass.name, "org.github.telegabots.service.DummyLocalizeProvider")
+        assertEquals(provider.javaClass.name, "org.github.telegabots.service.DummyLocalizationProvider")
     }
 
     @Test
@@ -32,14 +32,14 @@ class FileBasedLocalizationFactoryTests {
         { "Only languages from telegabots-locales.json should be supported" }
         val providerEng = factory.getProvider("en")
 
-        assertSame(LanguageImpl.ENGLISH, providerEng.language())
+        assertSame(LanguageImpl.ENGLISH, providerEng.getLanguage())
         assertEquals("Back", providerEng.getString(SystemCommands.GO_BACK))
         assertEquals("Yes", providerEng.getString("_YES"))
         assertEquals("No", providerEng.getString("_NO"))
         assertEquals("This is custom key", providerEng.getString("CUSTOM_KEY"))
 
         val providerGer = factory.getProvider("de")
-        assertSame(LanguageImpl.GERMAN, providerGer.language())
+        assertSame(LanguageImpl.GERMAN, providerGer.getLanguage())
         assertEquals("Zurück", providerGer.getString(SystemCommands.GO_BACK))
         assertEquals("Ja!!!", providerGer.getString("_YES"), "Custom key should override standard key")
         assertEquals("Dies ist ein benutzerdefinierter Schlüssel", providerGer.getString("CUSTOM_KEY"))
