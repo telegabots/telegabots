@@ -7,7 +7,10 @@ import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
 import java.lang.reflect.Method
 
-object CommandClassUtil {
+/**
+ * Utility class to work with [CommandHandlerInfo]
+ */
+internal object CommandClassUtil {
     fun getHandlers(command: BaseCommand): List<CommandHandlerInfo> {
         return command.javaClass.methods
             .mapNotNull { mapHandler(it, command) }

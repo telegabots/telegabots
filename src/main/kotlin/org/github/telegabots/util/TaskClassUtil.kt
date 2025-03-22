@@ -4,7 +4,10 @@ import org.github.telegabots.api.BaseTask
 import org.github.telegabots.api.annotation.TaskHandler
 import java.lang.reflect.Method
 
-class TaskClassUtil {
+/**
+ * TODO: remove?
+ */
+internal class TaskClassUtil {
     fun getHandlers(command: BaseTask): List<TaskHandlerInfo> {
         return command.javaClass.methods
             .mapNotNull { mapHandler(it, command) }

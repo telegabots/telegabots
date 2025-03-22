@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicLong
 /**
  * Not thread-safe implementation of StateDbProvider
  *
- * For thead-safe case use with InternalLockableStateDbProvider
+ * For thead-safe case use with [InternalLockableStateDbProvider]
  */
 class MemoryStateDbProvider : StateDbProvider {
 

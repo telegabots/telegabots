@@ -7,7 +7,7 @@ import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 import java.lang.reflect.Modifier
 
-class CommandValidatorImpl(private val commandHandlers: CommandHandlers) : CommandValidator {
+internal class CommandValidatorImpl(private val commandHandlers: CommandHandlers) : CommandValidator {
     private val log = LoggerFactory.getLogger(javaClass)!!
 
     /**

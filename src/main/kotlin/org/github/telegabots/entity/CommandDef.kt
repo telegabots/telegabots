@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.github.telegabots.api.CommandBehaviour
 import org.github.telegabots.api.SystemCommands
 
+/**
+ * Database entity for command definition
+ */
 data class CommandDef(val titleId: String,
                       val title: String,
                       val handler: String?,

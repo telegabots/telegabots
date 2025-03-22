@@ -12,7 +12,10 @@ import java.lang.reflect.ParameterizedType
 import java.util.stream.Stream
 import kotlin.reflect.full.isSuperclassOf
 
-object HandlerParamUtil {
+/**
+ * Utility class to get [HandlerParamInfo]s from method of a command
+ */
+internal object HandlerParamUtil {
     fun getParams(method: Method): List<HandlerParamInfo> =
         method.parameters.map { mapParam(it) }
 

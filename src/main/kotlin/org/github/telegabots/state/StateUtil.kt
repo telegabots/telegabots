@@ -2,7 +2,7 @@ package org.github.telegabots.state
 
 import org.github.telegabots.entity.StateDef
 
-object StateUtil {
+internal object StateUtil {
     /**
      * Merge state items considering that state1 has higher priority
      */

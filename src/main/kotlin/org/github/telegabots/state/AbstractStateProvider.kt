@@ -6,6 +6,9 @@ import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 import org.slf4j.LoggerFactory
 
+/**
+ * Common methods for [StateProvider] implementations
+ */
 abstract class AbstractStateProvider(private val jsonService: JsonService) : StateProvider {
     protected val log = LoggerFactory.getLogger(javaClass)!!
     private val cache: MutableMap<StateKey, StateItem> = mutableMapOf()

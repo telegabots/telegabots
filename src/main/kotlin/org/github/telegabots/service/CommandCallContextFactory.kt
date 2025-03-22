@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 /**
  * Service of creating CommandCallContext by user input
  */
-class CommandCallContextFactory(
+internal class CommandCallContextFactory(
     private val messageSender: MessageSender,
     private val serviceProvider: ServiceProvider,
     private val commandHandlers: CommandHandlers,

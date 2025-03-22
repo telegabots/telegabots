@@ -8,7 +8,7 @@ import org.github.telegabots.service.JsonService
 /**
  * Composition of specified state provider with priority access to additional state
  */
-class AdditionalStateProvider(
+internal class AdditionalStateProvider(
     private val provider: StateProvider,
     private val additional: StateDef,
     private val jsonService: JsonService

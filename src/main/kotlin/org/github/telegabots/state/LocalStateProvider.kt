@@ -4,9 +4,9 @@ import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 
 /**
- * Local state provider related with page
+ * Implementation of [StateProvider] for state type [StateKind.LOCAL]
  */
-class LocalStateProvider(
+internal class LocalStateProvider(
     private val pageId: Long,
     private val dbProvider: StateDbProvider,
     private val jsonService: JsonService

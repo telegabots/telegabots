@@ -14,5 +14,5 @@ object CommandContextSupport : BaseContextSupport<CommandContext>(), CommandCont
 
     override fun isAdmin(): Boolean = current().isAdmin()
 
-    override fun user(): InputUser = current().user()
+    override fun getUser(): InputUser = current().getUser()
 }

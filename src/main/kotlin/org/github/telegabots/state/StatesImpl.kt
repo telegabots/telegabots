@@ -4,7 +4,9 @@ import org.github.telegabots.api.StateItem
 import org.github.telegabots.api.StateKey
 import org.slf4j.LoggerFactory
 
-
+/**
+ * Implementation of [States]
+ */
 internal class StatesImpl(
     private val localState: StateProvider,
     private val sharedState: StateProvider,

@@ -14,7 +14,7 @@ import kotlin.reflect.jvm.isAccessible
 /**
  * Keep stateless command and meta-info about one
  */
-class CommandHandler(
+internal class CommandHandler(
     val command: BaseCommand,
     private val handlers: List<CommandHandlerInfo>,
     private val commandInterceptor: CommandInterceptor

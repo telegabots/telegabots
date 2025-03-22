@@ -6,7 +6,10 @@ import org.github.telegabots.state.States
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
-data class CommandHandlerInfo(
+/**
+ * Information about [BaseCommand]
+ */
+internal data class CommandHandlerInfo(
     val name: String,
     val messageType: MessageType,
     val params: List<HandlerParamInfo>,

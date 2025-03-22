@@ -9,9 +9,9 @@ import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 /**
- * Wrapper over StateDbProvider to support implementation of LockableStateDbProvider
+ * Wrapper over [StateDbProvider] to support implementation of [LockableStateDbProvider]
  */
-class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : LockableStateDbProvider {
+internal class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : LockableStateDbProvider {
     private val rwl: ReadWriteLock = ReentrantReadWriteLock()
     private val readLock = rwl.readLock()
     private val writeLock = rwl.writeLock()

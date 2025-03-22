@@ -1,7 +1,7 @@
 package org.github.telegabots.api
 
 /**
- * State manage controller
+ * Mutable state controller
  */
 interface State<T> {
     /**

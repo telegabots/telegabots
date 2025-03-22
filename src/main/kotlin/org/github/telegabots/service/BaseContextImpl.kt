@@ -534,7 +534,7 @@ internal class BaseContextImpl(
 
     override fun isAdmin(): Boolean = input.isAdmin
 
-    override fun user(): InputUser = input.user
+    override fun getUser(): InputUser = input.user
 
     private fun cloneFromBlock(blockId: Long, newMessageId: Int): CommandPage? {
         return userState.cloneFromBlock(blockId, newMessageId)

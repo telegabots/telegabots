@@ -3,7 +3,10 @@ package org.github.telegabots.state
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 
-class SharedStateProvider(
+/**
+ * Implementation of [StateProvider] for state type [StateKind.SHARED]
+ */
+internal class SharedStateProvider(
     private val userId: Long,
     private val messageId: Int,
     private val dbProvider: StateDbProvider,

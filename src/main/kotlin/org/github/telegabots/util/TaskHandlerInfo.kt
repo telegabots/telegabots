@@ -10,7 +10,7 @@ import org.github.telegabots.state.States
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
-data class TaskHandlerInfo(val name: String,
+internal data class TaskHandlerInfo(val name: String,
                            val params: List<HandlerParamInfo>,
                            val method: Method,
                            val retType: Class<*>,

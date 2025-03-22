@@ -22,7 +22,7 @@ class TaskManagerFactory(val serviceProvider: ServiceProvider) {
 
             log.debug(
                 "Create taskManager, blockId: {}, pageId: {}, messageId: {}, user: {}",
-                context.blockId(), context.pageId(), context.messageId(), realContext?.user()
+                context.blockId(), context.pageId(), context.messageId(), realContext?.getUser()
             )
         }
 

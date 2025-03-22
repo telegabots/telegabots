@@ -4,7 +4,6 @@ import org.github.telegabots.api.Service
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.StateDef
-import java.util.concurrent.locks.Lock
 
 /**
  * Database state provider
@@ -134,12 +133,3 @@ fun StateDbProvider.getSharedState(userId: Long, messageId: Int): StateDef =
 fun StateDbProvider.getUserState(userId: Long): StateDef = findUserState(userId) ?: StateDef.Empty
 
 fun StateDbProvider.getGlobalState(): StateDef = findGlobalState() ?: StateDef.Empty
-
-/**
- * Used when several commands need to be atomic
- */
-interface LockableStateDbProvider : StateDbProvider {
-    fun readLock(): Lock
-
-    fun writeLock(): Lock
-}

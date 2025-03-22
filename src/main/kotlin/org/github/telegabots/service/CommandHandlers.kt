@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Creating and thread-safe storing of CommandHandler
  */
-class CommandHandlers(
+internal class CommandHandlers(
     private val commandInterceptor: CommandInterceptor = CommandInterceptor.Empty,
     private val serviceProvider: ServiceProvider
 ) {

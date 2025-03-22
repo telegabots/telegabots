@@ -4,6 +4,9 @@ import org.github.telegabots.api.UserService
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 
+/**
+ * Implementation of [StateProvider] for state type [StateKind.USER]
+ */
 internal class UserStateProvider(
     private val userId: Long,
     private val dbProvider: StateDbProvider,
