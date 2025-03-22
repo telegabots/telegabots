@@ -16,49 +16,22 @@ internal class CommandCallContextImpl(
     private val commandContext: CommandContext,
     private val defaultContext: () -> CommandCallContext?
 ) : CommandCallContext {
-    private val log = LoggerFactory.getLogger(CommandCallContext::class.java)
+    private val log = LoggerFactory.getLogger(CommandCallContext::class.java)!!
     private val input: InputMessage = commandContext.inputMessage()
 
     override fun execute(): Boolean {
         if (!commandHandler.canHandle(input.type)) {
             if (input.type == MessageType.Text) {
-                val defaultContext = defaultContext()
-
-                if (defaultContext != null) {
-                    log.warn(
-                        "Call default context ({}). Because command '{}' cannot handle input message: {}",
-                        defaultContext, commandHandler.command.javaClass.name, input
-                    )
-
-                    return defaultContext.execute()
+                val success = callDefaultContext()
+                if (success != null) {
+                    return success
                 }
             }
 
             throw IllegalStateException("Message of type ${input.type} can not be handled by command: ${commandHandler.command.javaClass.name}")
         }
 
-        if (log.isTraceEnabled) {
-            log.trace(
-                """
-                ----------------------------------------------------------
-                Command: [{}]:{}
-                Handler: {}
-                Block/Page: {}/{}
-                State:
-                  local: {}
-                  shared: {}
-                  user: {}
-                  global: {}
-                ----------------------------------------------------------
-            """.trimIndent(), input.type, input.query, commandHandler.command,
-                commandContext.blockId(),
-                commandContext.pageId(),
-                states.getAll(StateKind.LOCAL),
-                states.getAll(StateKind.SHARED),
-                states.getAll(StateKind.USER),
-                states.getAll(StateKind.GLOBAL)
-            )
-        }
+        logContext()
 
         val success = when (input.type) {
             MessageType.Text -> commandHandler.executeText(input.query, states, commandContext)
@@ -68,22 +41,52 @@ internal class CommandCallContextImpl(
             }
         }
 
-        log.debug("Flush states for handler: {}, input: {}", commandHandler, input)
         states.flush()
 
         if (!success) {
-            val defaultContext = defaultContext()
-
-            if (defaultContext != null) {
-                log.warn(
-                    "Call default context ({}). Because command '{}' cannot handle input message: {}",
-                    defaultContext, commandHandler.command.javaClass.name, input
-                )
-                return defaultContext.execute()
-            }
+            return callDefaultContext() ?: false
         }
 
-        return success
+        return true
+    }
+
+    private fun callDefaultContext(): Boolean? {
+        val defaultContext = defaultContext()
+
+        if (defaultContext != null) {
+            log.warn(
+                "Call default context ({}). Because command '{}' cannot handle input message: {}",
+                defaultContext, commandHandler.command.javaClass.name, input
+            )
+            return defaultContext.execute()
+        }
+
+        return null
+    }
+
+    private fun logContext() {
+        if (log.isTraceEnabled) {
+            log.trace(
+                """
+                    ----------------------------------------------------------
+                    Command: [{}]:{}
+                    Handler: {}
+                    Block/Page: {}/{}
+                    State:
+                      local: {}
+                      shared: {}
+                      user: {}
+                      global: {}
+                    ----------------------------------------------------------
+                """.trimIndent(), input.type, input.query, commandHandler.command,
+                commandContext.blockId(),
+                commandContext.pageId(),
+                states.getAll(StateKind.LOCAL),
+                states.getAll(StateKind.SHARED),
+                states.getAll(StateKind.USER),
+                states.getAll(StateKind.GLOBAL)
+            )
+        }
     }
 
     override fun toString(): String {
