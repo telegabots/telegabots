@@ -19,6 +19,9 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
+/**
+ * Test executor for bot commands
+ */
 class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, services: List<Service>) : MessageSender, CommandInterceptor {
     private val log = LoggerFactory.getLogger(BotCommandExecutor::class.java)!!
     private val messageIdCounter = AtomicInteger(100_000)
@@ -32,6 +35,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
 
     init {
         doReturn(localizationFactory).`when`(serviceProvider).getService(LocalizationFactory::class.java)
+        doReturn(this).`when`(serviceProvider).getService(CommandInterceptor::class.java)
         doReturn(localProvider).`when`(localizationFactory).getProvider(anyString())
         doReturn(listOf(LanguageImpl.ENGLISH)).`when`(localizationFactory).getSupportedLanguages()
         services.forEach { service ->
@@ -43,8 +47,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
             serviceProvider = serviceProvider,
             config = config,
             dbProvider = dbProvider,
-            rootCommand = rootCommand,
-            commandInterceptor = this
+            rootCommand = rootCommand
         )
     }
 
@@ -161,7 +164,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
         TODO("Not yet implemented")
     }
 
-    override fun executed(command: BaseCommand, messageType: MessageType) {
+    override fun executed(command: BaseCommand, messageType: MessageType, result: Boolean) {
         command::class.call()
     }
 }

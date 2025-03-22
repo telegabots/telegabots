@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap
  * Creating and thread-safe storing of CommandHandler
  */
 internal class CommandHandlers(
-    private val commandInterceptor: CommandInterceptor = CommandInterceptor.Empty,
     private val serviceProvider: ServiceProvider
 ) {
     private val log = LoggerFactory.getLogger(CommandHandlers::class.java)
@@ -40,12 +39,12 @@ internal class CommandHandlers(
             val command = createBaseCommandInstance(commandClass, onlyValidate)
             if (command != null) {
                 val handlers = CommandClassUtil.getHandlers(command)
-                return CommandHandler(command = command, handlers = handlers, commandInterceptor = commandInterceptor)
+                return CommandHandler(command = command, handlers = handlers)
             }
 
             // This is only validation
             CommandClassUtil.checkHandlers(commandClass)
-            return CommandHandler(command = EmptyCommand.INSTANCE, handlers = emptyList(), commandInterceptor = commandInterceptor)
+            return CommandHandler(command = EmptyCommand.INSTANCE, handlers = emptyList())
         } catch (e: ClassNotFoundException) {
             log.error("Handler not found: {}", handler, e)
             throw e

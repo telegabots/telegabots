@@ -1,6 +1,7 @@
 package org.github.telegabots.service
 
 import org.github.telegabots.api.CommandContext
+import org.github.telegabots.api.CommandInterceptor
 import org.github.telegabots.api.InputMessage
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.state.StateKind
@@ -38,6 +39,19 @@ internal class CommandCallContextImpl(
             MessageType.Inline -> {
                 commandHandler.executeInline(input.query, states, commandContext)
                 true
+            }
+        }
+
+        commandContext.getService(CommandInterceptor::class.java)?.let { commandInterceptor ->
+            try {
+                commandInterceptor.executed(commandHandler.command, input.type, success)
+            } catch (ex: Exception) {
+                log.error(
+                    "Interceptor call failed on command {} with error: {}",
+                    commandHandler.command.javaClass.simpleName,
+                    ex.message,
+                    ex
+                )
             }
         }
 

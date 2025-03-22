@@ -1,18 +1,15 @@
 package org.github.telegabots.api
 
 /**
- * For internal uses
+ * For internal uses. Used in tests.
  */
-interface CommandInterceptor {
-    fun executed(command: BaseCommand, messageType: MessageType)
-
-    companion object {
-        @JvmStatic
-        val Empty: CommandInterceptor = CommandInterceptorEmpty
-    }
-}
-
-internal object CommandInterceptorEmpty : CommandInterceptor {
-    override fun executed(command: BaseCommand, messageType: MessageType) {
-    }
+internal interface CommandInterceptor : Service {
+    /**
+     * Called when command executed.
+     *
+     * @param command Command instance
+     * @param messageType Message type
+     * @param result Execution result
+     */
+    fun executed(command: BaseCommand, messageType: MessageType, result: Boolean)
 }

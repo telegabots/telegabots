@@ -18,8 +18,7 @@ class TelegaBot(
     private val serviceProvider: ServiceProvider,
     private val config: BotConfig,
     private val dbProvider: StateDbProvider,
-    private val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java,
-    private val commandInterceptor: CommandInterceptor = CommandInterceptorEmpty
+    private val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java
 ) {
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
     private val adminChatId: Long = config.adminChatId
@@ -27,7 +26,7 @@ class TelegaBot(
     private val finalDbProvider: LockableStateDbProvider =
         if (dbProvider is LockableStateDbProvider) dbProvider else InternalLockableStateDbProvider(dbProvider)
     private val finalServiceProvider = InternalServiceProvider(serviceProvider, finalDbProvider, jsonService)
-    private val commandHandlers = CommandHandlers(commandInterceptor, finalServiceProvider)
+    private val commandHandlers = CommandHandlers(finalServiceProvider)
     private val commandValidator = CommandValidatorImpl(commandHandlers)
     private val callContextManager = CommandCallContextFactory(
         messageSender,

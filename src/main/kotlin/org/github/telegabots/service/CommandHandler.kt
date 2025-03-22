@@ -2,12 +2,10 @@ package org.github.telegabots.service
 
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.CommandContext
-import org.github.telegabots.api.CommandInterceptor
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.context.CommandContextSupport
 import org.github.telegabots.state.States
 import org.github.telegabots.util.CommandHandlerInfo
-import org.slf4j.LoggerFactory
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
@@ -16,8 +14,7 @@ import kotlin.reflect.jvm.isAccessible
  */
 internal class CommandHandler(
     val command: BaseCommand,
-    private val handlers: List<CommandHandlerInfo>,
-    private val commandInterceptor: CommandInterceptor
+    private val handlers: List<CommandHandlerInfo>
 ) {
     val commandClass: Class<out BaseCommand> get() = command.javaClass
     private val textHandler = handlers.find { p -> p.messageType == MessageType.Text }
@@ -28,20 +25,8 @@ internal class CommandHandler(
 
         try {
             setContext(context)
-            val result = textHandler.executeText(text, states, context)
 
-            try {
-                commandInterceptor.executed(command, MessageType.Text)
-            } catch (ex: Exception) {
-                log.error(
-                    "Interceptor call failed on command {} with error: {}",
-                    command.javaClass.simpleName,
-                    ex.message,
-                    ex
-                )
-            }
-
-            return result
+            return textHandler.executeText(text, states, context)
         } finally {
             clearContext()
         }
@@ -53,17 +38,6 @@ internal class CommandHandler(
         try {
             setContext(context)
             inlineHandler.executeInline(data, states, context)
-
-            try {
-                commandInterceptor.executed(command, MessageType.Inline)
-            } catch (ex: Exception) {
-                log.error(
-                    "Interceptor call failed on command {} with error: {}",
-                    command.javaClass.simpleName,
-                    ex.message,
-                    ex
-                )
-            }
         } finally {
             clearContext()
         }
@@ -91,9 +65,5 @@ internal class CommandHandler(
 
     private fun clearContext() {
         setContext(null)
-    }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(CommandHandler::class.java)!!
     }
 }
