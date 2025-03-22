@@ -168,7 +168,7 @@
                 <configuration>
                     <url>${db.url}</url>
                     <locations>
-                        <location>filesystem:src/main/resources/db/migration</location>
+                        <location>filesystem:src/main/resources/db/sqlite-migration</location>
                     </locations>
                 </configuration>
             </plugin>

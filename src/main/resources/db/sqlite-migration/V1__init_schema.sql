@@ -31,7 +31,7 @@ CREATE TABLE local_states
 CREATE TABLE shared_states
 (
     id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    block_id      INTEGER NOT NULL,
+    block_id     INTEGER NOT NULL,
     state_def    TEXT,
     FOREIGN KEY (block_id) REFERENCES blocks (id) ON DELETE CASCADE
 );
@@ -47,4 +47,11 @@ CREATE TABLE global_states
 (
     id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     state_def    TEXT
+);
+
+CREATE TABLE user_entities
+(
+    id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    user_id      INTEGER NOT NULL,
+    entity       TEXT NOT NULL
 );
