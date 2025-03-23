@@ -2,7 +2,6 @@ package org.github.telegabots.api
 
 import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.service.*
-import org.github.telegabots.state.InternalLockableStateDbProvider
 import org.github.telegabots.state.LockableStateDbProvider
 import org.github.telegabots.state.StateDbProvider
 import org.github.telegabots.util.CommandValidatorImpl
@@ -23,8 +22,7 @@ class TelegaBot(
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
     private val adminChatId: Long = config.adminChatId
     private val jsonService: JsonService = JsonService()
-    private val finalDbProvider: LockableStateDbProvider =
-        if (dbProvider is LockableStateDbProvider) dbProvider else InternalLockableStateDbProvider(dbProvider)
+    private val finalDbProvider: LockableStateDbProvider = LockableStateDbProvider.of(dbProvider)
     private val finalServiceProvider = InternalServiceProvider(serviceProvider, finalDbProvider, jsonService)
     private val commandHandlers = CommandHandlers(finalServiceProvider)
     private val commandValidator = CommandValidatorImpl(commandHandlers)
