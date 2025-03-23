@@ -95,6 +95,42 @@ abstract class EntityRepositoryTest {
         assertFalse(repository.delete(entityId))
     }
 
+    @Test
+    fun testFindPage() {
+        val repository = getRepository(TestEntity::class.java, 123L)
+        val entities = (1..101).map { createEntity() }
+        repository.saveAll(entities)
+
+        val page1 = repository.findPage(0, 20)
+        assertEquals(20, page1.getContent().size)
+        assertEquals(0, page1.getPage())
+        assertEquals(20, page1.getSize())
+        assertEquals(6, page1.getTotalPages())
+        assertEquals(101, page1.getTotalElements())
+
+        val page2 = repository.findPage(5, 20)
+        assertEquals(1, page2.getContent().size)
+        assertEquals(5, page2.getPage())
+        assertEquals(20, page2.getSize())
+        assertEquals(6, page2.getTotalPages())
+        assertEquals(101, page2.getTotalElements())
+
+        val page3 = repository.findPage(1, 50)
+        assertEquals(50, page3.getContent().size)
+        assertEquals(1, page3.getPage())
+        assertEquals(50, page3.getSize())
+        assertEquals(3, page3.getTotalPages())
+        assertEquals(101, page3.getTotalElements())
+
+        val emptyPage = repository.findPage(6, 20)
+        assertEquals(emptyList<BaseEntity>(), emptyPage.getContent())
+        assertEquals(6, emptyPage.getPage())
+        assertEquals(20, emptyPage.getSize())
+        assertEquals(6, emptyPage.getTotalPages())
+        assertEquals(101, emptyPage.getTotalElements())
+        assertFalse(emptyPage.hasContent())
+    }
+
     private fun createEntity() = TestEntity(
         name = "Test" + random.nextLong(),
         date = LocalDateTime.now(),

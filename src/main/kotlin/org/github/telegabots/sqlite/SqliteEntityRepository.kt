@@ -95,7 +95,7 @@ internal class SqliteEntityRepository<T : BaseEntity>(
 
         return EntityPageImpl(
             content = list.map { record -> toEntity(record) },
-            number = page,
+            page = page,
             size = size,
             totalPages = totalPages.toInt(),
             totalElements = totalElements

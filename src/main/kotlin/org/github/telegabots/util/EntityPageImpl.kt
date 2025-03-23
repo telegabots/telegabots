@@ -8,14 +8,14 @@ import org.github.telegabots.api.entity.BaseEntity
  */
 internal data class EntityPageImpl<T : BaseEntity>(
     private val content: List<T>,
-    private val number: Int,
+    private val page: Int,
     private val size: Int,
     private val totalPages: Int,
     private val totalElements: Long
 ) : EntityPage<T> {
     override fun getContent(): List<T> = content
 
-    override fun getNumber(): Int = number
+    override fun getPage(): Int = page
 
     override fun getSize(): Int = size
 

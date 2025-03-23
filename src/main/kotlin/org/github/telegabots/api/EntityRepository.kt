@@ -50,6 +50,9 @@ interface EntityRepository<T : BaseEntity> : UserService {
 
     /**
      * Gets entities as page
+     *
+     * @param page page number, starting from 0
+     * @param size page size
      */
     fun findPage(page: Int, size: Int): EntityPage<T>
 

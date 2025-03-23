@@ -2,6 +2,11 @@ package org.github.telegabots.api
 
 import org.github.telegabots.api.entity.BaseEntity
 
+/**
+ * Represents a page of entities
+ *
+ * @param T type of entity
+ */
 interface EntityPage<T : BaseEntity> {
     /**
      * Returns the content of the page
@@ -11,7 +16,7 @@ interface EntityPage<T : BaseEntity> {
     /**
      * Returns the number of the current page
      */
-    fun getNumber(): Int
+    fun getPage(): Int
 
     /**
      * Returns the size of the page
