@@ -8,5 +8,7 @@ import org.github.telegabots.api.EntityRepository
  * @see EntityRepository
  */
 abstract class BaseEntity {
-    var id: Long? = null
+    abstract fun getId(): Long?
+
+    abstract fun setId(id: Long?)
 }

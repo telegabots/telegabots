@@ -153,6 +153,21 @@
     <build>
         <plugins>
             <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}</directory>
+                            <includes>
+                                <include>TestDB.db</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>${flyway.version}</version>
@@ -206,7 +221,7 @@
                                     <!-- A Java regex matching fully-qualified columns, attributes, parameters. Use the pipe to separate several expressions.
 
                                          If provided, both "includeExpression" and "includeTypes" must match. -->
-                                    <includeExpression>.*\.(BLOCK_ID|ID|CREATED_AT|UPDATED_AT|PAGE_ID|USER_ID)</includeExpression>
+                                    <includeExpression>.*\.(BLOCK_ID|ID|CREATED_AT|UPDATED_AT|PAGE_ID|USER_ID|ENTITY_TYPES_ID)</includeExpression>
 
                                     <!-- A Java regex matching data types to be forced to have this type.
 

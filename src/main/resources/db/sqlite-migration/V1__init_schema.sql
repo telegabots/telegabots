@@ -49,9 +49,19 @@ CREATE TABLE global_states
     state_def    TEXT
 );
 
-CREATE TABLE user_entities
+CREATE TABLE entity_types
 (
     id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    user_id      INTEGER NOT NULL,
-    entity       TEXT NOT NULL
+    type_name    TEXT(255) NOT NULL UNIQUE,
+    created_at   INTEGER NOT NULL
+);
+
+CREATE TABLE user_entities
+(
+    id              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    user_id         INTEGER NOT NULL,
+    entity_types_id INTEGER NOT NULL,
+    entity          TEXT NOT NULL,
+    updated_at      INTEGER NOT NULL,
+    FOREIGN KEY (entity_types_id) REFERENCES entity_types (id) ON DELETE CASCADE
 );

@@ -12,9 +12,14 @@ interface EntityRepository<T : BaseEntity> : UserService {
     fun save(entity: T): T
 
     /**
-     * Loads entity by id
+     * Gets entity by id
      */
-    fun load(id: Long): T?
+    fun findById(id: Long): T?
+
+    /**
+     * Checks if entity exists by id
+     */
+    fun existsById(id: Long): Boolean
 
     /**
      * Deletes entity by id
@@ -22,4 +27,33 @@ interface EntityRepository<T : BaseEntity> : UserService {
      * @return true if entity was actually deleted, otherwise false
      */
     fun delete(id: Long): Boolean
+
+    /**
+     * Deletes all entities
+     */
+    fun deleteAll(): Long
+
+    /**
+     * Counts all entities
+     */
+    fun count(): Long
+
+    /**
+     * Finds all entities
+     */
+    fun findAll(): List<T>
+
+    /**
+     * Saves all entities
+     */
+    fun saveAll(entities: List<T>): List<T>
+
+    /**
+     * Gets entities as page
+     */
+    fun findPage(page: Int, size: Int): EntityPage<T>
+
+    companion object {
+        const val DEFAULT_PAGE_SIZE: Int = 20
+    }
 }

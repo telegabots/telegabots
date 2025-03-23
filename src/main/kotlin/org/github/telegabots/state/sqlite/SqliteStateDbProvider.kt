@@ -1,33 +1,20 @@
 package org.github.telegabots.state.sqlite
 
-import org.flywaydb.core.Flyway
-import org.flywaydb.core.api.Location
-import org.flywaydb.core.api.configuration.ClassicConfiguration
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandDef
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.StateDef
-import org.github.telegabots.jooq.Tables.BLOCKS
-import org.github.telegabots.jooq.Tables.GLOBAL_STATES
-import org.github.telegabots.jooq.Tables.LOCAL_STATES
-import org.github.telegabots.jooq.Tables.PAGES
-import org.github.telegabots.jooq.Tables.SHARED_STATES
-import org.github.telegabots.jooq.Tables.USER_STATES
-import org.github.telegabots.jooq.tables.records.BlocksRecord
-import org.github.telegabots.jooq.tables.records.GlobalStatesRecord
-import org.github.telegabots.jooq.tables.records.LocalStatesRecord
-import org.github.telegabots.jooq.tables.records.PagesRecord
-import org.github.telegabots.jooq.tables.records.SharedStatesRecord
-import org.github.telegabots.jooq.tables.records.UserStatesRecord
+import org.github.telegabots.jooq.Tables.*
+import org.github.telegabots.jooq.tables.records.*
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.state.StateDbProvider
+import org.github.telegabots.util.SqliteConnectionUtil
 import org.github.telegabots.util.TimeUtil
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 import java.sql.Connection
-import java.sql.DriverManager
 
 /**
  * Sqlite-based implementation of StateDbProvider
@@ -301,28 +288,7 @@ class SqliteStateDbProvider(
     companion object {
         @JvmStatic
         fun create(dbFilePath: String): SqliteStateDbProvider =
-            SqliteStateDbProvider(getConnection(dbFilePath), JsonService())
-
-        private fun getConnection(dbFilePath: String): Connection {
-            migrateDb(dbFilePath)
-
-            return DriverManager.getConnection("jdbc:sqlite:$dbFilePath", "", "")
-                .apply {
-                    this.prepareStatement("PRAGMA foreign_keys = ON;").execute()
-                }
-        }
-
-        private fun migrateDb(dbFilePath: String) {
-            try {
-                val config = ClassicConfiguration()
-                config.setDataSource("jdbc:sqlite:$dbFilePath", "", "")
-                config.setLocations(Location("db/sqlite-migration"))
-                val flyway = Flyway(config)
-                flyway.migrate()
-            } catch (e: Exception) {
-                throw IllegalStateException("Migration failed in file $dbFilePath", e)
-            }
-        }
+            SqliteStateDbProvider(SqliteConnectionUtil.getConnection(dbFilePath), JsonService())
 
         private val log = LoggerFactory.getLogger(SqliteStateDbProvider::class.java)
     }
