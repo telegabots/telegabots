@@ -4,6 +4,7 @@ import org.github.telegabots.api.*
 import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.service.LanguageImpl
 import org.github.telegabots.state.MemoryStateDbProvider
+import org.github.telegabots.state.StateDbProvider
 import org.github.telegabots.test.TestLocalizationProvider
 import org.github.telegabots.test.call
 import org.mockito.ArgumentMatchers.anyString
@@ -36,6 +37,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
     init {
         doReturn(localizationFactory).`when`(serviceProvider).getService(LocalizationFactory::class.java)
         doReturn(this).`when`(serviceProvider).getService(CommandInterceptor::class.java)
+        doReturn(dbProvider).`when`(serviceProvider).getService(StateDbProvider::class.java)
         doReturn(localProvider).`when`(localizationFactory).getProvider(anyString())
         doReturn(listOf(LanguageImpl.ENGLISH)).`when`(localizationFactory).getSupportedLanguages()
         services.forEach { service ->
@@ -46,7 +48,6 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
             messageSender = this,
             serviceProvider = serviceProvider,
             config = config,
-            dbProvider = dbProvider,
             rootCommand = rootCommand
         )
     }

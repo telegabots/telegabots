@@ -2,9 +2,6 @@ package org.github.telegabots.api
 
 import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.service.MessageSenderImpl
-import org.github.telegabots.state.MemoryStateDbProvider
-import org.github.telegabots.state.StateDbProvider
-import org.github.telegabots.state.sqlite.SqliteStateDbProvider
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.TelegramBotsApi
@@ -20,18 +17,15 @@ open class TelegaBotStarter(
     private val config: BotConfig,
     private val serviceProvider: ServiceProvider,
     private val rootCommand: Class<out BaseCommand>,
-    private val stateDbProvider: StateDbProvider = createStateProvider(config),
     private val messageSender: MessageSender? = null
 ) : TelegramLongPollingBot() {
-    protected val log = LoggerFactory.getLogger(javaClass)!!
-    protected val messageSenderReal =
-        messageSender ?: MessageSenderImpl(this, ignoreNotModifiedMessageError = config.notModifiedMessageErrorIgnore)
+    protected val messageSenderReal = messageSender
+        ?: MessageSenderImpl(this, ignoreNotModifiedMessageError = config.notModifiedMessageErrorIgnore)
     protected val telegaBot: TelegaBot = TelegaBot(
         messageSender = messageSenderReal,
         serviceProvider = serviceProvider,
         config = config,
-        rootCommand = rootCommand,
-        dbProvider = stateDbProvider
+        rootCommand = rootCommand
     )
 
     override fun getBotToken(): String = config.botToken
@@ -60,11 +54,6 @@ open class TelegaBotStarter(
     fun <T : Service> getService(clazz: Class<T>): T? = telegaBot.getService(clazz)
 
     companion object {
-        @JvmStatic
-        fun createStateProvider(config: BotConfig): StateDbProvider =
-            if (config.stateDbPath.isNotBlank())
-                SqliteStateDbProvider.create(config.stateDbPath)
-            else
-                MemoryStateDbProvider()
+        protected val log = LoggerFactory.getLogger(javaClass)!!
     }
 }

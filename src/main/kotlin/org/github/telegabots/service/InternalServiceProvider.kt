@@ -1,20 +1,29 @@
 package org.github.telegabots.service
 
 import org.github.telegabots.api.*
+import org.github.telegabots.api.config.BotConfig
+import org.github.telegabots.sqlite.SqliteEntityRepositoryFactory
 import org.github.telegabots.state.*
+import org.github.telegabots.state.sqlite.SqliteStateDbProvider
+import org.github.telegabots.util.SqliteConnectionUtil
+import org.jooq.DSLContext
+import org.jooq.impl.DSL
+import java.sql.Connection
+import java.util.function.Supplier
 
 /**
  * Internal implementation of [ServiceProvider]
  */
 internal class InternalServiceProvider(
     private val userServiceProvider: ServiceProvider,
-    private val stateDbProvider: LockableStateDbProvider,
-    private val jsonService: JsonService
+    private val jsonService: JsonService,
+    private val config: BotConfig
 ) : ServiceProvider {
-    private val globalState: GlobalStateProvider = GlobalStateProvider(stateDbProvider, jsonService)
+
     // TODO: clean cache when needed, use LRU cache
     private val serviceCache: MutableMap<Class<*>, Service?> = HashMap()
     private val userServiceCache: MutableMap<Pair<Class<*>, Long>, UserService?> = HashMap()
+    private val supplierCache: MutableMap<Class<*>, Supplier<*>?> = HashMap()
 
     override fun <T : Service> getService(clazz: Class<T>): T? {
         // TODO: detect circular dependencies
@@ -31,7 +40,7 @@ internal class InternalServiceProvider(
         }
     }
 
-    override fun <T : UserService> getUserService(clazz: Class<T>, userId: Long): T?  {
+    override fun <T : UserService> getUserService(clazz: Class<T>, userId: Long): T? {
         // TODO: detect circular dependencies
         synchronized(userServiceCache) {
             // we cannot use computeIfAbsent because getUserServiceInternal can call getService
@@ -47,11 +56,35 @@ internal class InternalServiceProvider(
         }
     }
 
+    override fun <T> getSupplier(clazz: Class<T>): Supplier<T>? {
+        synchronized(supplierCache) {
+            // we cannot use computeIfAbsent because getSupplierInternal can call getService
+            var supplier = supplierCache[clazz]
+            if (supplier == null) {
+                supplier = getSupplierInternal(clazz)
+                if (supplier != null) {
+                    supplierCache[clazz] = supplier
+                }
+            }
+            return supplier as Supplier<T>?
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun <T : Service> getServiceInternal(clazz: Class<T>): T? {
         var service = when (clazz) {
             JsonService::class.java -> jsonService
-            StateDbProvider::class.java -> stateDbProvider
+            LockableStateDbProvider::class.java -> LockableStateDbProvider.of(getService(StateDbProvider::class.java)!!)
+            GlobalStateProvider::class.java -> GlobalStateProvider(
+                getService(LockableStateDbProvider::class.java)!!,
+                jsonService
+            )
+
+            SqliteStateDbProvider::class.java -> SqliteStateDbProvider(
+                getSupplier(DSLContext::class.java)!!.get(),
+                jsonService
+            )
+
             else -> null
         }
         if (service == null) {
@@ -61,8 +94,13 @@ internal class InternalServiceProvider(
             if (service == null) {
                 service = when (clazz) {
                     LocalizationFactory::class.java -> FileBasedLocalizationFactory(jsonService)
+                    StateDbProvider::class.java -> getService(SqliteStateDbProvider::class.java)
                     else -> null
                 }
+            }
+            // special case for StateDbProvider
+            if (service is StateDbProvider) {
+                service = LockableStateDbProvider.of(service)
             }
         }
 
@@ -73,15 +111,15 @@ internal class InternalServiceProvider(
         var service = when (clazz) {
             UserStateProvider::class.java -> UserStateProvider(
                 userId,
-                stateDbProvider,
+                getService(StateDbProvider::class.java)!!,
                 jsonService
             )
 
             UserStateService::class.java -> UserStateService(
                 userId,
-                stateDbProvider,
+                getService(LockableStateDbProvider::class.java)!!,
                 jsonService,
-                globalState,
+                getService(GlobalStateProvider::class.java)!!,
                 this
             )
 
@@ -97,6 +135,12 @@ internal class InternalServiceProvider(
                 getUserService(UserSettingsService::class.java, userId)!!
             )
 
+            EntityRepositoryFactory::class.java -> SqliteEntityRepositoryFactory(
+                userId,
+                getSupplier(DSLContext::class.java)!!.get(),
+                jsonService
+            )
+
             else -> null
         } as T?
 
@@ -110,5 +154,24 @@ internal class InternalServiceProvider(
         }
 
         return service as T?
+    }
+
+    private fun <T> getSupplierInternal(clazz: Class<T>): Supplier<T>? {
+        var supplier: Supplier<T>? = when (clazz) {
+            Connection::class.java -> Supplier { SqliteConnectionUtil.getConnection(config.stateDbPath) as T }
+            DSLContext::class.java -> Supplier { DSL.using(getSupplier(Connection::class.java)!!.get()) as T }
+            else -> null
+        }
+
+        if (supplier == null) {
+            // get user defined supplier
+            supplier = userServiceProvider.getSupplier(clazz)
+
+            if (supplier == null) {
+                // TODO: add post init suppliers
+            }
+        }
+
+        return supplier
     }
 }

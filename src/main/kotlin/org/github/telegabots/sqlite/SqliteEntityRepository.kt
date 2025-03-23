@@ -11,9 +11,7 @@ import org.github.telegabots.service.JsonService
 import org.github.telegabots.util.EntityPageImpl
 import org.github.telegabots.util.TimeUtil
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
-import java.sql.Connection
 import java.time.LocalDateTime
 
 /**
@@ -24,10 +22,9 @@ import java.time.LocalDateTime
 internal class SqliteEntityRepository<T : BaseEntity>(
     private val entityClass: Class<out T>,
     private val userId: Long,
-    private val conn: Connection,
+    private val context: DSLContext,
     private val jsonService: JsonService
 ) : EntityRepository<T> {
-    private val context: DSLContext = DSL.using(conn)
     private val entityType = getOrCreateEntityInfo()
     private val mainCondition = USER_ENTITIES.USER_ID.eq(userId).and(USER_ENTITIES.ENTITY_TYPES_ID.eq(entityType.id))
 
@@ -106,7 +103,7 @@ internal class SqliteEntityRepository<T : BaseEntity>(
         return entities.map { save(it) }
     }
 
-    fun getConnection(): Connection = conn
+    fun getContext(): DSLContext = context
 
     private fun getEntityRecord(id: Long): UserEntitiesRecord? =
         context.selectFrom(USER_ENTITIES)

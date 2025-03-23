@@ -2,8 +2,6 @@ package org.github.telegabots.api
 
 import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.service.*
-import org.github.telegabots.state.LockableStateDbProvider
-import org.github.telegabots.state.StateDbProvider
 import org.github.telegabots.util.CommandValidatorImpl
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.objects.Update
@@ -16,14 +14,12 @@ class TelegaBot(
     private val messageSender: MessageSender,
     private val serviceProvider: ServiceProvider,
     private val config: BotConfig,
-    private val dbProvider: StateDbProvider,
     private val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java
 ) {
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
     private val adminChatId: Long = config.adminChatId
     private val jsonService: JsonService = JsonService()
-    private val finalDbProvider: LockableStateDbProvider = LockableStateDbProvider.of(dbProvider)
-    private val finalServiceProvider = InternalServiceProvider(serviceProvider, finalDbProvider, jsonService)
+    private val finalServiceProvider = InternalServiceProvider(serviceProvider, jsonService, config)
     private val commandHandlers = CommandHandlers(finalServiceProvider)
     private val commandValidator = CommandValidatorImpl(commandHandlers)
     private val callContextManager = CommandCallContextFactory(

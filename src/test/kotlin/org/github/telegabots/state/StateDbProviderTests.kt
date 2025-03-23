@@ -5,7 +5,9 @@ import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.state.sqlite.SqliteStateDbProvider
+import org.github.telegabots.util.SqliteConnectionUtil
 import org.jooq.exception.DataAccessException
+import org.jooq.impl.DSL
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.io.File
@@ -532,7 +534,8 @@ class StateDbProviderTests {
     }
 
     private fun create(target: File): StateDbProvider {
-        return SqliteStateDbProvider.create(target.absolutePath)
+        val context = DSL.using(SqliteConnectionUtil.getConnection(target.absolutePath))
+        return SqliteStateDbProvider(context, jsonService)
     }
 
     internal data class FooState(val id: Long, val title: String)

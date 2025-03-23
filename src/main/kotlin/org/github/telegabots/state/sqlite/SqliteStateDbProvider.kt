@@ -9,21 +9,21 @@ import org.github.telegabots.jooq.Tables.*
 import org.github.telegabots.jooq.tables.records.*
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.state.StateDbProvider
-import org.github.telegabots.util.SqliteConnectionUtil
 import org.github.telegabots.util.TimeUtil
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
-import java.sql.Connection
 
 /**
  * Sqlite-based implementation of StateDbProvider
  */
 class SqliteStateDbProvider(
-    private val conn: Connection,
+    private val context: DSLContext,
     private val jsonService: JsonService
 ) : StateDbProvider {
-    private val context: DSLContext = DSL.using(conn)
+
+    init {
+        log.info("SqliteStateDbProvider created")
+    }
 
     override fun saveBlock(block: CommandBlock): CommandBlock {
         check(block.isValid()) { "Block is invalid: $block" }
@@ -286,10 +286,6 @@ class SqliteStateDbProvider(
     private data class CommandDefsRoot(val defs: List<List<CommandDef>>)
 
     companion object {
-        @JvmStatic
-        fun create(dbFilePath: String): SqliteStateDbProvider =
-            SqliteStateDbProvider(SqliteConnectionUtil.getConnection(dbFilePath), JsonService())
-
-        private val log = LoggerFactory.getLogger(SqliteStateDbProvider::class.java)
+        private val log = LoggerFactory.getLogger(SqliteStateDbProvider::class.java)!!
     }
 }

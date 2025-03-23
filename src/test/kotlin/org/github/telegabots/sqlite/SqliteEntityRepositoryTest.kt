@@ -5,6 +5,7 @@ import org.github.telegabots.api.EntityRepositoryTest
 import org.github.telegabots.api.entity.BaseEntity
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.util.SqliteConnectionUtil
+import org.jooq.impl.DSL
 import kotlin.io.path.createTempFile
 
 /**
@@ -18,13 +19,13 @@ class SqliteEntityRepositoryTest : EntityRepositoryTest() {
         repository: EntityRepository<*>?
     ): EntityRepository<T> {
         val dbPath = createTempFile(prefix = "test", suffix = ".db")
-        val connection = if (repository != null) {
-            // Use the same connection for all repositories
-            (repository as SqliteEntityRepository).getConnection()
+        val context = if (repository != null) {
+            // Use the same context for all repositories
+            (repository as SqliteEntityRepository).getContext()
         } else {
-            SqliteConnectionUtil.getConnection(dbPath)
+            DSL.using(SqliteConnectionUtil.getConnection(dbPath))
         }
-        return SqliteEntityRepository(clazz, userId, connection, jsonService)
+        return SqliteEntityRepository(clazz, userId, context, jsonService)
     }
 
     private companion object {
