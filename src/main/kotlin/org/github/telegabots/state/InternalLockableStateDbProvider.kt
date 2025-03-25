@@ -6,15 +6,16 @@ import org.github.telegabots.entity.StateDef
 import org.github.telegabots.util.runIn
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReadWriteLock
-import java.util.concurrent.locks.ReentrantReadWriteLock
 
 /**
  * Wrapper over [StateDbProvider] to support implementation of [LockableStateDbProvider]
  */
-internal class InternalLockableStateDbProvider(private val delegate: StateDbProvider) : LockableStateDbProvider {
-    private val rwl: ReadWriteLock = ReentrantReadWriteLock()
-    private val readLock = rwl.readLock()
-    private val writeLock = rwl.writeLock()
+internal class InternalLockableStateDbProvider(
+    private val delegate: StateDbProvider,
+    readWriteLock: ReadWriteLock
+) : LockableStateDbProvider {
+    private val readLock = readWriteLock.readLock()
+    private val writeLock = readWriteLock.writeLock()
 
     override fun readLock(): Lock = readLock
 

@@ -75,7 +75,8 @@ internal class InternalServiceProvider(
     private fun <T : Service> getServiceInternal(clazz: Class<T>): T? {
         var service = when (clazz) {
             JsonService::class.java -> jsonService
-            LockableStateDbProvider::class.java -> LockableStateDbProvider.of(getService(StateDbProvider::class.java)!!)
+            LockableStateDbProvider::class.java ->
+                LockableStateDbProvider.of(getService(StateDbProvider::class.java)!!, getService(DbReadWriteLock::class.java)!!)
             GlobalStateProvider::class.java -> GlobalStateProvider(
                 getService(LockableStateDbProvider::class.java)!!,
                 jsonService
@@ -96,12 +97,13 @@ internal class InternalServiceProvider(
                 service = when (clazz) {
                     LocalizationFactory::class.java -> FileBasedLocalizationFactory(jsonService)
                     StateDbProvider::class.java -> getService(SqliteStateDbProvider::class.java)
+                    DbReadWriteLock::class.java -> DbReadWriteLockImpl()
                     else -> null
                 }
             }
             // special case for StateDbProvider
             if (service is StateDbProvider) {
-                service = LockableStateDbProvider.of(service)
+                service = LockableStateDbProvider.of(service, getService(DbReadWriteLock::class.java)!!)
             }
         }
 
