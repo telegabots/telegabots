@@ -76,7 +76,11 @@ internal class InternalServiceProvider(
         var service = when (clazz) {
             JsonService::class.java -> jsonService
             LockableStateDbProvider::class.java ->
-                LockableStateDbProvider.of(getService(StateDbProvider::class.java)!!, getService(DbReadWriteLock::class.java)!!)
+                LockableStateDbProvider.of(
+                    getService(StateDbProvider::class.java)!!,
+                    getService(DbReadWriteLock::class.java)!!
+                )
+
             GlobalStateProvider::class.java -> GlobalStateProvider(
                 getService(LockableStateDbProvider::class.java)!!,
                 jsonService
@@ -141,7 +145,8 @@ internal class InternalServiceProvider(
             EntityRepositoryFactory::class.java -> SqliteEntityRepositoryFactory(
                 userId,
                 getSupplier(DSLContext::class.java)!!.get(),
-                jsonService
+                jsonService,
+                getService(DbReadWriteLock::class.java)!!
             )
 
             else -> null

@@ -3,6 +3,7 @@ package org.github.telegabots.sqlite
 import org.github.telegabots.api.EntityRepository
 import org.github.telegabots.api.EntityRepositoryTest
 import org.github.telegabots.api.entity.BaseEntity
+import org.github.telegabots.service.DbReadWriteLockImpl
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.util.SqliteConnectionUtil
 import org.jooq.impl.DSL
@@ -25,7 +26,7 @@ class SqliteEntityRepositoryTest : EntityRepositoryTest() {
         } else {
             DSL.using(SqliteConnectionUtil.getConnection(dbPath))
         }
-        return SqliteEntityRepository(clazz, userId, context, jsonService)
+        return SqliteEntityRepository(clazz, userId, context, jsonService, DbReadWriteLockImpl())
     }
 
     private companion object {

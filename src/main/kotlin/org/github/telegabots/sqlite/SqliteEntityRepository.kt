@@ -10,88 +10,108 @@ import org.github.telegabots.jooq.tables.records.UserEntitiesRecord
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.util.EntityPageImpl
 import org.github.telegabots.util.TimeUtil
+import org.github.telegabots.util.runIn
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
+import java.util.concurrent.locks.ReadWriteLock
 
 /**
  * Sqlite implementation of [EntityRepository]
- *
- * TODO: add synchronization for multi-threading
  */
 internal class SqliteEntityRepository<T : BaseEntity>(
-    private val entityClass: Class<out T>,
+    private val entityClass: Class<T>,
     private val userId: Long,
     private val context: DSLContext,
-    private val jsonService: JsonService
+    private val jsonService: JsonService,
+    readWriteLock: ReadWriteLock
 ) : EntityRepository<T> {
+    private val readLock = readWriteLock.readLock()
+    private val writeLock = readWriteLock.writeLock()
     private val entityType = getOrCreateEntityInfo()
     private val mainCondition = USER_ENTITIES.USER_ID.eq(userId).and(USER_ENTITIES.ENTITY_TYPES_ID.eq(entityType.id))
 
     override fun userId(): Long = userId
 
     override fun save(entity: T): T {
-        val record = if (entity.getId() != null) {
-            getEntityRecord(entity.getId()!!)
-                ?: error("Entity '${entityClass.name}' with id ${entity.getId()} not found or not belongs to user")
-        } else {
-            context.newRecord(USER_ENTITIES).also { record ->
-                record.userId = this.userId
-                record.entityTypesId = entityType.id
+        val jsonEntity: String = jsonService.toJson(entity)
+        writeLock.runIn {
+            val record = if (entity.getId() != null) {
+                getEntityRecord(entity.getId()!!)
+                    ?: error("Entity '${entityClass.name}' with id ${entity.getId()} not found or not belongs to user")
+            } else {
+                context.newRecord(USER_ENTITIES).also { record ->
+                    record.userId = this.userId
+                    record.entityTypesId = entityType.id
+                }
             }
+            record.entity = jsonEntity
+            record.updatedAt = TimeUtil.toEpochMillis(LocalDateTime.now())
+            record.store()
+            entity.setId(record.id)
+            return entity
         }
-        record.entity = jsonService.toJson(entity)
-        record.updatedAt = TimeUtil.toEpochMillis(LocalDateTime.now())
-        record.store()
-        entity.setId(record.id)
-        return entity
     }
 
     override fun findById(id: Long): T? {
-        return getEntityRecord(id)?.let { record -> toEntity(record) }
+        return readLock.runIn {
+            getEntityRecord(id)
+        }?.let { record -> toEntity(record) }
     }
 
     override fun existsById(id: Long): Boolean {
-        return context.fetchExists(USER_ENTITIES.where(mainCondition.and(USER_ENTITIES.ID.eq(id))))
+        readLock.runIn {
+            return context.fetchExists(USER_ENTITIES.where(mainCondition.and(USER_ENTITIES.ID.eq(id))))
+        }
     }
 
     override fun delete(id: Long): Boolean {
-        return context.deleteFrom(USER_ENTITIES)
-            .where(mainCondition.and(USER_ENTITIES.ID.eq(id)))
-            .execute() > 0
+        writeLock.runIn {
+            return context.deleteFrom(USER_ENTITIES)
+                .where(mainCondition.and(USER_ENTITIES.ID.eq(id)))
+                .execute() > 0
+        }
     }
 
     override fun deleteAll(): Long {
-        return context.deleteFrom(USER_ENTITIES)
-            .where(mainCondition)
-            .execute()
-            .toLong()
+        writeLock.runIn {
+            return context.deleteFrom(USER_ENTITIES)
+                .where(mainCondition)
+                .execute()
+                .toLong()
+        }
     }
 
-    override fun count(): Long =
-        context.fetchCount(USER_ENTITIES.where(mainCondition)).toLong()
+    override fun count(): Long {
+        readLock.runIn {
+            return context.fetchCount(USER_ENTITIES.where(mainCondition)).toLong()
+        }
+    }
 
     override fun findAll(): List<T> {
-        return context.selectFrom(USER_ENTITIES)
-            .where(mainCondition)
-            .fetch()
-            .map { record -> toEntity(record) }
+        return readLock.runIn {
+            context.selectFrom(USER_ENTITIES)
+                .where(mainCondition)
+                .fetch()
+        }.map { record -> toEntity(record) }
     }
 
     override fun findPage(page: Int, size: Int): EntityPage<T> {
         val size = if (size <= 0) EntityRepository.DEFAULT_PAGE_SIZE else size
-        val offset = page * size
-        val list = context.selectFrom(USER_ENTITIES)
-            .where(mainCondition)
-            .offset(offset.toLong())
-            .limit(size)
-            .fetch()
+        val (records, totalElements) = readLock.runIn {
+            val offset = page * size
+            val list = context.selectFrom(USER_ENTITIES)
+                .where(mainCondition)
+                .offset(offset.toLong())
+                .limit(size)
+                .fetch()
 
-        val totalElements = count()
+            list to count()
+        }
         val totalPages = if (totalElements == 0L) 0 else (totalElements - 1) / size + 1
 
         return EntityPageImpl(
-            content = list.map { record -> toEntity(record) },
+            content = records.map { record -> toEntity(record) },
             page = page,
             size = size,
             totalPages = totalPages.toInt(),
@@ -100,7 +120,9 @@ internal class SqliteEntityRepository<T : BaseEntity>(
     }
 
     override fun saveAll(entities: List<T>): List<T> {
-        return entities.map { save(it) }
+        writeLock.runIn {
+            return entities.map { save(it) }
+        }
     }
 
     fun getContext(): DSLContext = context
@@ -115,28 +137,31 @@ internal class SqliteEntityRepository<T : BaseEntity>(
         try {
             val entity = jsonService.parse(jsonEntity, entityClass)
             if (entity.getId() == null) {
+                // when first time entity is created, it has no id
                 entity.setId(record.id)
             }
             return entity
         } catch (ex: Exception) {
-            log.error("Failed to parse entity from json:\n$jsonEntity", ex)
+            log.error("Failed to parse entity '${entityClass.name}' from json:\n$jsonEntity", ex)
             throw ex
         }
     }
 
     private fun getOrCreateEntityInfo(): EntityTypesRecord {
-        val info = context.selectFrom(ENTITY_TYPES)
-            .where(ENTITY_TYPES.TYPE_NAME.eq(entityClass.name))
-            .fetchOne()
+        writeLock.runIn {
+            val info = context.selectFrom(ENTITY_TYPES)
+                .where(ENTITY_TYPES.TYPE_NAME.eq(entityClass.name))
+                .fetchOne()
 
-        if (info != null) {
-            return info
-        }
+            if (info != null) {
+                return info
+            }
 
-        return context.newRecord(ENTITY_TYPES).also { record ->
-            record.typeName = entityClass.name
-            record.createdAt = TimeUtil.toEpochMillis(LocalDateTime.now())
-            record.store()
+            return context.newRecord(ENTITY_TYPES).also { record ->
+                record.typeName = entityClass.name
+                record.createdAt = TimeUtil.toEpochMillis(LocalDateTime.now())
+                record.store()
+            }
         }
     }
 
