@@ -7,7 +7,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.util.*
 
-class BotConfig private constructor(prop: Properties) {
+open class BotConfig private constructor(prop: Properties) {
     private val log = LoggerFactory.getLogger(BotConfig::class.java)
     private val props: Properties = Validate.notNull(prop, "props")
 

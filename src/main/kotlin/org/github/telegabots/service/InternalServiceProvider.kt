@@ -5,6 +5,7 @@ import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.sqlite.SqliteEntityRepositoryFactory
 import org.github.telegabots.state.*
 import org.github.telegabots.state.sqlite.SqliteStateDbProvider
+import org.github.telegabots.util.LazySupplier
 import org.github.telegabots.util.SqliteConnectionUtil
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -58,7 +59,7 @@ internal class InternalServiceProvider(
 
     override fun <T> getSupplier(clazz: Class<T>): Supplier<T>? {
         synchronized(supplierCache) {
-            // we cannot use computeIfAbsent because getSupplierInternal can call getService
+            // we cannot use computeIfAbsent because getSupplierInternal can call getSupplier
             var supplier = supplierCache[clazz]
             if (supplier == null) {
                 supplier = getSupplierInternal(clazz)
@@ -158,8 +159,8 @@ internal class InternalServiceProvider(
 
     private fun <T> getSupplierInternal(clazz: Class<T>): Supplier<T>? {
         var supplier: Supplier<T>? = when (clazz) {
-            Connection::class.java -> Supplier { SqliteConnectionUtil.getConnection(config.stateDbPath) as T }
-            DSLContext::class.java -> Supplier { DSL.using(getSupplier(Connection::class.java)!!.get()) as T }
+            Connection::class.java -> LazySupplier(SqliteConnectionUtil.getConnection(config.stateDbPath) as T)
+            DSLContext::class.java -> LazySupplier(DSL.using(getSupplier(Connection::class.java)!!.get()) as T)
             else -> null
         }
 
