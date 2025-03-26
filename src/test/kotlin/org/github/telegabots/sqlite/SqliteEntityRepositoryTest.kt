@@ -20,6 +20,7 @@ class SqliteEntityRepositoryTest : EntityRepositoryTest() {
         repository: EntityRepository<*>?
     ): EntityRepository<T> {
         val dbPath = createTempFile(prefix = "test", suffix = ".db")
+        dbPath.toFile().deleteOnExit()
         val context = if (repository != null) {
             // Use the same context for all repositories
             (repository as SqliteEntityRepository).getContext()
