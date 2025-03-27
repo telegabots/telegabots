@@ -221,7 +221,7 @@
                                     <!-- A Java regex matching fully-qualified columns, attributes, parameters. Use the pipe to separate several expressions.
 
                                          If provided, both "includeExpression" and "includeTypes" must match. -->
-                                    <includeExpression>.*\.(BLOCK_ID|ID|CREATED_AT|UPDATED_AT|PAGE_ID|USER_ID|ENTITY_TYPES_ID)</includeExpression>
+                                    <includeExpression>.*\.(BLOCK_ID|ID|CREATED_AT|UPDATED_AT|PAGE_ID|USER_ID|ENTITY_TYPES_ID|INDEX1)</includeExpression>
 
                                     <!-- A Java regex matching data types to be forced to have this type.
 

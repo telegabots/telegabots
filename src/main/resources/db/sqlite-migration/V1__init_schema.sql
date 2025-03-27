@@ -62,6 +62,11 @@ CREATE TABLE user_entities
     user_id         INTEGER NOT NULL,
     entity_types_id INTEGER NOT NULL,
     entity          TEXT NOT NULL,
+    unique1         TEXT(255) NULL,
+    index1          INTEGER NULL,
     updated_at      INTEGER NOT NULL,
+    UNIQUE(user_id, unique1),
     FOREIGN KEY (entity_types_id) REFERENCES entity_types (id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_user_entities_index1 ON user_entities (index1);

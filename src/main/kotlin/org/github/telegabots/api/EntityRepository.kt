@@ -56,6 +56,11 @@ interface EntityRepository<T : BaseEntity> : UserService {
      */
     fun findPage(page: Int, size: Int): EntityPage<T>
 
+    /**
+     * Creates a query builder
+     */
+    fun query() : EntityQueryBuilder<T>
+
     companion object {
         const val DEFAULT_PAGE_SIZE: Int = 20
     }

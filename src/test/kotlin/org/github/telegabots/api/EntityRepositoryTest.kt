@@ -1,8 +1,13 @@
 package org.github.telegabots.api
 
+import org.github.telegabots.api.annotation.Index1
+import org.github.telegabots.api.annotation.Unique1
 import org.github.telegabots.api.entity.BaseEntity
+import org.jooq.exception.IntegrityConstraintViolationException
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import kotlin.random.Random
 
@@ -131,6 +136,70 @@ abstract class EntityRepositoryTest {
         assertFalse(emptyPage.hasContent())
     }
 
+    @Test
+    fun testSave_WithUnique1Constraint() {
+        val repository = getRepository(TestEntity2::class.java, 123L)
+        val entity1 = TestEntity2(name2 = "Test1")
+        val entity2 = TestEntity2(name2 = "Test2")
+        val entity3 = TestEntity2(name2 = "Test1")
+
+        assertEquals(entity1, repository.save(entity1))
+        assertEquals(entity2, repository.save(entity2))
+
+        val ex = assertThrowsExactly(IntegrityConstraintViolationException::class.java) { repository.save(entity3) }
+        assertTrue(ex.message!!.contains("A UNIQUE constraint failed")) { "Message: ${ex.message}" }
+
+        assertEquals(2, repository.count())
+
+        // but update should work
+        entity3.setId(entity1.getId())
+        repository.save(entity3)
+
+        assertEquals(2, repository.count())
+    }
+
+    @Test
+    fun testSave_WithIndex1() {
+        val repository = getRepository(TestEntity2::class.java, 123L)
+        val entities = (1..11).map { index -> TestEntity2(name2 = "Test$index", category = if (index % 2 == 0) CAT_42 else CAT_MAX) }
+        repository.saveAll(entities)
+
+        assertEquals(11, repository.count())
+
+        val query1 = repository.query().whereIndex1(CAT_42) // category == CAT_42
+        assertEquals(5, query1.count())
+        val cat42List = query1.findAll().map { p -> p.category }.distinct()
+        assertEquals(1, cat42List.size)
+        assertEquals(CAT_42, cat42List[0])
+
+        val query2 = repository.query().whereIndex1(CAT_MAX) // category == CAT_MAX
+        assertEquals(6, query2.count())
+        val catMaxList = query2.findAll().map { p -> p.category }.distinct()
+        assertEquals(1, catMaxList.size)
+        assertEquals(CAT_MAX, catMaxList[0])
+    }
+
+    @Test
+    @Disabled("Manual test")
+    fun testQueryFindPage() {
+        val repository = getRepository(TestEntity2::class.java, 123L)
+        val entities = (1..10_000).map { index -> TestEntity2(name2 = "Test$index", category = if (index % 2 == 0) CAT_42 else CAT_MAX) }
+        log.info("Saving ${entities.size} entities...")
+        val startTime = System.currentTimeMillis()
+        repository.saveAll(entities)
+        log.info("Saved ${entities.size} entities in ${System.currentTimeMillis() - startTime} ms")
+        val startTime2 = System.currentTimeMillis()
+        repository.save(TestEntity2(name2 = "Test10001", category = CAT_MIN))
+        log.info("Saved 1 entity in ${System.currentTimeMillis() - startTime2} ms")
+        assertEquals(10_001, repository.count())
+
+        val startTime3 = System.currentTimeMillis()
+        val minList = repository.query().whereIndex1(CAT_MIN).findAll()
+        log.info("Found ${minList.size} entities in ${System.currentTimeMillis() - startTime3} ms")
+        assertEquals(1, minList.size)
+        assertEquals(CAT_MIN, minList[0].category)
+    }
+
     private fun createEntity() = TestEntity(
         name = "Test" + random.nextLong(),
         date = LocalDateTime.now(),
@@ -142,6 +211,13 @@ abstract class EntityRepositoryTest {
         age = 39,
         index = 127
     )
+
+    private companion object {
+        const val CAT_42 = 42L
+        const val CAT_MAX = Long.MAX_VALUE
+        const val CAT_MIN = Long.MIN_VALUE
+        val log = LoggerFactory.getLogger(EntityRepositoryTest::class.java)!!
+    }
 }
 
 data class TestEntity(
@@ -165,7 +241,10 @@ data class TestEntity(
 
 class TestEntity2(
     private var id: Long? = null,
-    val name2: String
+    @Unique1
+    val name2: String,
+    @Index1
+    val category: Long? = null
 ) : BaseEntity() {
     override fun getId(): Long? = id
 
