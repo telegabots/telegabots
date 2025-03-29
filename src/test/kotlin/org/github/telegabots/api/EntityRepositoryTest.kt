@@ -3,12 +3,14 @@ package org.github.telegabots.api
 import org.github.telegabots.api.annotation.Index1
 import org.github.telegabots.api.annotation.Unique1
 import org.github.telegabots.api.entity.BaseEntity
+import org.github.telegabots.util.TestEntityIncorrect
 import org.jooq.exception.IntegrityConstraintViolationException
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
+import java.util.*
 import kotlin.random.Random
 
 /**
@@ -38,7 +40,7 @@ abstract class EntityRepositoryTest {
         assertEquals(entity1, storedEntity1)
 
         // Check the same entity but without id, new entity should be created
-        val entity2 = entity1.copy(id = null)
+        val entity2 = entity1.copy().apply { setId(null) }
 
         val newEntity2 = repository.save(entity2)
 
@@ -56,7 +58,7 @@ abstract class EntityRepositoryTest {
         val repository = getRepository(TestEntity::class.java, 123L)
         val entity1 = repository.save(createEntity())
 
-        val entity2 = repository.save(entity1.copy(weight = 108.0, name = "new name"))
+        val entity2 = repository.save(entity1.copy(weight = 108.0, name = "new name").apply { setId(entity1.getId()) })
         assertEquals(entity1.getId(), entity2.getId())
 
         val loadedEntity = repository.findById(entity2.getId()!!)
@@ -161,7 +163,12 @@ abstract class EntityRepositoryTest {
     @Test
     fun testSave_WithIndex1() {
         val repository = getRepository(TestEntity2::class.java, 123L)
-        val entities = (1..11).map { index -> TestEntity2(name2 = "Test$index", category = if (index % 2 == 0) CAT_42 else CAT_MAX) }
+        val entities = (1..11).map { index ->
+            TestEntity2(
+                name2 = "Test$index",
+                category = if (index % 2 == 0) CAT_42 else CAT_MAX
+            )
+        }
         repository.saveAll(entities)
 
         assertEquals(11, repository.count())
@@ -180,10 +187,28 @@ abstract class EntityRepositoryTest {
     }
 
     @Test
+    fun testSave_FailWhenTwoUnique1() {
+        val ex = assertThrowsExactly(IllegalStateException::class.java) {
+            getRepository(
+                TestEntityIncorrect::class.java,
+                123L
+            )
+        }
+        val expected =
+            "Only one field can be annotated with @Unique1, found in org.github.telegabots.util.TestEntityIncorrect: name1, name2"
+        assertEquals(expected, ex.message)
+    }
+
+    @Test
     @Disabled("Manual test")
     fun testQueryFindPage() {
         val repository = getRepository(TestEntity2::class.java, 123L)
-        val entities = (1..10_000).map { index -> TestEntity2(name2 = "Test$index", category = if (index % 2 == 0) CAT_42 else CAT_MAX) }
+        val entities = (1..10_000).map { index ->
+            TestEntity2(
+                name2 = "Test$index",
+                category = if (index % 2 == 0) CAT_42 else CAT_MAX
+            )
+        }
         log.info("Saving ${entities.size} entities...")
         val startTime = System.currentTimeMillis()
         repository.saveAll(entities)
@@ -221,7 +246,6 @@ abstract class EntityRepositoryTest {
 }
 
 data class TestEntity(
-    private var id: Long? = null,
     val name: String,
     val date: LocalDateTime,
     val volume: Long?,
@@ -232,45 +256,56 @@ data class TestEntity(
     val age: Short,
     val index: Byte
 ) : BaseEntity() {
-    override fun getId(): Long? = id
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-    override fun setId(id: Long?) {
-        this.id = id
+        other as TestEntity
+
+        if (getId() != other.getId()) return false
+        if (volume != other.volume) return false
+        if (level != other.level) return false
+        if (active != other.active) return false
+        if (weight != other.weight) return false
+        if (height != other.height) return false
+        if (age != other.age) return false
+        if (index != other.index) return false
+        if (name != other.name) return false
+        if (date != other.date) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return Objects.hash(getId(), name, date, volume, level, active, weight, height, age, index)
     }
 }
 
 class TestEntity2(
-    private var id: Long? = null,
     @Unique1
     val name2: String,
     @Index1
     val category: Long? = null
 ) : BaseEntity() {
-    override fun getId(): Long? = id
-
-    override fun setId(id: Long?) {
-        this.id = id
-    }
 
     override fun toString(): String {
-        return "TestEntity2(id=$id, name2='$name2')"
+        return "TestEntity2(id=${getId()}, name2='$name2', category=$category)"
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null || javaClass != other.javaClass) return false
+        if (javaClass != other?.javaClass) return false
 
         other as TestEntity2
 
-        if (id != other.id) return false
+        if (getId() != other.getId()) return false
+        if (category != other.category) return false
         if (name2 != other.name2) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = id?.hashCode() ?: 0
-        result = 31 * result + name2.hashCode()
-        return result
+        return Objects.hash(getId(), name2, category)
     }
 }

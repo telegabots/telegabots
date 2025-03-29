@@ -47,26 +47,62 @@ class EntityMetaInfoTest {
         // Check that the entity info is cached
         assertSame(metaInfo, EntityMetaInfo.of(TestEntity3::class.java))
     }
+
+    @Test
+    fun testEntityWithIncorrectUnique1() {
+        val ex = assertThrowsExactly(IllegalStateException::class.java) {
+            EntityMetaInfo.of(TestEntityIncorrect::class.java)
+        }
+        val expected =
+            "Only one field can be annotated with @Unique1, found in org.github.telegabots.util.TestEntityIncorrect: name1, name2"
+        assertEquals(expected, ex.message)
+    }
+
+    @Test
+    fun testEntityWithIncorrectIndex1() {
+        val ex = assertThrowsExactly(IllegalStateException::class.java) {
+            EntityMetaInfo.of(TestEntityIncorrect2::class.java)
+        }
+        val expected =
+            "Only one field can be annotated with @Index1, found in org.github.telegabots.util.TestEntityIncorrect2: val1, val2"
+        assertEquals(expected, ex.message)
+    }
+
+    @Test
+    fun testEntityWithIncorrectTypeWithUnique1() {
+        val ex = assertThrowsExactly(IllegalStateException::class.java) {
+            EntityMetaInfo.of(TestEntityIncorrect4::class.java)
+        }
+        val expected =
+            "@Unique1 can only be used with String type, field: org.github.telegabots.util.TestEntityIncorrect4.name"
+        assertEquals(expected, ex.message)
+    }
+
+    @Test
+    fun testEntityWithIncorrectTypeWithIndex1() {
+        val ex = assertThrowsExactly(IllegalStateException::class.java) {
+            EntityMetaInfo.of(TestEntityIncorrect3::class.java)
+        }
+        val expected =
+            "@Index1 can only be used with Long type, field: org.github.telegabots.util.TestEntityIncorrect3.name"
+        assertEquals(expected, ex.message)
+    }
 }
 
 internal class TestEntity3(
-    private var id: Long?,
+    id: Long?,
     @Unique1
     val name: String, // even val property can be changed! wow!
     @Index1
     val parentId: Long
-) : BaseEntity() {
-    override fun getId(): Long? = id
+) : BaseEntity(id)
 
-    override fun setId(id: Long?) {
-        this.id = id
-    }
-}
+internal class TestEmptyEntity : BaseEntity()
 
-internal class TestEmptyEntity() : BaseEntity() {
-    override fun getId(): Long? = null
+data class TestEntityIncorrect(@Unique1 val name1: String, @Unique1 val name2: String) : BaseEntity()
 
-    override fun setId(id: Long?) {
-        // do nothing
-    }
-}
+data class TestEntityIncorrect2(@Index1 val val1: Long, @Index1 val val2: Long) : BaseEntity()
+
+data class TestEntityIncorrect3(@Index1 val name: String) : BaseEntity()
+
+data class TestEntityIncorrect4(@Unique1 val name: Long) : BaseEntity()

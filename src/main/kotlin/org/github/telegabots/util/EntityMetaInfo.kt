@@ -49,13 +49,13 @@ internal data class EntityMetaInfo(
                 val unique1Fields = fields.filter { it.annotation.annotationClass == Unique1::class }
 
                 if (unique1Fields.size > 1) {
-                    error("Only one field can be annotated with @Unique1, found in class ${entityClass.name}: ${unique1Fields.joinToString { it.field.name }}")
+                    error("Only one field can be annotated with @Unique1, found in ${entityClass.name}: ${unique1Fields.joinToString { it.field.name }}")
                 }
 
                 val index1Fields = fields.filter { it.annotation.annotationClass == Index1::class }
 
                 if (index1Fields.size > 1) {
-                    error("Only one field can be annotated with @Index1, found in class ${entityClass.name}: ${index1Fields.joinToString { it.field.name }}")
+                    error("Only one field can be annotated with @Index1, found in ${entityClass.name}: ${index1Fields.joinToString { it.field.name }}")
                 }
 
                 return EntityMetaInfo(
