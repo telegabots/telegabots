@@ -1,6 +1,7 @@
 package org.github.telegabots.api
 
 import org.github.telegabots.api.entity.BaseEntity
+import java.util.function.Predicate
 
 /**
  * Support storing and retrieving [BaseEntity]
@@ -57,9 +58,38 @@ interface EntityRepository<T : BaseEntity> : UserService {
     fun findPage(page: Int, size: Int): EntityPage<T>
 
     /**
+     * Finds entities by filter using [findPage]
+     *
+     * NOTE: this method is not efficient, use it only for small number of entities
+     *
+     * @param size number of entities to find
+     * @param filter predicate to filter entities
+     */
+    fun findByFilter(size: Int, filter: Predicate<T>): List<T> {
+        if (size <= 0) return emptyList()
+        val result = ArrayList<T>(size)
+        var page = findPage(0, size)
+
+        while (page.hasContent()) {
+            for (item in page.getContent().filter(filter::test)) {
+                result.add(item)
+                if (result.size >= size) {
+                    return result
+                }
+            }
+            if (page.isLast()) {
+                break
+            }
+            page = findPage(page.getPage() + 1, size)
+        }
+
+        return result
+    }
+
+    /**
      * Creates a query builder
      */
-    fun query() : EntityQueryBuilder<T>
+    fun query(): EntityQueryBuilder<T>
 
     companion object {
         const val DEFAULT_PAGE_SIZE: Int = 20

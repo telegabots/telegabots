@@ -37,4 +37,14 @@ interface EntityPage<T : BaseEntity> {
      * Returns true if [getContent] is not empty
      */
     fun hasContent(): Boolean = getContent().isNotEmpty()
+
+    /**
+     * Returns true if this page is the first page
+     */
+    fun isFirst(): Boolean = getPage() == 0
+
+    /**
+     * Returns true if this page is the last page
+     */
+    fun isLast(): Boolean = getPage() == getTotalPages() - 1
 }
