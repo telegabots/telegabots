@@ -41,7 +41,7 @@ class TelegaBot(
 
         val context = callContextManager.get(inputMessage)
 
-        log.debug("Got context by message: {}, context: {}", inputMessage, context)
+        log.debug("Got context by message: {}\ncontext: {}", inputMessage, context)
 
         return context.execute()
     }

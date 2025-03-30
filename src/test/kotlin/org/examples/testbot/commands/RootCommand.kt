@@ -15,18 +15,18 @@ import org.github.telegabots.std.cmd.LanguageCommand
 class RootCommand : BaseCommand() {
     @TextHandler
     fun handle(message: String) {
-        context.page("Hello from bot! You said: $message")
+        context.page("RootCommand: You said: $message")
             .messageType(MessageType.Inline)
-            .subCommands(FileExplorerCommand::class.java, LanguageCommand::class.java)
+            .subCommands(FileExplorerCommand::class.java, PrintCommand::class.java, LanguageCommand::class.java)
             .create()
     }
 
     @InlineHandler
     fun handleInline(message: String) {
         if (message == SystemCommands.REFRESH) {
-            context.page("Main menu")
+            context.page("RootCommand: Main menu")
                 .messageType(MessageType.Inline)
-                .subCommands(FileExplorerCommand::class.java, LanguageCommand::class.java)
+                .subCommands(FileExplorerCommand::class.java, PrintCommand::class.java, LanguageCommand::class.java)
                 .update()
         } else {
             TODO(message)

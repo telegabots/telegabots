@@ -33,6 +33,11 @@ internal class CommandCallContextUserFactory(
         }
 
     private fun getTextMessageContext(): CommandCallContext {
+        if (input.type == MessageType.Text && "/start" == input.query) {
+            // always redirect to root command on text input "/start"
+            return getRootCallContext()
+        }
+
         val lastBlock = userState.getLastBlock()
 
         return getCommonCallContext(lastBlock)
@@ -228,6 +233,9 @@ internal class CommandCallContextUserFactory(
         return commandDef
     }
 
+    /**
+     * Parse [CommandDef] from [SystemCommands]
+     */
     private fun parseSysCommand(
         messageType: MessageType,
         query: String

@@ -2,6 +2,8 @@ package org.github.telegabots.exectutor
 
 import org.github.telegabots.api.*
 import org.github.telegabots.api.config.BotConfig
+import org.github.telegabots.entity.CommandBlock
+import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.service.LanguageImpl
 import org.github.telegabots.state.MemoryStateDbProvider
 import org.github.telegabots.state.StateDbProvider
@@ -66,12 +68,16 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
 
     fun lastUserMessageId(): Int? = sentMessages.keys.lastOrNull()
 
-    fun getUserBlocks(userId: Long) = dbProvider.getUserBlocks(userId)
+    fun getUserBlocks(userId: Long): List<CommandBlock>  = dbProvider.getUserBlocks(userId)
 
-    fun getBlockPages(blockId: Long) = dbProvider.getBlockPages(blockId)
+    fun getBlockPages(blockId: Long): List<CommandPage> = dbProvider.getBlockPages(blockId)
 
-    fun getLastBlockPages(userId: Long) = dbProvider.findLastBlockByUserId(userId)
-        ?.let { dbProvider.getBlockPages(it.id) } ?: emptyList()
+    fun getLastBlock(userId: Long): CommandBlock? = dbProvider.findLastBlockByUserId(userId)
+
+    fun getBlockByMessage(userId: Long, messageId: Int): CommandBlock? = dbProvider.findBlockByMessageId(userId, messageId)
+
+    fun getLastBlockPages(userId: Long): List<CommandPage> = getLastBlock(userId)
+        ?.let { getBlockPages(it.id) } ?: emptyList()
 
     override fun sendMessage(
         chatId: String,

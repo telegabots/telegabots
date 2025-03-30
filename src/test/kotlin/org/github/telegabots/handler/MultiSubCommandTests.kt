@@ -1,9 +1,9 @@
 package org.github.telegabots.handler
 
-import org.github.telegabots.*
+import org.github.telegabots.BaseTests
+import org.github.telegabots.api.*
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
-import org.github.telegabots.api.*
 import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Test
 
@@ -38,8 +38,9 @@ class MultiSubCommandTests : BaseTests() {
             assertThat {
                 notCalled<SubMenu1Command>()
                 rootWasCalled(2)
-                blocksCount(1)
+                blocksCount(2)
                 lastBlockPagesCount(1)
+                printBlocks()
             }
 
             user {
@@ -50,8 +51,9 @@ class MultiSubCommandTests : BaseTests() {
                 wasCalled<SubMenu1Command>()
                 notCalled<SubMenu2Command>()
                 rootWasCalled(2)
-                blocksCount(1)
-                lastBlockPagesCount(2)
+                blocksCount(2)
+                messageBlockPagesCount(messageId, 2)
+                lastBlockPagesCount(1)
             }
 
             user {
@@ -62,7 +64,8 @@ class MultiSubCommandTests : BaseTests() {
                 wasCalled<SubMenu1Command>(1)
                 notCalled<SubMenu2Command>()
                 rootWasCalled(3)
-                blocksCount(1)
+                blocksCount(2)
+                messageBlockPagesCount(messageId, 1)
                 lastBlockPagesCount(1)
             }
 
@@ -74,8 +77,23 @@ class MultiSubCommandTests : BaseTests() {
                 wasCalled<SubMenu1Command>(1)
                 wasCalled<SubMenu2Command>(1)
                 rootWasCalled(3)
-                blocksCount(1)
-                lastBlockPagesCount(2)
+                blocksCount(2)
+                messageBlockPagesCount(messageId, 2)
+                lastBlockPagesCount(1)
+            }
+
+            user {
+                // start command must redirect to root command
+                sendTextMessage("/start")
+            }
+
+            assertThat {
+                wasCalled<SubMenu1Command>(1)
+                wasCalled<SubMenu2Command>(1)
+                rootWasCalled(4)
+                blocksCount(3)
+                messageBlockPagesCount(messageId, 2)
+                lastBlockPagesCount(1)
             }
         }
     }
@@ -84,9 +102,7 @@ class MultiSubCommandTests : BaseTests() {
 internal class CommandRoot : BaseCommand() {
     @TextHandler
     fun handle(msg: String) {
-        if (msg == "/start") {
-            context.createPage(createPage())
-        }
+        context.createPage(createPage())
     }
 
     @InlineHandler
@@ -117,5 +133,10 @@ internal class SubMenu2Command : BaseCommand() {
         if (message == SystemCommands.REFRESH) {
             context.updatePage(Page("SubMenu2Command", messageType = MessageType.Inline))
         }
+    }
+
+    @TextHandler
+    fun handleText(message: String) {
+        context.page("TextCommand: $message").create()
     }
 }

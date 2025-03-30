@@ -51,16 +51,33 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>, services:
 
         fun blocksCount(expected: Int) {
             val blocksCount = executor.getUserBlocks(userId).size
-            assertEquals(expected, blocksCount) { "Command blocks count expected to be $blocksCount" }
+            assertEquals(expected, blocksCount) { "Command blocks count expected to be $expected" }
+        }
+
+        fun messageBlockPagesCount(messageId: Int, expected: Int) {
+            val block = executor.getBlockByMessage(userId, messageId)
+            val pages = block?.let { executor.getBlockPages(block.id) } ?: emptyList()
+
+            assertEquals(
+                expected,
+                pages.size
+            ) {
+                "Pages of the block (id=${block?.id}) expected to be $expected, but found ${pages.size}. Last pages: " + pages.map {
+                    Page.from(
+                        it
+                    )
+                }
+            }
         }
 
         fun lastBlockPagesCount(expected: Int) {
-            val lastPages = executor.getLastBlockPages(userId).map { Page.from(it) }
+            val lastBlock = executor.getLastBlock(userId)
+            val lastPages = lastBlock?.let { executor.getBlockPages(lastBlock.id).map { Page.from(it) } } ?: emptyList()
 
             assertEquals(
                 expected,
                 lastPages.size
-            ) { "Pages of last block expected to be $expected, but found ${lastPages.size}. Last pages: $lastPages" }
+            ) { "Pages of last block (id=${lastBlock?.id}) expected to be $expected, but found ${lastPages.size}. Last pages: $lastPages" }
         }
 
         fun lastBlockPages(vararg pages: Page) {
@@ -74,6 +91,18 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>, services:
                 pages.size,
                 lastPages.size
             ) { "Pages of last command expected to be ${pages.size}, but found ${lastPages.size}. Last pages: $lastPages" }
+        }
+
+        fun printBlocks() {
+            val blocks = executor.getUserBlocks(userId)
+            blocks.forEach { block ->
+                val pages = executor.getBlockPages(block.id)
+                println("Block(id: ${block.id}, pages: ${pages.size})")
+                pages.forEach { page ->
+                    val cmds = page.commandDefs.flatten().map { it.titleId }
+                    println("  Page(id: ${page.id}, subCommands size: ${cmds.size}, subCommands: $cmds)")
+                }
+            }
         }
 
         fun commandReturnTrue() {
