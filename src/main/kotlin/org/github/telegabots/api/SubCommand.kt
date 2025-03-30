@@ -1,17 +1,46 @@
 package org.github.telegabots.api
 
+import org.github.telegabots.api.annotation.InlineHandler
+import org.github.telegabots.api.annotation.TextHandler
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import java.util.regex.Pattern
 
 /**
  * Data related with single button
  */
 data class SubCommand(
+    /**
+     * Data to be sent in a callback query to the bot when the button is pressed, 1-64 bytes. Refers to [InlineKeyboardButton.callbackData]
+     */
     val titleId: String,
+    /**
+     * Label text on the button
+     */
     val title: String? = null,
+    /**
+     * Handler class to be executed when the button is pressed
+     *
+     * Handler methods should be annotated with [TextHandler] or [InlineHandler]
+     */
     val handler: Class<out BaseCommand>? = null,
+    /**
+     * Page and state behaviour
+     */
     val behaviour: CommandBehaviour = CommandBehaviour.SeparatePage,
+    /**
+     * State to be used when handler is executed
+     */
     val state: StateRef? = null
 ) {
+    init {
+        check(titleId.isNotEmpty()) { "TitleId is empty. Expected length is [1..$MAX_TITLE_ID_LENGTH] in bytes" }
+
+        val titleIdSize = titleId.toByteArray().size
+        check(titleIdSize <= MAX_TITLE_ID_LENGTH) {
+            "TitleId is too long: $titleIdSize. Expected length is [1..$MAX_TITLE_ID_LENGTH] in bytes. TitleId: $titleId"
+        }
+    }
+
     fun isSystemCommand() = this == REFRESH || this == GO_BACK
 
     /**
@@ -108,5 +137,10 @@ data class SubCommand(
         val NOTHING = SubCommand.of(SystemCommands.NOTHING)
         private const val PREFIX = "_COMMAND"
         private val CAMEL_CASE_PAT = Pattern.compile("([a-z\\d])([A-Z]+)")
+
+        /**
+         * Maximum length of titleId in bytes.
+         */
+        const val MAX_TITLE_ID_LENGTH = 64
     }
 }
