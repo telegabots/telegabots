@@ -1,4 +1,4 @@
-package org.examples.allfeaturedbot.tasks
+package org.examples.testbot.tasks
 
 import org.github.telegabots.api.BaseTask
 import org.github.telegabots.api.StateRef

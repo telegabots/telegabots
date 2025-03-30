@@ -1,7 +1,7 @@
-package org.examples.allfeaturedbot.commands
+package org.examples.testbot.commands
 
 import org.apache.commons.io.FileUtils
-import org.examples.allfeaturedbot.tasks.CalculateDirSizeProgressInfo
+import org.examples.testbot.tasks.CalculateDirSizeProgressInfo
 import org.github.telegabots.api.*
 import org.github.telegabots.api.annotation.InlineHandler
 import java.io.File

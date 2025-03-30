@@ -15,11 +15,12 @@ import java.util.function.Consumer
  */
 open class TelegaBotStarter(
     private val config: BotConfig,
-    private val serviceProvider: ServiceProvider,
-    private val rootCommand: Class<out BaseCommand>,
-    private val messageSender: MessageSender? = null
-) : TelegramLongPollingBot() {
-    protected val messageSenderReal = messageSender
+    serviceProvider: ServiceProvider,
+    rootCommand: Class<out BaseCommand>,
+    messageSender: MessageSender? = null,
+    private val onStartHandler: Consumer<TelegaBot> = Consumer { }
+) : TelegramLongPollingBot(config.botToken) {
+    private val messageSenderReal = messageSender
         ?: MessageSenderImpl(this, ignoreNotModifiedMessageError = config.notModifiedMessageErrorIgnore)
     protected val telegaBot: TelegaBot = TelegaBot(
         messageSender = messageSenderReal,
@@ -27,8 +28,6 @@ open class TelegaBotStarter(
         config = config,
         rootCommand = rootCommand
     )
-
-    override fun getBotToken(): String = config.botToken
 
     override fun getBotUsername(): String = config.botName
 
@@ -39,21 +38,26 @@ open class TelegaBotStarter(
     /**
      * Starts bot with rootCommand as entry point
      */
-    fun start(onSuccessHandler: Consumer<MessageSender> = Consumer { }) {
+    fun start() {
         val telegramBotsApi = TelegramBotsApi(DefaultBotSession::class.java)
 
         try {
             telegramBotsApi.registerBot(this)
-            onSuccessHandler.accept(messageSenderReal)
-        } catch (e: TelegramApiException) {
-            log.error("Bot register failed: {}", e.message)
-            throw e
+            onStartHandler.accept(telegaBot)
+        } catch (ex: TelegramApiException) {
+            log.error("Bot register failed: {}", ex.message, ex)
+            throw ex
         }
     }
 
     fun <T : Service> getService(clazz: Class<T>): T? = telegaBot.getService(clazz)
 
     companion object {
-        protected val log = LoggerFactory.getLogger(javaClass)!!
+        private val log = LoggerFactory.getLogger(TelegaBotStarter::class.java)!!
+
+        @JvmStatic
+        fun builder(rootCommand: Class<out BaseCommand>): TelegaBotBuilder {
+            return TelegaBotBuilder(rootCommand)
+        }
     }
 }

@@ -13,8 +13,8 @@ import org.telegram.telegrambots.meta.api.objects.User
 class TelegaBot(
     private val messageSender: MessageSender,
     private val serviceProvider: ServiceProvider,
-    private val config: BotConfig,
-    private val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java
+    val config: BotConfig,
+    val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java
 ) {
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
     private val adminChatId: Long = config.adminChatId

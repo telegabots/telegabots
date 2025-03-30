@@ -1,4 +1,4 @@
-package org.examples.allfeaturedbot
+package org.examples.testbot
 
 import org.github.telegabots.api.ServiceProvider
 

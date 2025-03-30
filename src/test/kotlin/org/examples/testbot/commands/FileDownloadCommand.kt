@@ -1,4 +1,4 @@
-package org.examples.allfeaturedbot.commands
+package org.examples.testbot.commands
 
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.Document

@@ -1,6 +1,6 @@
-package org.examples.allfeaturedbot.commands
+package org.examples.testbot.commands
 
-import org.examples.allfeaturedbot.tasks.CalculateDirSizeTask
+import org.examples.testbot.tasks.CalculateDirSizeTask
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.annotation.InlineHandler
 

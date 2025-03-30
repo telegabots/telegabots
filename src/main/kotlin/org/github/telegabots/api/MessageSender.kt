@@ -8,7 +8,7 @@ import java.util.function.Consumer
 /**
  * Message sender of Telegram
  */
-interface MessageSender {
+interface MessageSender : Service {
     /**
      * Sends new message
      */
