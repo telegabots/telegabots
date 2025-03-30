@@ -578,7 +578,12 @@ internal class BaseContextImpl(
             checkHandlerType(pageHandler, page.messageType)
         }
 
-        page.subCommands.flatten().filter { !it.isSystemCommand() }.forEach { subCmd ->
+        val allCommands = page.subCommands.flatten()
+        if (allCommands.size > BUTTONS_MAX_SIZE) {
+            error("Sub-commands size is too big: ${allCommands.size}. Max size is $BUTTONS_MAX_SIZE")
+        }
+
+        allCommands.filter { !it.isSystemCommand() }.forEach { subCmd ->
             val handler = subCmd.handler
 
             if (handler != null) {
@@ -653,5 +658,6 @@ internal class BaseContextImpl(
 
     companion object {
         private const val PAGE_ID_LAST: Long = 0
+        private const val BUTTONS_MAX_SIZE = 100
     }
 }
