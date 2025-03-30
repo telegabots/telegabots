@@ -70,6 +70,7 @@ class FileExplorerCommand : BaseCommand() {
                 .messageType(MessageType.Inline)
                 .contentType(ContentType.Markdown)
                 .subCommands(subCommands)
+                .enableBack()
                 .update()
         } else {
             val lastModified = Date(currentFile.lastModified())
@@ -91,6 +92,7 @@ class FileExplorerCommand : BaseCommand() {
                         behaviour = CommandBehaviour.ParentPage
                     )
                 )
+                .enableBack()
                 .update()
         }
     }

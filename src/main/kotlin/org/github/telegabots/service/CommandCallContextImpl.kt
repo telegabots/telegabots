@@ -69,8 +69,8 @@ internal class CommandCallContextImpl(
 
         if (defaultContext != null) {
             log.warn(
-                "Call default context ({}). Because command '{}' cannot handle input message: {}",
-                defaultContext, commandHandler.command.javaClass.name, input
+                "Call default context. Because command '{}' cannot handle input message: '{}']\ndefault context: {}",
+                commandHandler.command.javaClass.name, input.query, defaultContext
             )
             return defaultContext.execute()
         }
