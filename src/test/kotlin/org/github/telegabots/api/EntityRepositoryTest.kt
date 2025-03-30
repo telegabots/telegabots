@@ -139,6 +139,23 @@ abstract class EntityRepositoryTest {
     }
 
     @Test
+    fun testFindByFilter() {
+        val repository = getRepository(TestEntity::class.java, 123L)
+        val entities = (1..112).map { createEntity(it) }
+        repository.saveAll(entities)
+
+        val filtered1 = repository.findByFilter(9) { it.name.endsWith("3") }
+        assertEquals(9, filtered1.size)
+        assertEquals("Test3", filtered1[0].name)
+        assertEquals("Test83", filtered1[8].name)
+
+        val filtered2 = repository.findByFilter(15) { it.name.endsWith("3") }
+        assertEquals(11, filtered2.size)
+        assertEquals("Test3", filtered2[0].name)
+        assertEquals("Test103", filtered2[10].name)
+    }
+
+    @Test
     fun testSave_WithUnique1Constraint() {
         val repository = getRepository(TestEntity2::class.java, 123L)
         val entity1 = TestEntity2(name2 = "Test1")
@@ -225,8 +242,8 @@ abstract class EntityRepositoryTest {
         assertEquals(CAT_MIN, minList[0].category)
     }
 
-    private fun createEntity() = TestEntity(
-        name = "Test" + random.nextLong(),
+    private fun createEntity(index: Int = random.nextInt()) = TestEntity(
+        name = "Test$index",
         date = LocalDateTime.now(),
         volume = if (random.nextBoolean()) random.nextLong() else null,
         level = random.nextInt(),
