@@ -3,6 +3,7 @@ package org.github.telegabots.util
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.StateRef
 import org.github.telegabots.api.SubCommand
+import org.github.telegabots.api.annotation.TextHandler
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -67,8 +68,14 @@ class SubCommandTests {
     }
 }
 
-internal class FooBarCommand : BaseCommand()
+internal class FooBarCommand : TestBaseClass()
 
-internal class FooBarCommand1 : BaseCommand()
+internal class FooBarCommand1 : TestBaseClass()
 
-internal class FooBar1Command : BaseCommand()
+internal class FooBar1Command : TestBaseClass()
+
+internal abstract class TestBaseClass : BaseCommand() {
+    @TextHandler
+    fun handle(msg: String) {
+    }
+}

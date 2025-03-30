@@ -18,9 +18,20 @@ internal object CommandClassUtil {
     }
 
     fun checkHandlers(clazz: Class<BaseCommand>) {
-        clazz.methods
-            .mapNotNull { mapHandler(it, EmptyCommand.INSTANCE) }
-            .map { checkHandler(it) }
+        val handlers = clazz.methods
+            .mapNotNull { method -> mapHandler(method, EmptyCommand.INSTANCE) }
+            .map { method -> checkHandler(method) }
+
+        if (handlers.isEmpty()) {
+            error("Command class must contain at least one handler: ${clazz.name}")
+        }
+
+        handlers.groupBy { it.messageType }
+            .filter { it.value.size > 1 }
+            .forEach { (type, methods) ->
+                val methods = methods.joinToString(", ") { it.method.name }
+                error("Command class ${clazz.name} must contain only one handler of type $type. Found methods: $methods")
+            }
     }
 
     private fun checkHandler(handler: CommandHandlerInfo): CommandHandlerInfo {
