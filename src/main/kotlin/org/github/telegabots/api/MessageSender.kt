@@ -17,8 +17,14 @@ interface MessageSender : Service {
         message: String,
         contentType: ContentType = ContentType.Plain,
         disablePreview: Boolean = false,
-        preSendHandler: Consumer<SendMessage> = Consumer { }
+        preSendHandler: Consumer<SendMessage>
     ): Int
+
+    fun sendMessage(
+        chatId: String,
+        message: String,
+        contentType: ContentType = ContentType.Plain
+    ): Int = sendMessage(chatId, message, contentType, false) { }
 
     /**
      * Updates existing message
@@ -31,6 +37,13 @@ interface MessageSender : Service {
         disablePreview: Boolean = false,
         preSendHandler: Consumer<EditMessageText> = Consumer { }
     )
+
+    fun updateMessage(
+        chatId: String,
+        messageId: Int,
+        message: String,
+        contentType: ContentType = ContentType.Plain
+    ) = updateMessage(chatId, messageId, message, contentType, false) { }
 
     /**
      * Sends file to the chat

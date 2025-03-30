@@ -465,7 +465,8 @@ internal class BaseContextImpl(
             finalChatId,
             message,
             contentType = contentType,
-            disablePreview = disablePreview
+            disablePreview = disablePreview,
+            preSendHandler = {}
         )
     }
 

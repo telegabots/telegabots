@@ -5,7 +5,7 @@ import org.github.telegabots.api.ContentType
 import org.github.telegabots.api.MessageSender
 import org.slf4j.LoggerFactory
 
-class AlertServiceImpl(
+internal class AlertServiceImpl(
     private val messageSender: MessageSender,
     private val alertChatId: Long
 ) : AlertService {
@@ -15,7 +15,7 @@ class AlertServiceImpl(
         if (alertChatId > 0) {
             messageSender.sendMessage(
                 alertChatId.toString(), message = message,
-                contentType = ContentType.Html, disablePreview = disablePreview
+                contentType = ContentType.Html, disablePreview = disablePreview, preSendHandler = {}
             )
         } else {
             log.info("Alert message: {}", message)
@@ -26,7 +26,7 @@ class AlertServiceImpl(
         if (alertChatId > 0) {
             messageSender.sendMessage(
                 alertChatId.toString(), message = message,
-                contentType = ContentType.Markdown, disablePreview = disablePreview
+                contentType = ContentType.Markdown, disablePreview = disablePreview, preSendHandler = {}
             )
         } else {
             log.info("Alert message: {}", message)
