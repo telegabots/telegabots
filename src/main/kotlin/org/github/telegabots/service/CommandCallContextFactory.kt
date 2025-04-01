@@ -6,14 +6,16 @@ import org.slf4j.LoggerFactory
 
 /**
  * Service of creating CommandCallContext by user input
+ *
+ * TODO: rewrite/refactor this class
  */
 internal class CommandCallContextFactory(
-    private val messageSender: MessageSender,
     private val serviceProvider: ServiceProvider,
-    private val commandHandlers: CommandHandlers,
     private val rootCommand: Class<out BaseCommand>
 ) {
-    private val taskManagerFactory = TaskManagerFactory(serviceProvider)
+    private val taskManagerFactory = serviceProvider.getService(TaskManagerFactory::class.java)
+    private val messageSender = serviceProvider.getService(MessageSender::class.java)
+    private val commandHandlers = serviceProvider.getService(CommandHandlers::class.java)
 
     init {
         val rootHandler = commandHandlers.getCommandHandler(rootCommand)

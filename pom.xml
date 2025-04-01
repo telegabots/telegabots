@@ -305,6 +305,9 @@
                 </executions>
                 <configuration>
                     <jvmTarget>16</jvmTarget>
+                    <args>
+                        <arg>-Xjvm-default=all</arg>
+                    </args>
                 </configuration>
             </plugin>
         </plugins>

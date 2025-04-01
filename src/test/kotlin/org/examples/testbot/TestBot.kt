@@ -33,7 +33,7 @@ class TestBot {
 
         private fun onStartHandler(telegaBot: TelegaBot) {
             val config = telegaBot.config
-            telegaBot.getService(MessageSender::class.java)!!.sendMessage(
+            telegaBot.tryGetService(MessageSender::class.java)!!.sendMessage(
                 config.adminChatId.toString(),
                 "*Test bot started*",
                 ContentType.Markdown

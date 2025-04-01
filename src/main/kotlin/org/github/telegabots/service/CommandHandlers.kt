@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 internal class CommandHandlers(
     private val serviceProvider: ServiceProvider
-) {
+) : Service {
     private val log = LoggerFactory.getLogger(CommandHandlers::class.java)
     private val commandHandlers = ConcurrentHashMap<String, CommandHandler>()
 
@@ -71,7 +71,7 @@ internal class CommandHandlers(
 
         if (!onlyValidate) {
             val args = allServices
-                .map { service -> serviceProvider.tryGetService(service) ?: error("Service not found: $service") }
+                .map { service -> serviceProvider.getService(service) }
                 .toTypedArray()
             return (if (args.isNotEmpty()) constructor.newInstance(*args) else constructor.newInstance()) as BaseCommand
         }

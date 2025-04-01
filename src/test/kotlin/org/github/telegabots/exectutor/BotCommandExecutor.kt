@@ -48,7 +48,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
 
         telegaBot = TelegaBot(
             messageSender = this,
-            serviceProvider = serviceProvider,
+            userServiceProvider = serviceProvider,
             config = config,
             rootCommand = rootCommand
         )

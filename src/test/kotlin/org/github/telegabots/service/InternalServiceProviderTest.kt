@@ -1,5 +1,6 @@
 package org.github.telegabots.service
 
+import org.github.telegabots.api.MessageSender
 import org.github.telegabots.api.Service
 import org.github.telegabots.api.ServiceProvider
 import org.github.telegabots.api.UserService
@@ -102,7 +103,8 @@ class InternalServiceProviderTest {
     private fun createProvider(userProvider: ServiceProvider): ServiceProvider {
         val jsonService = mockStrict(JsonService::class.java)
         val config = mockStrict(BotConfig::class.java)
-        val serviceProvider: ServiceProvider = InternalServiceProvider(userProvider, jsonService, config)
+        val messageSender = mockStrict(MessageSender::class.java)
+        val serviceProvider: ServiceProvider = InternalServiceProvider(userProvider, messageSender, jsonService, config)
         return serviceProvider
     }
 }

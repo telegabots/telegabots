@@ -79,7 +79,7 @@ class ServiceParamTests : BaseTests() {
             }
         }
 
-        assertEquals("Service not found: class org.github.telegabots.handler.SimpleTestService", ex.message)
+        assertEquals("Service not found: org.github.telegabots.handler.SimpleTestService", ex.message)
     }
 }
 

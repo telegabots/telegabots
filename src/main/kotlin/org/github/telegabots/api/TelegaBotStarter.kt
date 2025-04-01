@@ -24,7 +24,7 @@ open class TelegaBotStarter(
         ?: MessageSenderImpl(this, ignoreNotModifiedMessageError = config.notModifiedMessageErrorIgnore)
     protected val telegaBot: TelegaBot = TelegaBot(
         messageSender = messageSenderReal,
-        serviceProvider = serviceProvider,
+        userServiceProvider = serviceProvider,
         config = config,
         rootCommand = rootCommand
     )
@@ -51,9 +51,8 @@ open class TelegaBotStarter(
     }
 
     fun <T : Service> getService(clazz: Class<T>): T = telegaBot.getService(clazz)
-        ?: error("Service not found: ${clazz.name}")
 
-    fun <T : Service> tryGetService(clazz: Class<T>): T? = telegaBot.getService(clazz)
+    fun <T : Service> tryGetService(clazz: Class<T>): T? = telegaBot.tryGetService(clazz)
 
     companion object {
         private val log = LoggerFactory.getLogger(TelegaBotStarter::class.java)!!

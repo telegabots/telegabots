@@ -5,6 +5,8 @@ import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.sqlite.SqliteEntityRepositoryFactory
 import org.github.telegabots.state.*
 import org.github.telegabots.state.sqlite.SqliteStateDbProvider
+import org.github.telegabots.task.TaskManagerFactory
+import org.github.telegabots.util.CommandValidatorImpl
 import org.github.telegabots.util.LazySupplier
 import org.github.telegabots.util.SqliteConnectionUtil
 import org.jooq.DSLContext
@@ -17,6 +19,7 @@ import java.util.function.Supplier
  */
 internal class InternalServiceProvider(
     private val userServiceProvider: ServiceProvider,
+    private val messageSender: MessageSender,
     private val jsonService: JsonService,
     private val config: BotConfig
 ) : ServiceProvider {
@@ -90,6 +93,16 @@ internal class InternalServiceProvider(
                 getSupplier(DSLContext::class.java).get(),
                 jsonService
             )
+
+            TaskManagerFactory::class.java -> TaskManagerFactory()
+
+            CommandHandlers::class.java -> CommandHandlers(this)
+
+            CommandValidator::class.java -> CommandValidatorImpl(getService(CommandHandlers::class.java))
+
+            MessageSender::class.java -> messageSender
+
+            AlertService::class.java -> AlertServiceImpl(messageSender, config.alertChatId)
 
             else -> null
         }

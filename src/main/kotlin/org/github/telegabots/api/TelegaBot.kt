@@ -1,8 +1,9 @@
 package org.github.telegabots.api
 
 import org.github.telegabots.api.config.BotConfig
-import org.github.telegabots.service.*
-import org.github.telegabots.util.CommandValidatorImpl
+import org.github.telegabots.service.CommandCallContextFactory
+import org.github.telegabots.service.InternalServiceProvider
+import org.github.telegabots.service.JsonService
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.User
@@ -11,24 +12,16 @@ import org.telegram.telegrambots.meta.api.objects.User
  * Wrapper for convenient Telegram bot running
  */
 class TelegaBot(
-    private val messageSender: MessageSender,
-    private val serviceProvider: ServiceProvider,
+    messageSender: MessageSender,
+    userServiceProvider: ServiceProvider,
     val config: BotConfig,
     val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java
 ) {
     private val log = LoggerFactory.getLogger(TelegaBot::class.java)
     private val adminChatId: Long = config.adminChatId
     private val jsonService: JsonService = JsonService()
-    private val finalServiceProvider = InternalServiceProvider(serviceProvider, jsonService, config)
-    private val commandHandlers = CommandHandlers(finalServiceProvider)
-    private val commandValidator = CommandValidatorImpl(commandHandlers)
-    private val callContextManager = CommandCallContextFactory(
-        messageSender,
-        finalServiceProvider,
-        commandHandlers,
-        rootCommand
-    )
-    private val alertService = AlertServiceImpl(messageSender, config.alertChatId)
+    private val finalServiceProvider = InternalServiceProvider(userServiceProvider, messageSender, jsonService, config)
+    private val callContextManager = CommandCallContextFactory(finalServiceProvider, rootCommand)
 
     fun handle(update: Update): Boolean {
         log.debug("Handle message: {}", update)
@@ -46,16 +39,9 @@ class TelegaBot(
         return context.execute()
     }
 
-    fun <T : Service> getService(clazz: Class<T>): T? {
-        val service = when (clazz) {
-            CommandValidator::class.java -> commandValidator
-            MessageSender::class.java -> messageSender
-            AlertService::class.java -> alertService
-            else -> null
-        }
+    fun <T : Service> getService(clazz: Class<T>): T = finalServiceProvider.getService(clazz)
 
-        return service as T?
-    }
+    fun <T : Service> tryGetService(clazz: Class<T>): T? = finalServiceProvider.tryGetService(clazz)
 
     private fun getInputMessage(update: Update): InputMessage? {
         return if (update.hasMessage() && update.message.hasText()) {
