@@ -211,9 +211,13 @@ interface BaseContext : CommandExecutor {
      */
     fun getTaskManager(): TaskManager
 
-    fun <T : Service> getService(clazz: Class<T>): T?
+    fun <T : Service> getService(clazz: Class<T>): T
 
-    fun <T : UserService> getUserService(clazz: Class<T>): T?
+    fun <T : Service> tryGetService(clazz: Class<T>): T?
+
+    fun <T : UserService> getUserService(clazz: Class<T>): T
+
+    fun <T : UserService> tryGetUserService(clazz: Class<T>): T?
 
     // === Builder methods ===
 

@@ -69,10 +69,15 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
 
     override fun getTaskManager(): TaskManager = current().getTaskManager()
 
-    override fun <T : Service> getService(clazz: Class<T>): T? = current().getService(clazz)
+    override fun <T : Service> getService(clazz: Class<T>): T = current().getService(clazz)
 
-    override fun <T : UserService> getUserService(clazz: Class<T>): T? =
+    override fun <T : Service> tryGetService(clazz: Class<T>): T? = current().tryGetService(clazz)
+
+    override fun <T : UserService> getUserService(clazz: Class<T>): T =
         current().getUserService(clazz)
+
+    override fun <T : UserService> tryGetUserService(clazz: Class<T>): T? =
+        current().tryGetUserService(clazz)
 
     override fun executeTextCommand(handler: Class<out BaseCommand>, text: String): Boolean =
         current().executeTextCommand(handler, text)

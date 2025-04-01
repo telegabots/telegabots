@@ -22,8 +22,8 @@ internal class UserStateService(
 ) : UserService {
     private val sharedStates: MutableMap<Int, StateProvider> = mutableMapOf()
     private val localStates: MutableMap<Long, StateProvider> = mutableMapOf()
-    private val userState = serviceProvider.getUserService(UserStateProvider::class.java, userId)!!
-    private val localizationProvider = serviceProvider.getUserService(UserLocalizationProvider::class.java, userId)!!
+    private val userState = serviceProvider.getUserService(UserStateProvider::class.java, userId)
+    private val localizationProvider = serviceProvider.getUserService(UserLocalizationProvider::class.java, userId)
 
     override fun userId(): Long = userId
 

@@ -71,7 +71,7 @@ internal class CommandHandlers(
 
         if (!onlyValidate) {
             val args = allServices
-                .map { service -> serviceProvider.getService(service) ?: error("Service not found: $service") }
+                .map { service -> serviceProvider.tryGetService(service) ?: error("Service not found: $service") }
                 .toTypedArray()
             return (if (args.isNotEmpty()) constructor.newInstance(*args) else constructor.newInstance()) as BaseCommand
         }

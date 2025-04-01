@@ -37,13 +37,13 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
     private val config = BotConfig.load(Properties())
 
     init {
-        doReturn(localizationFactory).`when`(serviceProvider).getService(LocalizationFactory::class.java)
-        doReturn(this).`when`(serviceProvider).getService(CommandInterceptor::class.java)
-        doReturn(dbProvider).`when`(serviceProvider).getService(StateDbProvider::class.java)
+        doReturn(localizationFactory).`when`(serviceProvider).tryGetService(LocalizationFactory::class.java)
+        doReturn(this).`when`(serviceProvider).tryGetService(CommandInterceptor::class.java)
+        doReturn(dbProvider).`when`(serviceProvider).tryGetService(StateDbProvider::class.java)
         doReturn(localProvider).`when`(localizationFactory).getProvider(anyString())
         doReturn(listOf(LanguageImpl.ENGLISH)).`when`(localizationFactory).getSupportedLanguages()
         services.forEach { service ->
-            doReturn(service).`when`(serviceProvider).getService(service.javaClass)
+            doReturn(service).`when`(serviceProvider).tryGetService(service.javaClass)
         }
 
         telegaBot = TelegaBot(
@@ -59,7 +59,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
     }
 
     fun addService(service: Class<out Service>, instance: Service) {
-        Mockito.`when`(serviceProvider.getService(service)).thenReturn(instance)
+        Mockito.`when`(serviceProvider.tryGetService(service)).thenReturn(instance)
     }
 
     fun addLocalization(userId: Long, vararg localPairs: Pair<String, String>) {

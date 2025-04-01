@@ -24,7 +24,7 @@ class TestBot {
                 .build()
 
             // this is optional, but recommended
-            val validator = starter.getService(CommandValidator::class.java)!!
+            val validator = starter.getService(CommandValidator::class.java)
             validator.validateAll("org.examples.testbot.commands")
 
             // start the bot

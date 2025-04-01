@@ -34,8 +34,8 @@ internal class BaseContextImpl(
     private val taskManagerFactory: TaskManagerFactory
 ) : CommandContext, TaskContext {
     private val log = LoggerFactory.getLogger(BaseContextImpl::class.java)!!
-    private val jsonService = serviceProvider.getService(JsonService::class.java)!!
-    private val localizationProvider = serviceProvider.getUserService(UserLocalizationProvider::class.java, userState.userId())!!
+    private val jsonService = serviceProvider.getService(JsonService::class.java)
+    private val localizationProvider = serviceProvider.getUserService(UserLocalizationProvider::class.java, userState.userId())
     private val taskManager = lazy { taskManagerFactory.create(this) }
 
     override fun inputMessage(): InputMessage = input
@@ -526,10 +526,15 @@ internal class BaseContextImpl(
         return callContext.execute()
     }
 
-    override fun <T : Service> getService(clazz: Class<T>): T? = serviceProvider.getService(clazz)
+    override fun <T : Service> getService(clazz: Class<T>): T = serviceProvider.getService(clazz)
 
-    override fun <T : UserService> getUserService(clazz: Class<T>): T? =
+    override fun <T : Service> tryGetService(clazz: Class<T>): T? = serviceProvider.tryGetService(clazz)
+
+    override fun <T : UserService> getUserService(clazz: Class<T>): T =
         serviceProvider.getUserService(clazz, input.user.id)
+
+    override fun <T : UserService> tryGetUserService(clazz: Class<T>): T? =
+        serviceProvider.tryGetUserService(clazz, input.user.id)
 
     override fun page(message: String): PageBuilder = PageBuilderImpl(message, this)
 

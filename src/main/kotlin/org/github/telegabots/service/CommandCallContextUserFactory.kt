@@ -22,9 +22,9 @@ internal class CommandCallContextUserFactory(
     private val rootCommand: Class<out BaseCommand>
 ) {
     private val userState: UserStateService =
-        serviceProvider.getUserService(UserStateService::class.java, input.userId)!!
+        serviceProvider.getUserService(UserStateService::class.java, input.userId)
     private val localizationProvider =
-        serviceProvider.getUserService(UserLocalizationProvider::class.java, input.userId)!!
+        serviceProvider.getUserService(UserLocalizationProvider::class.java, input.userId)
 
     fun get(): CommandCallContext =
         when (input.type) {

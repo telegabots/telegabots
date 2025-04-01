@@ -58,15 +58,11 @@ internal data class CommandHandlerInfo(
         }
 
         if (param.isUserService()) {
-            val service = context.getUserService(param.type as Class<UserService>)
-            check(service != null) { "Service not found: ${param.type.name}" }
-            return service
+            return context.getUserService(param.type as Class<UserService>)
         }
 
         if (param.isService()) {
-            val service = context.getService(param.type as Class<Service>)
-            check(service != null) { "Service not found: ${param.type.name}" }
-            return service
+            return context.getService(param.type as Class<Service>)
         }
 
         return states.get(param.stateKind, StateKey(param.type, param.stateName))?.value

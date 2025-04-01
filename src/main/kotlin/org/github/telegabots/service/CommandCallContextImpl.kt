@@ -42,7 +42,7 @@ internal class CommandCallContextImpl(
             }
         }
 
-        commandContext.getService(CommandInterceptor::class.java)?.let { commandInterceptor ->
+        commandContext.tryGetService(CommandInterceptor::class.java)?.let { commandInterceptor ->
             try {
                 commandInterceptor.executed(commandHandler.command, input.type, success)
             } catch (ex: Exception) {

@@ -50,7 +50,10 @@ open class TelegaBotStarter(
         }
     }
 
-    fun <T : Service> getService(clazz: Class<T>): T? = telegaBot.getService(clazz)
+    fun <T : Service> getService(clazz: Class<T>): T = telegaBot.getService(clazz)
+        ?: error("Service not found: ${clazz.name}")
+
+    fun <T : Service> tryGetService(clazz: Class<T>): T? = telegaBot.getService(clazz)
 
     companion object {
         private val log = LoggerFactory.getLogger(TelegaBotStarter::class.java)!!
