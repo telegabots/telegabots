@@ -28,6 +28,10 @@ abstract class BaseCommand {
     open fun isOnlyForAdmin(): Boolean = false
 
     override fun toString(): String = javaClass.simpleName
+
+    companion object {
+        const val MESSAGE_START = "/start"
+    }
 }
 
 fun BaseCommand.isEmpty() = this is EmptyCommand
