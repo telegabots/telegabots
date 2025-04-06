@@ -163,7 +163,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
         caption: String,
         captionContentType: ContentType,
         disableNotification: Boolean
-    ) {
+    ): Int {
         TODO("Not yet implemented")
     }
 

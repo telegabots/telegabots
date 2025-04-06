@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
+import java.io.File
 import java.util.function.Consumer
 
 /**
@@ -35,7 +36,8 @@ internal class BaseContextImpl(
 ) : CommandContext, TaskContext {
     private val log = LoggerFactory.getLogger(BaseContextImpl::class.java)!!
     private val jsonService = serviceProvider.getService(JsonService::class.java)
-    private val localizationProvider = serviceProvider.getUserService(UserLocalizationProvider::class.java, userState.userId())
+    private val localizationProvider =
+        serviceProvider.getUserService(UserLocalizationProvider::class.java, userState.userId())
     private val taskManager = lazy { taskManagerFactory.create(this) }
 
     override fun inputMessage(): InputMessage = input
@@ -53,7 +55,8 @@ internal class BaseContextImpl(
     override fun createPage(page: Page): Long {
         validatePageHandler(page)
 
-        val messageId = messageSender.sendMessage(chatId = input.chatId.toString(),
+        val messageId = messageSender.sendMessage(
+            chatId = input.chatId.toString(),
             contentType = page.contentType,
             disablePreview = page.disablePreview,
             message = page.message,
@@ -171,7 +174,8 @@ internal class BaseContextImpl(
                 command = handler.command,
                 input = newInput
             )
-            CommandCallContextImpl(commandHandler = handler,
+            CommandCallContextImpl(
+                commandHandler = handler,
                 states = states,
                 commandContext = context,
                 defaultContext = { null })
@@ -325,7 +329,8 @@ internal class BaseContextImpl(
             if (!ignoreSender) {
                 when (page.messageType) {
                     MessageType.Text -> {
-                        messageSender.sendMessage(chatId = input.chatId.toString(),
+                        messageSender.sendMessage(
+                            chatId = input.chatId.toString(),
                             contentType = page.contentType,
                             disablePreview = page.disablePreview,
                             message = page.message,
@@ -333,8 +338,10 @@ internal class BaseContextImpl(
                                 applyMessageButtons(msg, page.subCommands, page.messageType)
                             })
                     }
+
                     MessageType.Inline -> {
-                        messageSender.updateMessage(chatId = input.chatId.toString(),
+                        messageSender.updateMessage(
+                            chatId = input.chatId.toString(),
                             messageId = block.messageId,
                             contentType = page.contentType,
                             disablePreview = page.disablePreview,
@@ -392,7 +399,8 @@ internal class BaseContextImpl(
             if (!ignoreSender) {
                 when (page.messageType) {
                     MessageType.Text -> {
-                        messageSender.sendMessage(chatId = input.chatId.toString(),
+                        messageSender.sendMessage(
+                            chatId = input.chatId.toString(),
                             contentType = page.contentType,
                             disablePreview = page.disablePreview,
                             message = page.message,
@@ -400,8 +408,10 @@ internal class BaseContextImpl(
                                 applyMessageButtons(msg, page.subCommands, page.messageType)
                             })
                     }
+
                     MessageType.Inline -> {
-                        messageSender.updateMessage(chatId = input.chatId.toString(),
+                        messageSender.updateMessage(
+                            chatId = input.chatId.toString(),
                             messageId = block.messageId,
                             contentType = page.contentType,
                             disablePreview = page.disablePreview,
@@ -454,6 +464,15 @@ internal class BaseContextImpl(
         )
     }
 
+    override fun sendImage(
+        file: File,
+        caption: String,
+        captionContentType: ContentType,
+        disableNotification: Boolean
+    ): Int {
+        return messageSender.sendImage(input.chatId.toString(), file, caption, captionContentType, disableNotification)
+    }
+
     override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -496,7 +515,8 @@ internal class BaseContextImpl(
         val context =
             createCommandContext(blockId = 0, currentMessageId = 0, command = handler.command, input = newInput)
 
-        val callContext = CommandCallContextImpl(commandHandler = handler,
+        val callContext = CommandCallContextImpl(
+            commandHandler = handler,
             states = states,
             commandContext = context,
             defaultContext = { null })
@@ -518,7 +538,8 @@ internal class BaseContextImpl(
         val context =
             createCommandContext(blockId = 0, currentMessageId = 0, command = handler.command, input = newInput)
 
-        val callContext = CommandCallContextImpl(commandHandler = handler,
+        val callContext = CommandCallContextImpl(
+            commandHandler = handler,
             states = states,
             commandContext = context,
             defaultContext = { null })

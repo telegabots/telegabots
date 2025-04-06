@@ -109,7 +109,7 @@ interface MessageSender : Service {
         caption: String,
         captionContentType: ContentType,
         disableNotification: Boolean
-    )
+    ): Int
 
     fun deleteMessage(chatId: String, messageId: Int)
 }

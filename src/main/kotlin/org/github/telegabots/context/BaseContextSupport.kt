@@ -1,6 +1,7 @@
 package org.github.telegabots.context
 
 import org.github.telegabots.api.*
+import java.io.File
 
 /**
  * Base methods of Context for current executing command or task
@@ -54,6 +55,13 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
     override fun getBlockState(blockId: Long): BlockStateInfo = current().getBlockState(blockId)
 
     override fun sendDocument(document: Document) = current().sendDocument(document)
+
+    override fun sendImage(
+        file: File,
+        caption: String,
+        captionContentType: ContentType,
+        disableNotification: Boolean
+    ): Int = current().sendImage(file, caption, captionContentType, disableNotification)
 
     override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean) =
         current().sendAdminMessage(message, contentType, disablePreview)

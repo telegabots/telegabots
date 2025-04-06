@@ -210,7 +210,7 @@ class MessageSenderImpl(
         caption: String,
         captionContentType: ContentType,
         disableNotification: Boolean
-    ) {
+    ): Int {
         val image = SendPhoto()
         image.chatId = chatId
         image.photo = InputFile(file)
@@ -226,7 +226,8 @@ class MessageSenderImpl(
 
         try {
             log.debug("Sending image: {}", image)
-            bot.execute(image)
+            val msg = bot.execute(image)
+            return msg.messageId
         } catch (e: TelegramApiException) {
             log.error("Image send failed: {}, chatId: {}, image: {}", e.message, chatId, image, e)
             throw e

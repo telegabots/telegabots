@@ -1,5 +1,7 @@
 package org.github.telegabots.api
 
+import java.io.File
+
 /**
  * Base context used by a command or task
  */
@@ -120,6 +122,16 @@ interface BaseContext : CommandExecutor {
      * Sends document to the current or specified chat
      */
     fun sendDocument(document: Document)
+
+    /**
+     * Sends image to the chat
+     */
+    fun sendImage(
+        file: File,
+        caption: String,
+        captionContentType: ContentType = ContentType.Plain,
+        disableNotification: Boolean = false
+    ): Int
 
     /**
      * Sends message to admin chat
