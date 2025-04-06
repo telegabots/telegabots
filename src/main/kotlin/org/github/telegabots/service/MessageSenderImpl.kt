@@ -307,7 +307,7 @@ class MessageSenderImpl(
         }
     }
 
-    private fun getParseMode(captionContentType: ContentType, oldParseMode: String) = when (captionContentType) {
+    private fun getParseMode(captionContentType: ContentType, oldParseMode: String?): String? = when (captionContentType) {
         ContentType.Markdown -> ParseMode.MARKDOWN
         ContentType.Html -> ParseMode.HTML
         ContentType.Plain -> oldParseMode
