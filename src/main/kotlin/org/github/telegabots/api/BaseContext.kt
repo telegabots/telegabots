@@ -134,6 +134,16 @@ interface BaseContext : CommandExecutor {
     ): Int
 
     /**
+     * Updates image in the chat
+     */
+    fun updateImage(
+        messageId: Int,
+        file: File,
+        caption: String,
+        captionContentType: ContentType = ContentType.Plain
+    )
+
+    /**
      * Sends message to admin chat
      */
     fun sendAdminMessage(

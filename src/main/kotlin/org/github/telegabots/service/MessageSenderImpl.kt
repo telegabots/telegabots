@@ -11,9 +11,11 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.InputFile
 import org.telegram.telegrambots.meta.api.objects.Message
+import org.telegram.telegrambots.meta.api.objects.media.InputMedia
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
@@ -230,6 +232,34 @@ class MessageSenderImpl(
             return msg.messageId
         } catch (e: TelegramApiException) {
             log.error("Image send failed: {}, chatId: {}, image: {}", e.message, chatId, image, e)
+            throw e
+        }
+    }
+
+    override fun updateImage(
+        chatId: String,
+        messageId: Int,
+        file: File,
+        caption: String,
+        captionContentType: ContentType,
+    ) {
+        val editMessageMedia = EditMessageMedia()
+        editMessageMedia.messageId = messageId
+        editMessageMedia.chatId = chatId
+        val mediaPhoto = InputMediaPhoto()
+        mediaPhoto.setMedia(file, file.name)
+        editMessageMedia.media = mediaPhoto
+
+        if (caption.isNotBlank()) {
+            mediaPhoto.caption = caption
+            mediaPhoto.parseMode = getParseMode(captionContentType, mediaPhoto.parseMode)
+        }
+
+        try {
+            log.debug("Update image: {}", editMessageMedia)
+            bot.execute(editMessageMedia)
+        } catch (e: TelegramApiException) {
+            log.error("Image send failed: {}, chatId: {}, image: {}", e.message, chatId, editMessageMedia, e)
             throw e
         }
     }

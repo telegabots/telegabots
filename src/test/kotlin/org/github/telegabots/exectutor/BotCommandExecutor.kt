@@ -167,6 +167,16 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
         TODO("Not yet implemented")
     }
 
+    override fun updateImage(
+        chatId: String,
+        messageId: Int,
+        file: File,
+        caption: String,
+        captionContentType: ContentType
+    ) {
+        TODO("Not yet implemented")
+    }
+
     override fun deleteMessage(chatId: String, messageId: Int) {
         TODO("Not yet implemented")
     }

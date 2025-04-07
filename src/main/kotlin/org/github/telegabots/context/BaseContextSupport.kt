@@ -63,6 +63,13 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
         disableNotification: Boolean
     ): Int = current().sendImage(file, caption, captionContentType, disableNotification)
 
+    override fun updateImage(
+        messageId: Int,
+        file: File,
+        caption: String,
+        captionContentType: ContentType
+    ) = current().updateImage(messageId, file, caption, captionContentType)
+
     override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean) =
         current().sendAdminMessage(message, contentType, disablePreview)
 

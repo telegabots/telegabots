@@ -473,6 +473,15 @@ internal class BaseContextImpl(
         return messageSender.sendImage(input.chatId.toString(), file, caption, captionContentType, disableNotification)
     }
 
+    override fun updateImage(
+        messageId: Int,
+        file: File,
+        caption: String,
+        captionContentType: ContentType
+    ) {
+        return messageSender.updateImage(input.chatId.toString(), messageId, file, caption, captionContentType)
+    }
+
     override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

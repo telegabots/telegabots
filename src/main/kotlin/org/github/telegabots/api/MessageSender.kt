@@ -111,5 +111,13 @@ interface MessageSender : Service {
         disableNotification: Boolean
     ): Int
 
+    fun updateImage(
+        chatId: String,
+        messageId: Int,
+        file: File,
+        caption: String,
+        captionContentType: ContentType
+    )
+
     fun deleteMessage(chatId: String, messageId: Int)
 }
