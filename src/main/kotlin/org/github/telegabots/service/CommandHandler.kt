@@ -17,8 +17,8 @@ internal class CommandHandler(
     private val handlers: List<CommandHandlerInfo>
 ) {
     val commandClass: Class<out BaseCommand> get() = command.javaClass
-    private val textHandler = handlers.find { p -> p.messageType == MessageType.Text }
-    private val inlineHandler = handlers.find { p -> p.messageType == MessageType.Inline }
+    private val textHandler: CommandHandlerInfo? = handlers.find { p -> p.messageType == MessageType.Text }
+    private val inlineHandler: CommandHandlerInfo? = handlers.find { p -> p.messageType == MessageType.Inline }
 
     fun executeText(text: String, states: States, context: CommandContext): Boolean {
         checkNotNull(textHandler) { "Text message handler not implemented in ${command.javaClass.name}. Annotate method with @TextHandler" }
@@ -43,10 +43,11 @@ internal class CommandHandler(
         }
     }
 
-    fun canHandle(messageType: MessageType): Boolean =
-        when (messageType) {
+    fun canHandle(inputMessageType: MessageType): Boolean =
+        when (inputMessageType) {
             MessageType.Text -> textHandler != null
             MessageType.Inline -> inlineHandler != null
+            MessageType.Photo -> error("Input message type not expected: $inputMessageType")
         }
 
     override fun toString(): String {

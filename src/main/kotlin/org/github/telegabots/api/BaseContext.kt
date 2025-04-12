@@ -1,5 +1,6 @@
 package org.github.telegabots.api
 
+import org.github.telegabots.MessageFile
 import java.io.File
 
 /**
@@ -127,7 +128,7 @@ interface BaseContext : CommandExecutor {
      * Sends image to the chat
      */
     fun sendImage(
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType = ContentType.Plain,
         disableNotification: Boolean = false
@@ -138,7 +139,7 @@ interface BaseContext : CommandExecutor {
      */
     fun updateImage(
         messageId: Int,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType = ContentType.Plain
     )
@@ -247,4 +248,8 @@ interface BaseContext : CommandExecutor {
      * Creates new [PageBuilder].
      */
     fun page(message: String): PageBuilder
+
+    fun page(file: MessageFile): PageBuilder
+
+    fun page(file: File): PageBuilder = page(MessageFile.from(file))
 }

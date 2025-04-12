@@ -30,6 +30,7 @@ internal class CommandCallContextUserFactory(
         when (input.type) {
             MessageType.Text -> getTextMessageContext()
             MessageType.Inline -> getInlineMessageContext()
+            MessageType.Photo -> error("Input message type not expected: $input")
         }
 
     private fun getTextMessageContext(): CommandCallContext {
@@ -224,7 +225,7 @@ internal class CommandCallContextUserFactory(
         val commandDef = if (block.messageType == input.type) {
             when (block.messageType) {
                 MessageType.Text -> page.commandDefs.flatten().find { it.title == input.query }
-                MessageType.Inline -> page.commandDefs.flatten().find { it.titleId == input.query }
+                MessageType.Inline, MessageType.Photo -> page.commandDefs.flatten().find { it.titleId == input.query }
             } ?: parseSysCommand(block.messageType, input.query)
         } else null
 
@@ -241,7 +242,7 @@ internal class CommandCallContextUserFactory(
         query: String
     ): CommandDef? {
         return when (messageType) {
-            MessageType.Inline -> SystemCommands.ALL.filter { it == query }
+            MessageType.Inline, MessageType.Photo -> SystemCommands.ALL.filter { it == query }
                 .map { CommandDef(it, localizationProvider.getString(it), null, null, null) }
                 .firstOrNull()
 

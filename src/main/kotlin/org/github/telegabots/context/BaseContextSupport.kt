@@ -1,7 +1,7 @@
 package org.github.telegabots.context
 
+import org.github.telegabots.MessageFile
 import org.github.telegabots.api.*
-import java.io.File
 
 /**
  * Base methods of Context for current executing command or task
@@ -57,7 +57,7 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
     override fun sendDocument(document: Document) = current().sendDocument(document)
 
     override fun sendImage(
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType,
         disableNotification: Boolean
@@ -65,7 +65,7 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
 
     override fun updateImage(
         messageId: Int,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType
     ) = current().updateImage(messageId, file, caption, captionContentType)
@@ -101,4 +101,6 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
         current().executeInlineCommand(handler, query)
 
     override fun page(message: String): PageBuilder = current().page(message)
+
+    override fun page(file: MessageFile): PageBuilder = current().page(file)
 }

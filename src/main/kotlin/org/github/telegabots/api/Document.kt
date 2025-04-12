@@ -1,9 +1,9 @@
 package org.github.telegabots.api
 
-import java.io.File
+import org.github.telegabots.MessageFile
 
 data class Document(
-    val file: File,
+    val file: MessageFile,
     val caption: String = "",
     val captionContentType: ContentType = ContentType.Plain,
     val disableNotification: Boolean = false,
@@ -12,7 +12,7 @@ data class Document(
     companion object {
         @JvmStatic
         fun of(
-            file: File,
+            file: MessageFile,
             caption: String = "",
             captionContentType: ContentType = ContentType.Plain,
             disableNotification: Boolean = false,

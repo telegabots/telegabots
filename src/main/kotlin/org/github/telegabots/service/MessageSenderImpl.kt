@@ -1,25 +1,22 @@
 package org.github.telegabots.service
 
+import org.github.telegabots.MessageFile
 import org.github.telegabots.api.ContentType
 import org.github.telegabots.api.MessageSender
+import org.github.telegabots.util.toInputFile
+import org.github.telegabots.util.toInputMediaPhoto
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.ParseMode
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument
-import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
-import org.telegram.telegrambots.meta.api.methods.send.SendVideo
+import org.telegram.telegrambots.meta.api.methods.send.*
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.InputFile
 import org.telegram.telegrambots.meta.api.objects.Message
-import org.telegram.telegrambots.meta.api.objects.media.InputMedia
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
-import java.io.File
 import java.io.Serializable
 import java.util.function.Consumer
 
@@ -117,14 +114,14 @@ class MessageSenderImpl(
 
     override fun sendDocument(
         chatId: String,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType,
         disableNotification: Boolean
     ) {
         val doc = SendDocument()
         doc.chatId = chatId
-        doc.document = InputFile(file)
+        doc.document = file.toInputFile()
 
         doc.parseMode = when (captionContentType) {
             ContentType.Markdown -> ParseMode.MARKDOWN
@@ -164,13 +161,13 @@ class MessageSenderImpl(
 
     override fun sendVideo(
         chatId: String,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType,
         disableNotification: Boolean
     ) {
         val video = SendVideo()
-        video.video = InputFile(file)
+        video.video = file.toInputFile()
 
         sendVideoInternal(video, chatId, captionContentType, disableNotification, caption)
     }
@@ -190,32 +187,33 @@ class MessageSenderImpl(
 
     override fun sendImages(
         chatId: String,
-        files: List<File>,
+        files: List<MessageFile>,
         caption: String,
         captionContentType: ContentType,
         disableNotification: Boolean
     ) {
         if (files.size == 1) {
-            sendImage(chatId, files.first(), caption, captionContentType, disableNotification)
+            sendImage(chatId, files.first(), caption, captionContentType, disableNotification, Consumer { })
             return
         }
 
         val images = SendMediaGroup()
-        images.medias = files.map { file -> InputMediaPhoto().apply { setMedia(file, file.name) } }
+        images.medias = files.map { file -> file.toInputMediaPhoto() }
 
         sendImagesInternal(images, chatId, disableNotification, caption, captionContentType)
     }
 
     override fun sendImage(
         chatId: String,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType,
-        disableNotification: Boolean
+        disableNotification: Boolean,
+        preSendHandler: Consumer<SendPhoto>
     ): Int {
         val image = SendPhoto()
         image.chatId = chatId
-        image.photo = InputFile(file)
+        image.photo = file.toInputFile()
 
         if (disableNotification) {
             image.disableNotification()
@@ -225,6 +223,8 @@ class MessageSenderImpl(
             image.caption = caption
             image.parseMode = getParseMode(captionContentType, image.parseMode)
         }
+
+        preSendHandler.accept(image)
 
         try {
             log.debug("Sending image: {}", image)
@@ -239,21 +239,23 @@ class MessageSenderImpl(
     override fun updateImage(
         chatId: String,
         messageId: Int,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType,
+        preSendHandler: Consumer<EditMessageMedia>
     ) {
         val editMessageMedia = EditMessageMedia()
         editMessageMedia.messageId = messageId
         editMessageMedia.chatId = chatId
-        val mediaPhoto = InputMediaPhoto()
-        mediaPhoto.setMedia(file, file.name)
+        val mediaPhoto = file.toInputMediaPhoto()
         editMessageMedia.media = mediaPhoto
 
         if (caption.isNotBlank()) {
             mediaPhoto.caption = caption
             mediaPhoto.parseMode = getParseMode(captionContentType, mediaPhoto.parseMode)
         }
+
+        preSendHandler.accept(editMessageMedia)
 
         try {
             log.debug("Update image: {}", editMessageMedia)
@@ -337,11 +339,12 @@ class MessageSenderImpl(
         }
     }
 
-    private fun getParseMode(captionContentType: ContentType, oldParseMode: String?): String? = when (captionContentType) {
-        ContentType.Markdown -> ParseMode.MARKDOWN
-        ContentType.Html -> ParseMode.HTML
-        ContentType.Plain -> oldParseMode
-    }
+    private fun getParseMode(captionContentType: ContentType, oldParseMode: String?): String? =
+        when (captionContentType) {
+            ContentType.Markdown -> ParseMode.MARKDOWN
+            ContentType.Html -> ParseMode.HTML
+            ContentType.Plain -> oldParseMode
+        }
 
     companion object {
         const val MESSAGE_NOT_MODIFIED =

@@ -6,5 +6,7 @@ package org.github.telegabots.api
 enum class MessageType {
     Text,
 
-    Inline
+    Inline,
+
+    Photo
 }

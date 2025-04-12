@@ -73,7 +73,7 @@ class TelegaBot(
                 user = toUser(user),
                 messageId = message.messageId,
                 inlineMessageId = message.messageId,
-                isAdmin = userId.toLong() == adminChatId
+                isAdmin = userId == adminChatId
             )
         } else {
             log.warn("Unsupported message type: {}", update)

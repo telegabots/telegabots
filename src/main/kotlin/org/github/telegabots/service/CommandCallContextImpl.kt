@@ -29,17 +29,19 @@ internal class CommandCallContextImpl(
                 }
             }
 
-            throw IllegalStateException("Message of type ${input.type} can not be handled by command: ${commandHandler.command.javaClass.name}")
+            log.error("Command handler not found for message: $input")
+            error("Message of type ${input.type} can not be handled by command: ${commandHandler.command.javaClass.name}")
         }
 
         logContext()
 
         val success = when (input.type) {
             MessageType.Text -> commandHandler.executeText(input.query, states, commandContext)
-            MessageType.Inline -> {
+            MessageType.Inline-> {
                 commandHandler.executeInline(input.query, states, commandContext)
                 true
             }
+            MessageType.Photo -> error("Input message type not expected: $input")
         }
 
         commandContext.tryGetService(CommandInterceptor::class.java)?.let { commandInterceptor ->

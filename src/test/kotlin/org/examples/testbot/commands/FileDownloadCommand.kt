@@ -1,5 +1,6 @@
 package org.examples.testbot.commands
 
+import org.github.telegabots.MessageFile
 import org.github.telegabots.api.BaseCommand
 import org.github.telegabots.api.Document
 import org.github.telegabots.api.annotation.InlineHandler
@@ -10,7 +11,7 @@ class FileDownloadCommand : BaseCommand() {
     fun handle(message: String, downloadPath: String) {
         log.info("Download file: {}, message: {}", downloadPath, message)
 
-        val file = File(downloadPath)
+        val file = MessageFile.from(File(downloadPath))
         context.sendDocument(Document.of(file, caption = "File: $downloadPath"))
     }
 }

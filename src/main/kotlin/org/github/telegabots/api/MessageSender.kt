@@ -1,8 +1,10 @@
 package org.github.telegabots.api
 
+import org.github.telegabots.MessageFile
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
-import java.io.File
 import java.util.function.Consumer
 
 /**
@@ -50,7 +52,7 @@ interface MessageSender : Service {
      */
     fun sendDocument(
         chatId: String,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType = ContentType.Plain,
         disableNotification: Boolean = false
@@ -72,7 +74,7 @@ interface MessageSender : Service {
      */
     fun sendVideo(
         chatId: String,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType,
         disableNotification: Boolean
@@ -94,7 +96,7 @@ interface MessageSender : Service {
      */
     fun sendImages(
         chatId: String,
-        files: List<File>,
+        files: List<MessageFile>,
         caption: String,
         captionContentType: ContentType,
         disableNotification: Boolean
@@ -105,18 +107,20 @@ interface MessageSender : Service {
      */
     fun sendImage(
         chatId: String,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType,
-        disableNotification: Boolean
+        disableNotification: Boolean,
+        preSendHandler: Consumer<SendPhoto>
     ): Int
 
     fun updateImage(
         chatId: String,
         messageId: Int,
-        file: File,
+        file: MessageFile,
         caption: String,
-        captionContentType: ContentType
+        captionContentType: ContentType,
+        preSendHandler: Consumer<EditMessageMedia>
     )
 
     fun deleteMessage(chatId: String, messageId: Int)

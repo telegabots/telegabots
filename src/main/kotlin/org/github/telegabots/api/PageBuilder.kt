@@ -1,5 +1,8 @@
 package org.github.telegabots.api
 
+import org.github.telegabots.MessageFile
+import java.io.File
+
 /**
  * Builder for [Page].
  *
@@ -50,6 +53,16 @@ interface PageBuilder {
      * Set [State] for [Page]
      */
     fun state(state: StateRef): PageBuilder
+
+    /**
+     * Set [MessageFile] for [Page]
+     */
+    fun file(file: MessageFile): PageBuilder
+
+    /**
+     * Set [File] for [Page]
+     */
+    fun file(file: File): PageBuilder = file(MessageFile.from(file))
 
     /**
      * Set message type for page. Default is [MessageType.Text]

@@ -1,5 +1,6 @@
 package org.github.telegabots.service
 
+import org.github.telegabots.MessageFile
 import org.github.telegabots.api.*
 
 /**
@@ -15,6 +16,7 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
     private var id: Long = 0L
     private var blockId: Long = 0L
     private var state: StateRef? = null
+    private var file: MessageFile? = null
 
     override fun create(): Long = context.createPage(createPage())
 
@@ -34,6 +36,11 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
 
     override fun state(state: StateRef): PageBuilder {
         this.state = state
+        return this
+    }
+
+    override fun file(file: MessageFile): PageBuilder {
+        this.file = file
         return this
     }
 
@@ -83,7 +90,8 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
             handler = handler,
             id = id,
             blockId = blockId,
-            state = state
+            state = state,
+            file = file
         )
     }
 }

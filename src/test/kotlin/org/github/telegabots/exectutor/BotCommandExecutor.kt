@@ -1,5 +1,6 @@
 package org.github.telegabots.exectutor
 
+import org.github.telegabots.MessageFile
 import org.github.telegabots.api.*
 import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.entity.CommandBlock
@@ -15,9 +16,10 @@ import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Update
-import java.io.File
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
@@ -109,7 +111,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
 
     override fun sendDocument(
         chatId: String,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType,
         disableNotification: Boolean
@@ -129,7 +131,7 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
 
     override fun sendVideo(
         chatId: String,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType,
         disableNotification: Boolean
@@ -149,20 +151,21 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
 
     override fun sendImages(
         chatId: String,
-        files: List<File>,
+        files: List<MessageFile>,
         caption: String,
         captionContentType: ContentType,
-        disableNotification: Boolean
+        disableNotification: Boolean,
     ) {
         TODO("Not yet implemented")
     }
 
     override fun sendImage(
         chatId: String,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType,
-        disableNotification: Boolean
+        disableNotification: Boolean,
+        preSendHandler: Consumer<SendPhoto>
     ): Int {
         TODO("Not yet implemented")
     }
@@ -170,9 +173,10 @@ class BotCommandExecutor(private val rootCommand: Class<out BaseCommand>, servic
     override fun updateImage(
         chatId: String,
         messageId: Int,
-        file: File,
+        file: MessageFile,
         caption: String,
-        captionContentType: ContentType
+        captionContentType: ContentType,
+        preSendHandler: Consumer<EditMessageMedia>
     ) {
         TODO("Not yet implemented")
     }

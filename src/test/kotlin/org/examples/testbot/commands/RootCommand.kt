@@ -17,7 +17,7 @@ class RootCommand : BaseCommand() {
     fun handle(message: String) {
         context.page("RootCommand: You said: $message")
             .messageType(MessageType.Inline)
-            .subCommands(FileExplorerCommand::class.java, PrintCommand::class.java, LanguageCommand::class.java)
+            .subCommands(FileExplorerCommand::class.java, FileViewCommand::class.java, PrintCommand::class.java, LanguageCommand::class.java)
             .create()
     }
 
@@ -26,7 +26,7 @@ class RootCommand : BaseCommand() {
         if (message == SystemCommands.REFRESH) {
             context.page("RootCommand: Main menu")
                 .messageType(MessageType.Inline)
-                .subCommands(FileExplorerCommand::class.java, PrintCommand::class.java, LanguageCommand::class.java)
+                .subCommands(FileExplorerCommand::class.java, FileViewCommand::class.java, PrintCommand::class.java, LanguageCommand::class.java)
                 .update()
         } else {
             TODO(message)

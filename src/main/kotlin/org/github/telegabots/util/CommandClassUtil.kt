@@ -38,6 +38,7 @@ internal object CommandClassUtil {
         when (handler.messageType) {
             MessageType.Text -> checkTextHandler(handler)
             MessageType.Inline -> checkInlineHandler(handler)
+            MessageType.Photo -> checkPhotoHandler(handler)
         }
 
         return handler
@@ -53,6 +54,10 @@ internal object CommandClassUtil {
         check(handler.params.none { it.isContext() }) { "CommandContext can not be used as handler parameter. Use \"context\" field instead. Handler: ${handler.method}" }
     }
 
+    private fun checkPhotoHandler(handler: CommandHandlerInfo) {
+        checkInlineHandler(handler)
+    }
+
     private fun checkTextHandler(handler: CommandHandlerInfo) {
         check(handler.params.isNotEmpty()) { "Handler must contains at least one parameter: ${handler.method}" }
 
@@ -63,19 +68,16 @@ internal object CommandClassUtil {
         check(handler.params.none { it.isContext() }) { "CommandContext can not be used as handler parameter. Use \"context\" field instead. Handler: ${handler.method}" }
     }
 
-    private fun mapHandler(method: Method, command: BaseCommand): CommandHandlerInfo? {
-        val messageType = getMessageType(method)
-
-        return if (messageType != null) CommandHandlerInfo(
-            name = method.name, method = method,
-            params = HandlerParamUtil.getParams(method),
-            messageType = messageType,
-            retType = method.returnType,
-            command = command
-        )
-        else
-            null
-    }
+    private fun mapHandler(method: Method, command: BaseCommand): CommandHandlerInfo? =
+        getMessageType(method)?.let { messageType ->
+            CommandHandlerInfo(
+                name = method.name, method = method,
+                params = HandlerParamUtil.getParams(method),
+                messageType = messageType,
+                retType = method.returnType,
+                command = command
+            )
+        }
 
     private fun getMessageType(method: Method): MessageType? {
         return if (method.annotations.any { it.annotationClass == TextHandler::class }) {

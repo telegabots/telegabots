@@ -1,5 +1,6 @@
 package org.github.telegabots.service
 
+import org.github.telegabots.MessageFile
 import org.github.telegabots.api.*
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
@@ -8,12 +9,13 @@ import org.github.telegabots.task.TaskManagerFactory
 import org.github.telegabots.util.runIn
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
-import java.io.File
 import java.util.function.Consumer
 
 /**
@@ -53,16 +55,28 @@ internal class BaseContextImpl(
     override fun currentCommand(): BaseCommand = command
 
     override fun createPage(page: Page): Long {
-        validatePageHandler(page)
+        validatePage(page)
 
-        val messageId = messageSender.sendMessage(
-            chatId = input.chatId.toString(),
-            contentType = page.contentType,
-            disablePreview = page.disablePreview,
-            message = page.message,
-            preSendHandler = { msg ->
-                applyMessageButtons(msg, page.subCommands, page.messageType)
-            })
+        val messageId = when (page.messageType) {
+            MessageType.Text, MessageType.Inline -> messageSender.sendMessage(
+                chatId = input.chatId.toString(),
+                contentType = page.contentType,
+                disablePreview = page.disablePreview,
+                message = page.message,
+                preSendHandler = { msg ->
+                    applyMessageButtons(msg, page.subCommands, page.messageType)
+                })
+
+            MessageType.Photo -> messageSender.sendImage(
+                chatId = input.chatId.toString(),
+                file = page.file ?: error("MessageFile is required for photo message"),
+                caption = page.message,
+                captionContentType = page.contentType,
+                disableNotification = page.disableNotification,
+                preSendHandler = { msg ->
+                    applyMessageButtons(msg, page.subCommands)
+                })
+        }
 
         userState.getWriteLock().runIn {
             val block = userState.saveBlock(
@@ -95,7 +109,7 @@ internal class BaseContextImpl(
     }
 
     override fun addPage(page: Page): Long? {
-        validatePageHandler(page)
+        validatePage(page)
 
         if (page.blockId > 0) {
             return addPageExplicit(page, page.blockId)
@@ -109,7 +123,7 @@ internal class BaseContextImpl(
     }
 
     override fun updatePage(page: Page): Long? {
-        validatePageHandler(page)
+        validatePage(page)
 
         if (page.blockId > 0) {
             return updatePageExplicit(page, page.blockId, pageId = page.id)
@@ -350,6 +364,18 @@ internal class BaseContextImpl(
                                 applyMessageButtons(msg, page.subCommands)
                             })
                     }
+
+                    MessageType.Photo -> {
+                        messageSender.updateImage(
+                            chatId = input.chatId.toString(),
+                            messageId = block.messageId,
+                            caption = page.message,
+                            captionContentType = page.contentType,
+                            file = page.file ?: error("MessageFile is required for photo message"),
+                            preSendHandler = Consumer { msg ->
+                                applyMessageButtons(msg, page.subCommands)
+                            })
+                    }
                 }
             }
 
@@ -420,6 +446,18 @@ internal class BaseContextImpl(
                                 applyMessageButtons(msg, page.subCommands)
                             })
                     }
+
+                    MessageType.Photo -> {
+                        messageSender.updateImage(
+                            chatId = input.chatId.toString(),
+                            messageId = block.messageId,
+                            file = page.file ?: error("MessageFile is required for photo message"),
+                            caption = page.message,
+                            captionContentType = page.contentType,
+                            preSendHandler = { msg ->
+                                applyMessageButtons(msg, page.subCommands)
+                            })
+                    }
                 }
             }
 
@@ -457,7 +495,8 @@ internal class BaseContextImpl(
         val chatId = if (document.chatId.isNotBlank()) document.chatId else input.chatId.toString()
 
         messageSender.sendDocument(
-            chatId, file = document.file,
+            chatId,
+            file = document.file,
             caption = document.caption,
             captionContentType = document.captionContentType,
             disableNotification = document.disableNotification
@@ -465,25 +504,31 @@ internal class BaseContextImpl(
     }
 
     override fun sendImage(
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType,
         disableNotification: Boolean
     ): Int {
-        return messageSender.sendImage(input.chatId.toString(), file, caption, captionContentType, disableNotification)
+        return messageSender.sendImage(
+            input.chatId.toString(),
+            file,
+            caption,
+            captionContentType,
+            disableNotification
+        ) { }
     }
 
     override fun updateImage(
         messageId: Int,
-        file: File,
+        file: MessageFile,
         caption: String,
         captionContentType: ContentType
     ) {
-        return messageSender.updateImage(input.chatId.toString(), messageId, file, caption, captionContentType)
+        return messageSender.updateImage(input.chatId.toString(), messageId, file, caption, captionContentType) {}
     }
 
     override fun sendAdminMessage(message: String, contentType: ContentType, disablePreview: Boolean): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") //To change body of created functions use MessageFile | Settings | MessageFile Templates.
     }
 
     override fun sendMessage(message: String, contentType: ContentType, disablePreview: Boolean, chatId: String): Int {
@@ -499,15 +544,15 @@ internal class BaseContextImpl(
     }
 
     override fun enterCommand(command: BaseCommand) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") //To change body of created functions use MessageFile | Settings | MessageFile Templates.
     }
 
     override fun leaveCommand(command: BaseCommand?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") //To change body of created functions use MessageFile | Settings | MessageFile Templates.
     }
 
     override fun clearCommands() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented") //To change body of created functions use MessageFile | Settings | MessageFile Templates.
     }
 
     override fun getTaskManager(): TaskManager = taskManager.value
@@ -568,6 +613,8 @@ internal class BaseContextImpl(
 
     override fun page(message: String): PageBuilder = PageBuilderImpl(message, this)
 
+    override fun page(file: MessageFile): PageBuilder = PageBuilderImpl("", this).file(file)
+
     override fun isAdmin(): Boolean = input.isAdmin
 
     override fun getUser(): InputUser = input.user
@@ -607,7 +654,7 @@ internal class BaseContextImpl(
         localState.mergeAll(stateItems)
     }
 
-    private fun validatePageHandler(page: Page) {
+    private fun validatePage(page: Page) {
         val pageHandler = page.handler
 
         if (pageHandler != null && page.messageType == MessageType.Text) {
@@ -628,6 +675,10 @@ internal class BaseContextImpl(
                 val handler2 = page.handler ?: command.javaClass
                 checkHandlerType(handler2, page.messageType)
             }
+        }
+
+        check (page.file == null || page.messageType in fileMessageTypes) {
+            "File and message type are incompatible: ${page.messageType}. Expected one of the list: $fileMessageTypes"
         }
     }
 
@@ -650,16 +701,25 @@ internal class BaseContextImpl(
         when (messageType) {
             MessageType.Text -> "TextHandler"
             MessageType.Inline -> "InlineHandler"
+            MessageType.Photo -> "PhotoHandler"
         }
 
     private fun applyMessageButtons(msg: SendMessage, subCommands: List<List<SubCommand>>, messageType: MessageType) {
         msg.replyMarkup = when (messageType) {
-            MessageType.Inline -> mapInlineKeyboardMarkup(subCommands)
+            MessageType.Inline, MessageType.Photo -> mapInlineKeyboardMarkup(subCommands)
             MessageType.Text -> mapReplyKeyboardMarkup(subCommands)
         }
     }
 
     private fun applyMessageButtons(msg: EditMessageText, subCommands: List<List<SubCommand>>) {
+        msg.replyMarkup = mapInlineKeyboardMarkup(subCommands)
+    }
+
+    private fun applyMessageButtons(msg: EditMessageMedia, subCommands: List<List<SubCommand>>) {
+        msg.replyMarkup = mapInlineKeyboardMarkup(subCommands)
+    }
+
+    private fun applyMessageButtons(msg: SendPhoto, subCommands: List<List<SubCommand>>) {
         msg.replyMarkup = mapInlineKeyboardMarkup(subCommands)
     }
 
@@ -692,8 +752,11 @@ internal class BaseContextImpl(
 
     private fun getTitle(cmd: SubCommand) = cmd.title ?: localizationProvider.getString(cmd.titleId)
 
-    companion object {
-        private const val PAGE_ID_LAST: Long = 0
-        private const val BUTTONS_MAX_SIZE = 100
+    private companion object {
+        const val PAGE_ID_LAST: Long = 0
+        const val BUTTONS_MAX_SIZE = 100
+        val fileMessageTypes = setOf(
+            MessageType.Photo
+        )
     }
 }
