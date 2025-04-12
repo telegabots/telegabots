@@ -24,6 +24,8 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
 
     override fun pageId(): Long = current().pageId()
 
+    override fun messageType(): MessageType  = current().messageType()
+
     override fun createPage(page: Page): Long = current().createPage(page)
 
     override fun addPage(page: Page): Long? = current().addPage(page)

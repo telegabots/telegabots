@@ -24,6 +24,7 @@ import java.util.function.Consumer
 internal class BaseContextImpl(
     private val blockId: Long,
     private val pageId: Long,
+    private val messageType: MessageType,
     /**
      * Message id related with current block
      */
@@ -51,6 +52,8 @@ internal class BaseContextImpl(
     override fun blockId(): Long = blockId
 
     override fun pageId(): Long = pageId
+
+    override fun messageType(): MessageType = messageType
 
     override fun currentCommand(): BaseCommand = command
 
@@ -184,6 +187,7 @@ internal class BaseContextImpl(
             val context = createCommandContext(
                 blockId = block.id,
                 pageId = finalPageId,
+                messageType = block.messageType,
                 currentMessageId = block.messageId,
                 command = handler.command,
                 input = newInput
@@ -566,8 +570,13 @@ internal class BaseContextImpl(
         val newInput = input.copy(query = text, inlineMessageId = null, type = MessageType.Text)
         val handler = commandHandlers.getCommandHandler(clazz)
         val states = userState.getStates()
-        val context =
-            createCommandContext(blockId = 0, currentMessageId = 0, command = handler.command, input = newInput)
+        val context = createCommandContext(
+            blockId = 0,
+            currentMessageId = 0,
+            command = handler.command,
+            messageType = MessageType.Text,
+            input = newInput
+        )
 
         val callContext = CommandCallContextImpl(
             commandHandler = handler,
@@ -589,8 +598,13 @@ internal class BaseContextImpl(
         val newInput = input.copy(query = query, inlineMessageId = messageId, type = MessageType.Inline)
         val handler = commandHandlers.getCommandHandler(clazz.name)
         val states = userState.getStates()
-        val context =
-            createCommandContext(blockId = 0, currentMessageId = 0, command = handler.command, input = newInput)
+        val context = createCommandContext(
+            blockId = 0,
+            currentMessageId = 0,
+            command = handler.command,
+            messageType = MessageType.Text,
+            input = newInput
+        )
 
         val callContext = CommandCallContextImpl(
             commandHandler = handler,
@@ -628,6 +642,7 @@ internal class BaseContextImpl(
     private fun createCommandContext(
         blockId: Long,
         currentMessageId: Int,
+        messageType: MessageType,
         command: BaseCommand,
         input: InputMessage,
         pageId: Long = 0
@@ -635,6 +650,7 @@ internal class BaseContextImpl(
         return BaseContextImpl(
             blockId = blockId,
             pageId = pageId,
+            messageType = messageType,
             currentMessageId = currentMessageId,
             command = command,
             input = input,
@@ -677,7 +693,7 @@ internal class BaseContextImpl(
             }
         }
 
-        check (page.file == null || page.messageType in fileMessageTypes) {
+        check(page.file == null || page.messageType in fileMessageTypes) {
             "File and message type are incompatible: ${page.messageType}. Expected one of the list: $fileMessageTypes"
         }
     }

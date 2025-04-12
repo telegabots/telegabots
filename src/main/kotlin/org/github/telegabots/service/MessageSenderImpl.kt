@@ -261,6 +261,23 @@ class MessageSenderImpl(
             log.debug("Update image: {}", editMessageMedia)
             bot.execute(editMessageMedia)
         } catch (e: TelegramApiException) {
+            if (e is TelegramApiRequestException) {
+                if (ignoreNotModifiedMessageError && 400 == e.errorCode && MESSAGE_NOT_MODIFIED == e.apiResponse) {
+                    log.warn("Not modified message error was ignored. Content: \"{}\", file: {}", caption, file)
+                    return
+                }
+
+                log.error(
+                    "edit message failed: {} ({}), chatId: {}, message: {}",
+                    e.message,
+                    e.apiResponse,
+                    chatId,
+                    editMessageMedia,
+                    e
+                )
+                throw e
+            }
+
             log.error("Image send failed: {}, chatId: {}, image: {}", e.message, chatId, editMessageMedia, e)
             throw e
         }

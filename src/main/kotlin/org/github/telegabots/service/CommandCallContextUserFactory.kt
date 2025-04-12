@@ -174,24 +174,42 @@ internal class CommandCallContextUserFactory(
                     userState.mergeLocalStateByPageId(finalPageId, state)
                 }
                 val states = userState.getStates(block.messageId, finalPageId)
-                val context =
-                    createCommandContext(block.id, block.messageId, cmdHandler.command, input, pageId = finalPageId)
+                val context = createCommandContext(
+                    block.id,
+                    block.messageId,
+                    block.messageType,
+                    cmdHandler.command,
+                    input,
+                    pageId = finalPageId
+                )
 
                 states to context
             }
 
             CommandBehaviour.ParentPage -> {
                 val states = userState.getStates(block.messageId, state, pageId = 0)
-                val context =
-                    createCommandContext(block.id, block.messageId, cmdHandler.command, input, pageId = pageId)
+                val context = createCommandContext(
+                    block.id,
+                    block.messageId,
+                    block.messageType,
+                    cmdHandler.command,
+                    input,
+                    pageId = pageId
+                )
 
                 states to context
             }
 
             CommandBehaviour.ParentPageState -> {
                 val states = userState.getStates(block.messageId, state, pageId)
-                val context =
-                    createCommandContext(block.id, block.messageId, cmdHandler.command, input, pageId = pageId)
+                val context = createCommandContext(
+                    block.id,
+                    block.messageId,
+                    block.messageType,
+                    cmdHandler.command,
+                    input,
+                    pageId = pageId
+                )
 
                 states to context
             }
@@ -210,6 +228,7 @@ internal class CommandCallContextUserFactory(
         val context = createCommandContext(
             blockId = 0,
             currentMessageId = input.inlineMessageId ?: 0,
+            messageType = MessageType.Text,
             command = handler.command,
             input
         )
@@ -222,7 +241,7 @@ internal class CommandCallContextUserFactory(
     }
 
     private fun findCommandDef(block: CommandBlock, page: CommandPage): CommandDef? {
-        val commandDef = if (block.messageType == input.type) {
+        val commandDef = if (canHandleInput(block.messageType)) {
             when (block.messageType) {
                 MessageType.Text -> page.commandDefs.flatten().find { it.title == input.query }
                 MessageType.Inline, MessageType.Photo -> page.commandDefs.flatten().find { it.titleId == input.query }
@@ -232,6 +251,14 @@ internal class CommandCallContextUserFactory(
         log.debug("Parsed commandDef: {}\nby input: {}", commandDef, input)
 
         return commandDef
+    }
+
+    private fun canHandleInput(blockMessageType: MessageType): Boolean {
+        return when (blockMessageType) {
+            MessageType.Text -> input.type == MessageType.Text
+            MessageType.Inline -> input.type == MessageType.Inline
+            MessageType.Photo -> input.type == MessageType.Inline
+        }
     }
 
     /**
@@ -256,6 +283,7 @@ internal class CommandCallContextUserFactory(
     private fun createCommandContext(
         blockId: Long,
         currentMessageId: Int,
+        messageType: MessageType,
         command: BaseCommand,
         input: InputMessage,
         pageId: Long = 0L
@@ -264,6 +292,7 @@ internal class CommandCallContextUserFactory(
             blockId = blockId,
             pageId = pageId,
             currentMessageId = currentMessageId,
+            messageType = messageType,
             command = command,
             input = input,
             commandHandlers = commandHandlers,

@@ -20,11 +20,16 @@ interface BaseContext : CommandExecutor {
     fun blockId(): Long
 
     /**
-     * Returns current page's id.
+     * Returns current page's id
      *
      * Can be 0 if not associated with a page
      */
     fun pageId(): Long
+
+    /**
+     * Message type of current block
+     */
+    fun messageType(): MessageType
 
     /**
      * Creates new page into new block
