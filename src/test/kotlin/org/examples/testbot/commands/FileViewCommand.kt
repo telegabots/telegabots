@@ -30,8 +30,14 @@ class FileViewCommand : BaseCommand() {
         else
             PageOperation.Create
 
-        context.page(MessageFile.from(generatePng(currentStr.get()!!, file)))
-            .subCommands(SubCommand.of("1"), SubCommand.of("2"), SubCommand.of("3"), SubCommand.of("clear"))
+        context.page(MessageFile.from(generatePng(currentStr.get() ?: "", file)))
+            .subCommands(
+                SubCommand.of("1"),
+                SubCommand.of("2"),
+                SubCommand.of("3"),
+                SubCommand.of("clear"),
+                SubCommand.of(FileViewCommand::class.java)
+            )
             .messageType(MessageType.Photo)
             .enableBack()
             .apply(pageOperation)

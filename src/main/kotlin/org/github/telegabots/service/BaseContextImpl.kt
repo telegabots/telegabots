@@ -705,7 +705,7 @@ internal class BaseContextImpl(
         val cmdHandler = commandHandlers.getCommandHandler(handler)
 
         check(cmdHandler.canHandle(messageType)) {
-            "Message handler for type ${messageType} in ${handler.name} not found. Use annotation @${
+            "Message handler for type $messageType in ${handler.name} not found. Use annotation @${
                 annotationNameByType(
                     messageType
                 )
@@ -716,8 +716,7 @@ internal class BaseContextImpl(
     private fun annotationNameByType(messageType: MessageType) =
         when (messageType) {
             MessageType.Text -> "TextHandler"
-            MessageType.Inline -> "InlineHandler"
-            MessageType.Photo -> "PhotoHandler"
+            MessageType.Inline, MessageType.Photo -> "InlineHandler"
         }
 
     private fun applyMessageButtons(msg: SendMessage, subCommands: List<List<SubCommand>>, messageType: MessageType) {

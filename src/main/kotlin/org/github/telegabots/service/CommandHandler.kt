@@ -43,11 +43,10 @@ internal class CommandHandler(
         }
     }
 
-    fun canHandle(inputMessageType: MessageType): Boolean =
-        when (inputMessageType) {
+    fun canHandle(messageType: MessageType): Boolean =
+        when (messageType) {
             MessageType.Text -> textHandler != null
-            MessageType.Inline -> inlineHandler != null
-            MessageType.Photo -> error("Input message type not expected: $inputMessageType")
+            MessageType.Inline, MessageType.Photo -> inlineHandler != null
         }
 
     override fun toString(): String {
