@@ -87,14 +87,14 @@ interface PageBuilder {
     fun disablePreview(disable: Boolean): PageBuilder
 
     /**
-     * Enable back button for [Page]. Default is false
+     * Enable back button for [Page]. The default value is false and is only displayed if it is not the first page of the block
      */
     fun enableBack(): PageBuilder {
         return enableBack(true)
     }
 
     /**
-     * Enable back button for [Page]. Default is false
+     * Enable back button for [Page]. The default value is false and is only displayed if it is not the first page of the block
      */
     fun enableBack(enable: Boolean): PageBuilder
 

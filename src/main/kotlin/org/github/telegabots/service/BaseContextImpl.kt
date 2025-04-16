@@ -343,6 +343,7 @@ internal class BaseContextImpl(
 
             check(page.messageType == block.messageType) { "Adding page message type mismatch block's type. Expected: ${block.messageType}" }
 
+            val finalSubCommands = addBackCommandIf(page, blockId, false)
             when (page.messageType) {
                 MessageType.Text -> {
                     messageSender.sendMessage(
@@ -351,7 +352,7 @@ internal class BaseContextImpl(
                         disablePreview = page.disablePreview,
                         message = page.message,
                         preSendHandler = Consumer { msg ->
-                            applyMessageButtons(msg, page.subCommands, page.messageType)
+                            applyMessageButtons(msg, finalSubCommands, page.messageType)
                         })
                 }
 
@@ -363,7 +364,7 @@ internal class BaseContextImpl(
                         disablePreview = page.disablePreview,
                         message = page.message,
                         preSendHandler = Consumer { msg ->
-                            applyMessageButtons(msg, page.subCommands)
+                            applyMessageButtons(msg, finalSubCommands)
                         })
                 }
 
@@ -375,7 +376,7 @@ internal class BaseContextImpl(
                         captionContentType = page.contentType,
                         file = page.file ?: error("MessageFile is required for photo message"),
                         preSendHandler = Consumer { msg ->
-                            applyMessageButtons(msg, page.subCommands)
+                            applyMessageButtons(msg, finalSubCommands)
                         })
                 }
             }
@@ -422,6 +423,7 @@ internal class BaseContextImpl(
 
             check(page.messageType == block.messageType) { "Update page message type mismatch block's type. Expected: ${block.messageType}" }
 
+            val finalSubCommands = addBackCommandIf(page, blockId, true)
             when (page.messageType) {
                 MessageType.Text -> {
                     messageSender.sendMessage(
@@ -430,7 +432,7 @@ internal class BaseContextImpl(
                         disablePreview = page.disablePreview,
                         message = page.message,
                         preSendHandler = { msg ->
-                            applyMessageButtons(msg, page.subCommands, page.messageType)
+                            applyMessageButtons(msg, finalSubCommands, page.messageType)
                         })
                 }
 
@@ -442,7 +444,7 @@ internal class BaseContextImpl(
                         disablePreview = page.disablePreview,
                         message = page.message,
                         preSendHandler = { msg ->
-                            applyMessageButtons(msg, page.subCommands)
+                            applyMessageButtons(msg, finalSubCommands)
                         })
                 }
 
@@ -454,7 +456,7 @@ internal class BaseContextImpl(
                         caption = page.message,
                         captionContentType = page.contentType,
                         preSendHandler = { msg ->
-                            applyMessageButtons(msg, page.subCommands)
+                            applyMessageButtons(msg, finalSubCommands)
                         })
                 }
             }
@@ -487,6 +489,22 @@ internal class BaseContextImpl(
 
             return savedPage.id
         }
+    }
+
+    /**
+     * First page of the block cannot contain Back command
+     */
+    private fun addBackCommandIf(page: Page, blockId: Long, isUpdate: Boolean): List<List<SubCommand>> {
+        if (page.enableBack == true) {
+            // TODO: add special method to get pages count
+            val pages = userState.getPages(blockId)
+            val finalPageCount = pages.size + if (isUpdate) 0 else 1
+            if (finalPageCount > 1) {
+                return page.subCommands + listOf(listOf(SubCommand.GO_BACK))
+            }
+        }
+
+        return page.subCommands
     }
 
     override fun sendDocument(document: Document) {

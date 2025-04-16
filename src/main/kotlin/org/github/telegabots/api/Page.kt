@@ -14,6 +14,10 @@ data class Page(
     val blockId: Long = 0L,
     val state: StateRef? = null,
     val file: MessageFile? = null,
+    /**
+     * Enable back button for [Page], if page is not first page of the block.
+     */
+    val enableBack: Boolean? = null,
 ) {
     override fun toString(): String {
         return "Page(contentType=$contentType, messageType=$messageType, disablePreview=$disablePreview, subCommands=$subCommands, handler=$handler, id=$id,\nmessage='${

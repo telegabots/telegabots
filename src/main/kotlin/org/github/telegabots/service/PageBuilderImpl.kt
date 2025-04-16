@@ -75,12 +75,6 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
     }
 
     private fun createPage(): Page {
-        val subCommands = if (enableBack) {
-            this.subCommands + listOf(listOf(SubCommand.GO_BACK))
-        } else {
-            this.subCommands
-        }
-
         return Page(
             message,
             contentType = contentType,
@@ -91,7 +85,8 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
             id = id,
             blockId = blockId,
             state = state,
-            file = file
+            file = file,
+            enableBack = enableBack
         )
     }
 }
