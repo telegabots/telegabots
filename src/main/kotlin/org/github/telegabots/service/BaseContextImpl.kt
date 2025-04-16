@@ -332,7 +332,6 @@ internal class BaseContextImpl(
     private fun addPageExplicit(
         page: Page,
         blockId: Long,
-        ignoreSender: Boolean = false,
     ): Long? {
         userState.getWriteLock().runIn {
             val block = userState.findBlockById(blockId)
@@ -344,42 +343,40 @@ internal class BaseContextImpl(
 
             check(page.messageType == block.messageType) { "Adding page message type mismatch block's type. Expected: ${block.messageType}" }
 
-            if (!ignoreSender) {
-                when (page.messageType) {
-                    MessageType.Text -> {
-                        messageSender.sendMessage(
-                            chatId = input.chatId.toString(),
-                            contentType = page.contentType,
-                            disablePreview = page.disablePreview,
-                            message = page.message,
-                            preSendHandler = Consumer { msg ->
-                                applyMessageButtons(msg, page.subCommands, page.messageType)
-                            })
-                    }
+            when (page.messageType) {
+                MessageType.Text -> {
+                    messageSender.sendMessage(
+                        chatId = input.chatId.toString(),
+                        contentType = page.contentType,
+                        disablePreview = page.disablePreview,
+                        message = page.message,
+                        preSendHandler = Consumer { msg ->
+                            applyMessageButtons(msg, page.subCommands, page.messageType)
+                        })
+                }
 
-                    MessageType.Inline -> {
-                        messageSender.updateMessage(
-                            chatId = input.chatId.toString(),
-                            messageId = block.messageId,
-                            contentType = page.contentType,
-                            disablePreview = page.disablePreview,
-                            message = page.message,
-                            preSendHandler = Consumer { msg ->
-                                applyMessageButtons(msg, page.subCommands)
-                            })
-                    }
+                MessageType.Inline -> {
+                    messageSender.updateMessage(
+                        chatId = input.chatId.toString(),
+                        messageId = block.messageId,
+                        contentType = page.contentType,
+                        disablePreview = page.disablePreview,
+                        message = page.message,
+                        preSendHandler = Consumer { msg ->
+                            applyMessageButtons(msg, page.subCommands)
+                        })
+                }
 
-                    MessageType.Photo -> {
-                        messageSender.updateImage(
-                            chatId = input.chatId.toString(),
-                            messageId = block.messageId,
-                            caption = page.message,
-                            captionContentType = page.contentType,
-                            file = page.file ?: error("MessageFile is required for photo message"),
-                            preSendHandler = Consumer { msg ->
-                                applyMessageButtons(msg, page.subCommands)
-                            })
-                    }
+                MessageType.Photo -> {
+                    messageSender.updateImage(
+                        chatId = input.chatId.toString(),
+                        messageId = block.messageId,
+                        caption = page.message,
+                        captionContentType = page.contentType,
+                        file = page.file ?: error("MessageFile is required for photo message"),
+                        preSendHandler = Consumer { msg ->
+                            applyMessageButtons(msg, page.subCommands)
+                        })
                 }
             }
 
@@ -413,8 +410,7 @@ internal class BaseContextImpl(
     private fun updatePageExplicit(
         page: Page,
         blockId: Long,
-        pageId: Long,
-        ignoreSender: Boolean = false
+        pageId: Long
     ): Long? {
         userState.getWriteLock().runIn {
             val block = userState.findBlockById(blockId)
@@ -426,42 +422,40 @@ internal class BaseContextImpl(
 
             check(page.messageType == block.messageType) { "Update page message type mismatch block's type. Expected: ${block.messageType}" }
 
-            if (!ignoreSender) {
-                when (page.messageType) {
-                    MessageType.Text -> {
-                        messageSender.sendMessage(
-                            chatId = input.chatId.toString(),
-                            contentType = page.contentType,
-                            disablePreview = page.disablePreview,
-                            message = page.message,
-                            preSendHandler = { msg ->
-                                applyMessageButtons(msg, page.subCommands, page.messageType)
-                            })
-                    }
+            when (page.messageType) {
+                MessageType.Text -> {
+                    messageSender.sendMessage(
+                        chatId = input.chatId.toString(),
+                        contentType = page.contentType,
+                        disablePreview = page.disablePreview,
+                        message = page.message,
+                        preSendHandler = { msg ->
+                            applyMessageButtons(msg, page.subCommands, page.messageType)
+                        })
+                }
 
-                    MessageType.Inline -> {
-                        messageSender.updateMessage(
-                            chatId = input.chatId.toString(),
-                            messageId = block.messageId,
-                            contentType = page.contentType,
-                            disablePreview = page.disablePreview,
-                            message = page.message,
-                            preSendHandler = { msg ->
-                                applyMessageButtons(msg, page.subCommands)
-                            })
-                    }
+                MessageType.Inline -> {
+                    messageSender.updateMessage(
+                        chatId = input.chatId.toString(),
+                        messageId = block.messageId,
+                        contentType = page.contentType,
+                        disablePreview = page.disablePreview,
+                        message = page.message,
+                        preSendHandler = { msg ->
+                            applyMessageButtons(msg, page.subCommands)
+                        })
+                }
 
-                    MessageType.Photo -> {
-                        messageSender.updateImage(
-                            chatId = input.chatId.toString(),
-                            messageId = block.messageId,
-                            file = page.file ?: error("MessageFile is required for photo message"),
-                            caption = page.message,
-                            captionContentType = page.contentType,
-                            preSendHandler = { msg ->
-                                applyMessageButtons(msg, page.subCommands)
-                            })
-                    }
+                MessageType.Photo -> {
+                    messageSender.updateImage(
+                        chatId = input.chatId.toString(),
+                        messageId = block.messageId,
+                        file = page.file ?: error("MessageFile is required for photo message"),
+                        caption = page.message,
+                        captionContentType = page.contentType,
+                        preSendHandler = { msg ->
+                            applyMessageButtons(msg, page.subCommands)
+                        })
                 }
             }
 
