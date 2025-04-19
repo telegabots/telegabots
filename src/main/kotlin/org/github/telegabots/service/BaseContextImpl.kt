@@ -82,6 +82,7 @@ internal class BaseContextImpl(
         }
 
         userState.getWriteLock().runIn {
+            // create new block
             val block = userState.saveBlock(
                 messageId = messageId,
                 messageType = page.messageType
@@ -142,11 +143,21 @@ internal class BaseContextImpl(
             return null
         }
 
-        if (blockId <= 0) {
+        if (blockId <= 0 || messageType != page.messageType) {
+            // create page if blockId is not specified
+            // or message type is not compatible type
             return createPage(page)
         }
 
-        return updatePageExplicit(page, blockId, pageId = pageId)
+        val finalPageId = if (pageId <= 0) {
+            // create page if pageId is not specified
+            val savedPage = userState.savePage(blockId, command.javaClass)
+                ?: error("Page not created in block: $blockId")
+            savedPage.id
+        } else
+            pageId
+
+        return updatePageExplicit(page, blockId, pageId = finalPageId)
     }
 
     override fun refreshPage(pageId: Long, state: StateRef?): Long? {

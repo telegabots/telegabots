@@ -25,11 +25,6 @@ class FileViewCommand : BaseCommand() {
             currentStr.set((currentStr.get() ?: "") + message)
         }
 
-        val pageOperation = if (context.messageType() == MessageType.Photo)
-            PageOperation.Update
-        else
-            PageOperation.Create
-
         context.page(MessageFile.from(generatePng(currentStr.get() ?: "", file)))
             .subCommands(
                 SubCommand.of("1"),
@@ -40,7 +35,7 @@ class FileViewCommand : BaseCommand() {
             )
             .messageType(MessageType.Photo)
             .enableBack()
-            .apply(pageOperation)
+            .update()
 
         file.delete()
     }

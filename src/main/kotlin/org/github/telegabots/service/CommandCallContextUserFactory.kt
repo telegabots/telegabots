@@ -143,7 +143,8 @@ internal class CommandCallContextUserFactory(
                 block,
                 commandDef.handler,
                 input.toInputRefresh(),
-                pageId = null,
+                // page will be created on update/create
+                pageId = 0,
                 state = commandDef.state
             )
         }
@@ -163,25 +164,17 @@ internal class CommandCallContextUserFactory(
      * @param block command block
      * @param handler command handler
      * @param input input message
-     * @param pageId target page id, if null - create new page
+     * @param pageId target page id, if 0 - new page will be created on update/create
      * @param state additional local state
      */
     private fun createCallContextByPageId(
         block: CommandBlock,
         handler: String,
         input: InputMessage,
-        pageId: Long?,
+        pageId: Long,
         state: StateDef? = null
     ): CommandCallContext {
         val cmdHandler = commandHandlers.getCommandHandler(handler)
-        val pageId: Long = if (pageId == null) {
-            // create new page
-            val savedPage = userState.savePage(block.id, cmdHandler.commandClass)
-                ?: error("Page not created in block: ${block.id}")
-            savedPage.id
-        } else
-            pageId
-
         val states = userState.getStates(block.messageId, state, pageId)
         val context = createCommandContext(
             block.id,
