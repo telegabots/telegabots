@@ -17,7 +17,6 @@ internal class CommandCallContextImpl(
     private val commandContext: CommandContext,
     private val defaultContext: () -> CommandCallContext?
 ) : CommandCallContext {
-    private val log = LoggerFactory.getLogger(CommandCallContext::class.java)!!
     private val input: InputMessage = commandContext.inputMessage()
 
     override fun execute(): Boolean {
@@ -107,5 +106,9 @@ internal class CommandCallContextImpl(
 
     override fun toString(): String {
         return "CommandCallContext(commandHandler=$commandHandler, input=$input)"
+    }
+
+    private companion object {
+        val log = LoggerFactory.getLogger(CommandCallContext::class.java)!!
     }
 }

@@ -43,7 +43,6 @@ class FileExplorerCommand : BaseCommand() {
                 allFiles.add(
                     0, SubCommand.of<CalculateDirSizeCommand>(
                         state = StateRef.of(nextPath),
-                        behaviour = CommandBehaviour.ParentPage,
                         title = "Calculate dir size"
                     )
                 )
@@ -88,8 +87,7 @@ class FileExplorerCommand : BaseCommand() {
                     SubCommand.of(UP_DIR),
                     SubCommand.of<FileDownloadCommand>(
                         title = "Download",
-                        state = StateRef.of(nextPath),
-                        behaviour = CommandBehaviour.ParentPage
+                        state = StateRef.of(nextPath)
                     )
                 )
                 .enableBack()

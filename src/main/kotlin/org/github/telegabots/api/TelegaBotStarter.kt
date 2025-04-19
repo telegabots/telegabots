@@ -22,7 +22,7 @@ open class TelegaBotStarter(
 ) : TelegramLongPollingBot(config.botToken) {
     private val messageSenderReal = messageSender
         ?: MessageSenderImpl(this, ignoreNotModifiedMessageError = config.notModifiedMessageErrorIgnore)
-    protected val telegaBot: TelegaBot = TelegaBot(
+    private val telegaBot: TelegaBot = TelegaBot(
         messageSender = messageSenderReal,
         userServiceProvider = serviceProvider,
         config = config,

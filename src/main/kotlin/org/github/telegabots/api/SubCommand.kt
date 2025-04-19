@@ -24,10 +24,6 @@ data class SubCommand(
      */
     val handler: Class<out BaseCommand>? = null,
     /**
-     * Page and state behaviour
-     */
-    val behaviour: CommandBehaviour = CommandBehaviour.SeparatePage,
-    /**
      * State to be used when handler is executed
      */
     val state: StateRef? = null
@@ -53,21 +49,17 @@ data class SubCommand(
         inline fun <reified T : BaseCommand> of(
             state: StateRef? = null,
             titleId: String = "",
-            title: String? = null,
-            behaviour: CommandBehaviour = CommandBehaviour.SeparatePage
-        ) =
-            of(T::class.java, state, titleId, title, behaviour)
+            title: String? = null
+        ) = of(T::class.java, state, titleId, title)
 
         @JvmStatic
         fun of(
             titleId: String,
             title: String? = null,
-            state: StateRef? = null,
-            behaviour: CommandBehaviour = CommandBehaviour.SeparatePage
+            state: StateRef? = null
         ): SubCommand = SubCommand(
             titleId = titleId,
             title = title,
-            behaviour = behaviour,
             state = state
         )
 
@@ -75,15 +67,7 @@ data class SubCommand(
         fun of(titleId: String): SubCommand = of(titleId, null)
 
         @JvmStatic
-        fun of(titleId: String, title: String): SubCommand = of(titleId, title, null, CommandBehaviour.SeparatePage)
-
-        @JvmStatic
-        fun of(titleId: String, title: String, state: StateRef): SubCommand =
-            of(titleId, title, state, CommandBehaviour.SeparatePage)
-
-        @JvmStatic
-        fun of(titleId: String, title: String, behaviour: CommandBehaviour): SubCommand =
-            of(titleId, title, null, behaviour)
+        fun of(titleId: String, title: String): SubCommand = of(titleId, title, null)
 
         @JvmStatic
         fun of(handler: Class<out BaseCommand>): SubCommand = of(handler, null)
@@ -96,30 +80,24 @@ data class SubCommand(
             of(handler, state, titleId, null)
 
         @JvmStatic
-        fun of(handler: Class<out BaseCommand>, state: StateRef, titleId: String, title: String): SubCommand =
-            of(handler, state, titleId, title, CommandBehaviour.SeparatePage)
-
-        @JvmStatic
         fun of(handler: Class<out BaseCommand>, titleId: String, title: String): SubCommand =
-            of(handler, null, titleId, title, CommandBehaviour.SeparatePage)
+            of(handler, null, titleId, title)
 
         @JvmStatic
         fun of(handler: Class<out BaseCommand>, titleId: String): SubCommand =
-            of(handler, null, titleId, null, CommandBehaviour.SeparatePage)
+            of(handler, null, titleId)
 
         @JvmStatic
         fun of(
             handler: Class<out BaseCommand>,
             state: StateRef? = null,
             titleId: String = "",
-            title: String? = null,
-            behaviour: CommandBehaviour = CommandBehaviour.SeparatePage
+            title: String? = null
         ): SubCommand = SubCommand(
             titleId = if (titleId.isNotBlank()) titleId else titleIdOf(handler),
             handler = handler,
             state = state,
-            title = title,
-            behaviour = behaviour
+            title = title
         )
 
         @JvmStatic

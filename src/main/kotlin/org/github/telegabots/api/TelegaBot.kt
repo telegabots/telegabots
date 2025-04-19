@@ -1,9 +1,11 @@
 package org.github.telegabots.api
 
 import org.github.telegabots.api.config.BotConfig
-import org.github.telegabots.service.CommandCallContextFactory
+import org.github.telegabots.service.*
+import org.github.telegabots.service.CommandCallContextUserFactory
+import org.github.telegabots.service.CommandHandlers
 import org.github.telegabots.service.InternalServiceProvider
-import org.github.telegabots.service.JsonService
+import org.github.telegabots.task.TaskManagerFactory
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.User
@@ -17,22 +19,27 @@ class TelegaBot(
     val config: BotConfig,
     val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java
 ) {
-    private val log = LoggerFactory.getLogger(TelegaBot::class.java)
     private val adminChatId: Long = config.adminChatId
     private val jsonService: JsonService = JsonService()
     private val finalServiceProvider = InternalServiceProvider(userServiceProvider, messageSender, jsonService, config)
-    private val callContextManager = CommandCallContextFactory(finalServiceProvider, rootCommand)
+    private val taskManagerFactory = finalServiceProvider.getService(TaskManagerFactory::class.java)
+    private val messageSender = finalServiceProvider.getService(MessageSender::class.java)
+    private val commandHandlers = finalServiceProvider.getService(CommandHandlers::class.java)
+
+    init {
+        val rootHandler = commandHandlers.getCommandHandler(rootCommand)
+
+        check(rootHandler.canHandle(MessageType.Text)) { "Root command (${rootCommand.name}) have to implement text handler. Annotate method with @TextHandler" }
+
+        log.info("CommandCallContextFactory created")
+    }
 
     fun handle(update: Update): Boolean {
         log.debug("Handle message: {}", update)
 
         val inputMessage = getInputMessage(update)
 
-        if (inputMessage == null) {
-            TODO("TODO: send message to admin. Failed handle '$update'")
-        }
-
-        val context = callContextManager.get(inputMessage)
+        val context = createContext(inputMessage)
 
         log.debug("Got context by message: {}\ncontext: {}", inputMessage, context)
 
@@ -43,7 +50,16 @@ class TelegaBot(
 
     fun <T : Service> tryGetService(clazz: Class<T>): T? = finalServiceProvider.tryGetService(clazz)
 
-    private fun getInputMessage(update: Update): InputMessage? {
+    private fun createContext(input: InputMessage): CommandCallContext = CommandCallContextUserFactory(
+        input,
+        messageSender,
+        finalServiceProvider,
+        commandHandlers,
+        taskManagerFactory,
+        rootCommand
+    ).create()
+
+    private fun getInputMessage(update: Update): InputMessage {
         return if (update.hasMessage() && update.message.hasText()) {
             val message = update.message
             val user = message.from!!
@@ -57,7 +73,7 @@ class TelegaBot(
                 user = toUser(user),
                 messageId = message.messageId,
                 inlineMessageId = null,
-                isAdmin = userId.toLong() == adminChatId
+                isAdmin = userId == adminChatId
             )
         } else if (update.hasCallbackQuery()) {
             val callbackQuery = update.callbackQuery
@@ -76,16 +92,21 @@ class TelegaBot(
                 isAdmin = userId == adminChatId
             )
         } else {
-            log.warn("Unsupported message type: {}", update)
-            return null
+            // TODO: send message to admin
+            error("Unsupported message type: $update")
         }
     }
 
     private fun toUser(user: User): InputUser =
         InputUser(
-            user.id, firstName = user.firstName ?: "",
+            user.id,
+            firstName = user.firstName ?: "",
             lastName = user.lastName ?: "",
             userName = user.userName ?: "",
             isBot = user.isBot
         )
+
+    private companion object {
+        private val log = LoggerFactory.getLogger(TelegaBot::class.java)!!
+    }
 }

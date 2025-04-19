@@ -188,8 +188,7 @@ internal class UserStateService(
             titleId = cmd.titleId,
             title = cmd.title ?: localizationProvider.getString(cmd.titleId),
             handler = cmd.handler?.name,
-            state = jsonService.toStateDef(cmd.state),
-            behaviour = cmd.behaviour
+            state = jsonService.toStateDef(cmd.state)
         )
     }
 
@@ -199,9 +198,5 @@ internal class UserStateService(
 
     fun deletePage(pageId: Long) {
         dbProvider.deletePage(pageId)
-    }
-
-    fun mergeLocalStateByPageId(pageId: Long, state: StateDef) {
-        getLocalStateProvider(pageId).mergeAll(jsonService.toState(state)!!.items)
     }
 }

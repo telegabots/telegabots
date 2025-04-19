@@ -1,5 +1,8 @@
 package org.github.telegabots.api
 
+/**
+ * Input message from the user
+ */
 data class InputMessage(
     val type: MessageType,
     val query: String,
