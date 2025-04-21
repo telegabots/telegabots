@@ -24,22 +24,22 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
 
     override fun update(): Long? = context.updatePage(createPage())
 
-    override fun id(id: Long): PageBuilder {
-        this.id = id
+    override fun id(id: Long?): PageBuilder {
+        this.id = id ?: 0L
         return this
     }
 
-    override fun blockId(blockId: Long): PageBuilder {
-        this.blockId = blockId
+    override fun blockId(blockId: Long?): PageBuilder {
+        this.blockId = blockId ?: 0L
         return this
     }
 
-    override fun state(state: StateRef): PageBuilder {
+    override fun state(state: StateRef?): PageBuilder {
         this.state = state
         return this
     }
 
-    override fun file(file: MessageFile): PageBuilder {
+    override fun file(file: MessageFile?): PageBuilder {
         this.file = file
         return this
     }
@@ -69,7 +69,7 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
         return this
     }
 
-    override fun handler(handler: Class<out BaseCommand>): PageBuilder {
+    override fun handler(handler: Class<out BaseCommand>?): PageBuilder {
         this.handler = handler
         return this
     }

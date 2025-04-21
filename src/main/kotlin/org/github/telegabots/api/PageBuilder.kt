@@ -42,27 +42,27 @@ interface PageBuilder {
     /**
      * Set id for [Page]
      */
-    fun id(id: Long): PageBuilder
+    fun id(id: Long?): PageBuilder
 
     /**
      * Set block id for [Page]
      */
-    fun blockId(blockId: Long): PageBuilder
+    fun blockId(blockId: Long?): PageBuilder
 
     /**
      * Set [State] for [Page]
      */
-    fun state(state: StateRef): PageBuilder
+    fun state(state: StateRef?): PageBuilder
 
     /**
      * Set [MessageFile] for [Page]
      */
-    fun file(file: MessageFile): PageBuilder
+    fun file(file: MessageFile?): PageBuilder
 
     /**
      * Set [File] for [Page]
      */
-    fun file(file: File): PageBuilder = file(MessageFile.from(file))
+    fun file(file: File?): PageBuilder = file(if (file != null) MessageFile.from(file) else null)
 
     /**
      * Set message type for page. Default is [MessageType.Text]
@@ -122,5 +122,5 @@ interface PageBuilder {
     /**
      * Set handler for [Page]
      */
-    fun handler(handler: Class<out BaseCommand>): PageBuilder
+    fun handler(handler: Class<out BaseCommand>?): PageBuilder
 }
