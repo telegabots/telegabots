@@ -86,6 +86,11 @@ internal class CommandCallContextUserFactory(
             log.warn("Block not found by input: {}", input)
         }
 
+        if (input.type == MessageType.Inline) {
+            log.warn("Block or page not found. Ignore input: {}", input)
+            return NothingCommandCallContext
+        }
+
         return getRootCallContext()
     }
 
