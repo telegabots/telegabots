@@ -17,6 +17,10 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>, services:
     private val userBuilder = UserBuilder()
     private var lastHandleResult: Boolean? = null
 
+    init {
+        resetRootCall()
+    }
+
     fun lastUserMessageId(): Int {
         return executor.lastUserMessageId() ?: throw IllegalStateException("Message not sent yet")
     }

@@ -35,7 +35,19 @@ class StateParamTests : BaseTests() {
             assertFalse(CommandWithStateParam.inlineHandlerCalled.get())
 
             user {
-                sendInlineMessage(messageId = 445577, callbackData = "Hello from client callback")
+                sendTextMessage("/start")
+            }
+
+            val messageId = lastUserMessageId()
+
+            assertThat {
+                rootWasCalled(1)
+                blocksCount(1)
+                lastBlockPagesCount(1)
+            }
+
+            user {
+                sendInlineMessage(messageId = messageId, callbackData = "Hello from client callback")
             }
 
             assertThat {
@@ -62,12 +74,51 @@ class StateParamTests : BaseTests() {
     }
 
     @Test
-    fun testCommand_Success_WhenHandlerWithInlineReadonlyLocalStateParam() {
+    fun testCommand_Success_WhenInlineHandlerShouldNotCalledWhenBlockByMessageIdNotFound() {
         scenario<CommandWithReadonlyLocalState> {
             assertFalse(CommandWithReadonlyLocalState.inlineHandlerCalled.get())
 
             user {
                 sendInlineMessage(messageId = 123987, callbackData = "Data2")
+            }
+
+            assertThat {
+                commandReturnTrue()
+                assertFalse(CommandWithReadonlyLocalState.inlineHandlerCalled.get(), "Inline handler called but not expected")
+            }
+        }
+    }
+
+    @Test
+    fun testCommand_Success_WhenInlineHandlerCalledWhenBlockByMessageIdFound() {
+        scenario<CommandWithReadonlyLocalState> {
+            assertFalse(CommandWithReadonlyLocalState.inlineHandlerCalled.get())
+
+            user {
+                sendTextMessage("/start")
+            }
+
+            val messageId = lastUserMessageId()
+
+            assertThat {
+                rootWasCalled(1)
+                blocksCount(1)
+                lastBlockPagesCount(1)
+            }
+
+            user {
+                // first send inline message with unknown messageId
+                sendInlineMessage(messageId = 123987, callbackData = "Data2")
+            }
+
+            assertThat {
+                commandReturnTrue()
+                assertFalse(CommandWithReadonlyLocalState.inlineHandlerCalled.get(), "Inline handler called but not expected")
+            }
+
+            user {
+                // send inline message with real messageId
+                sendInlineMessage(messageId = messageId, callbackData = "Data2")
             }
 
             assertThat {
@@ -115,6 +166,11 @@ class StateParamTests : BaseTests() {
 internal class CommandWithStateParam : BaseCommand() {
     @TextHandler
     fun handleText(msg: String, intState: State<Int>) {
+        if (msg == MESSAGE_START) {
+            context.addPage(Page("Inline text", messageType = MessageType.Inline))
+            return
+        }
+
         assertEquals("Hello from client", msg)
         assertNull(intState.get())
         assertFalse(intState.isPresent())
@@ -130,7 +186,7 @@ internal class CommandWithStateParam : BaseCommand() {
     @InlineHandler
     fun handleInline(msg: String, doubleState: State<Double>) {
         assertEquals("Hello from client callback", msg)
-        assertEquals(445577, context.messageId())
+        assertEquals(100001, context.messageId())
         assertFalse(doubleState.isPresent())
         assertNull(doubleState.get())
 
@@ -151,8 +207,13 @@ internal class CommandWithStateParam : BaseCommand() {
 internal class CommandWithReadonlyLocalState : BaseCommand() {
     @TextHandler
     fun handle(message: String, readOnlyState: String?) {
-        assertEquals("Hello!", message)
         assertNull(readOnlyState)
+
+        if (message == MESSAGE_START) {
+            context.addPage(Page("Inline text", messageType = MessageType.Inline))
+        } else {
+            assertEquals("Hello!", message)
+        }
 
         handlerCalled.set(true)
     }
@@ -160,7 +221,7 @@ internal class CommandWithReadonlyLocalState : BaseCommand() {
     @InlineHandler
     fun handleInline(message: String, readOnlyState: String?) {
         assertEquals("Data2", message)
-        assertEquals(123987, context.messageId())
+        assertEquals(100001, context.messageId())
         assertNull(readOnlyState)
 
         inlineHandlerCalled.set(true)

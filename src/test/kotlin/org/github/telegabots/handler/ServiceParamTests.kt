@@ -15,7 +15,6 @@ class ServiceParamTests : BaseTests() {
     fun testServiceCall_Success_WhenServiceRegistered() {
         scenario<CommandWithServiceParam> {
             addService(SimpleTestService::class.java, SimpleTestService())
-            resetRootCall()
 
             assertThat {
                 assertFalse(SimpleTestService.calledWith("Ruslan"))
@@ -35,7 +34,6 @@ class ServiceParamTests : BaseTests() {
     @Test
     fun testServiceCall_Fail_WhenServiceNotRegistered() {
         scenario<CommandWithServiceParam> {
-            resetRootCall()
 
             user {
                 val ex = assertThrows<CommandInvokeException> { sendTextMessage("Hello from client!") }
@@ -54,7 +52,6 @@ class ServiceParamTests : BaseTests() {
     @Test
     fun testServiceCallInCtor_Success_WhenServiceRegistered() {
         scenario<CommandWithServiceParamInCtor>(listOf(SimpleTestService())) {
-            resetRootCall()
 
             assertThat {
                 assertFalse(SimpleTestService.calledWith("Polina"))

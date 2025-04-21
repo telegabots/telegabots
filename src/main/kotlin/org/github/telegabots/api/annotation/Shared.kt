@@ -1,7 +1,7 @@
 package org.github.telegabots.api.annotation
 
 /**
- * Mark method parameter for shared state for each command of specified message
+ * State related to current block. Shared between all pages of the block.
  */
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)

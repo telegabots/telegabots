@@ -59,10 +59,23 @@ class InlineHandlerTests : BaseTests() {
                 notCalled<ValidInlineCommandWithTwoStringParams>()
             }
 
-            user { sendInlineMessage(12357, "XXX") }
+            user {
+                sendTextMessage("/start")
+            }
+
+            val messageId = lastUserMessageId()
 
             assertThat {
+                rootWasCalled(1)
+                blocksCount(1)
+                lastBlockPagesCount(1)
                 wasCalled<ValidInlineCommandWithTwoStringParams>(1)
+            }
+
+            user { sendInlineMessage(messageId, "XXX") }
+
+            assertThat {
+                wasCalled<ValidInlineCommandWithTwoStringParams>(2)
             }
         }
     }
@@ -75,11 +88,24 @@ class InlineHandlerTests : BaseTests() {
             }
 
             user {
-                sendInlineMessage(messageId = 55557, callbackData = "StringInt")
+                sendTextMessage("/start")
+            }
+
+            val messageId = lastUserMessageId()
+
+            assertThat {
+                rootWasCalled(1)
+                blocksCount(1)
+                lastBlockPagesCount(1)
+                wasCalled<ValidInlineCommandStringInt>(1)
+            }
+
+            user {
+                sendInlineMessage(messageId = messageId, callbackData = "StringInt")
             }
 
             assertThat {
-                wasCalled<ValidInlineCommandStringInt>(1)
+                wasCalled<ValidInlineCommandStringInt>(2)
             }
         }
     }
@@ -145,27 +171,34 @@ internal class InvalidInlineCommandWithTwoIntParams() : BaseCommand() {
 internal class ValidInlineCommandWithTwoStringParams() : BaseCommand() {
     @InlineHandler
     fun handle(first: String, second: String?) {
-        assertEquals(12357, context.messageId())
+        assertEquals(100001, context.messageId())
         assertEquals("XXX", first)
         assertNull(second)
     }
 
     @TextHandler
     fun handle(message: String) {
-        CODE_NOT_REACHED()
+        if (message == MESSAGE_START) {
+            context.addPage(Page("Inline text", messageType = MessageType.Inline))
+        } else {
+            CODE_NOT_REACHED()
+        }
     }
 }
 
 internal class ValidInlineCommandStringInt() : BaseCommand() {
     @InlineHandler
     fun handleInline(message: String, someInt: Int?) {
-        assertEquals(55557, context.messageId())
+        assertEquals(100001, context.messageId())
         assertEquals("StringInt", message)
         assertNull(someInt)
     }
 
     @TextHandler
     fun handle(message: String) {
+        if (message == MESSAGE_START) {
+            context.addPage(Page("Inline text", messageType = MessageType.Inline))
+        }
     }
 }
 

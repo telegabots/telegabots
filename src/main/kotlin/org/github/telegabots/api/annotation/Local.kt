@@ -1,7 +1,7 @@
 package org.github.telegabots.api.annotation
 
 /**
- * Default. Mark method parameter for local state of a command. Used when state must be named
+ * Default. State related to current page.
  */
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
