@@ -4,6 +4,8 @@ import org.github.telegabots.MessageFile
 import org.github.telegabots.api.*
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.state.StateKind
+import org.github.telegabots.state.States
 import org.github.telegabots.state.UserStateService
 import org.github.telegabots.task.TaskManagerFactory
 import org.github.telegabots.util.runIn
@@ -30,14 +32,15 @@ internal class BaseContextImpl(
      */
     private val currentMessageId: Int,
     private val input: InputMessage,
-    private val command: BaseCommand,
     private val commandHandlers: CommandHandlers,
+    private val commandHandler: CommandHandler,
+    private val states: States,
     private val userState: UserStateService,
     private val serviceProvider: ServiceProvider,
     private val messageSender: MessageSender,
-    private val taskManagerFactory: TaskManagerFactory
+    private val taskManagerFactory: TaskManagerFactory,
+    private val rootCommand: Class<out BaseCommand>
 ) : CommandContext, TaskContext {
-    private val log = LoggerFactory.getLogger(BaseContextImpl::class.java)!!
     private val jsonService = serviceProvider.getService(JsonService::class.java)
     private val localizationProvider =
         serviceProvider.getUserService(UserLocalizationProvider::class.java, userState.userId())
@@ -55,6 +58,56 @@ internal class BaseContextImpl(
 
     override fun messageType(): MessageType = messageType
 
+    override fun execute(): Boolean {
+        if (!commandHandler.canHandle(input.type)) {
+            if (input.type == MessageType.Text) {
+                val success = getRootCallContext().execute()
+                if (success) {
+                    return success
+                }
+            }
+
+            log.error("Command handler not found for message: $input")
+            error("Message of type ${input.type} can not be handled by command: ${commandHandler.command.javaClass.name}")
+        }
+
+        logContext()
+
+        val success = when (input.type) {
+            MessageType.Text -> commandHandler.executeText(input.query, states, this)
+            MessageType.Inline -> {
+                commandHandler.executeInline(input.query, states, this)
+                true
+            }
+
+            MessageType.Photo -> error("Input message type not expected: $input")
+        }
+
+        tryGetService(CommandInterceptor::class.java)?.let { commandInterceptor ->
+            try {
+                commandInterceptor.executed(commandHandler.command, input.type, success)
+            } catch (ex: Exception) {
+                log.error(
+                    "Interceptor call failed on command {} with error: {}",
+                    commandHandler.command.javaClass.simpleName,
+                    ex.message,
+                    ex
+                )
+            }
+        }
+
+        states.flush()
+
+        if (!success) {
+            if (commandHandler.commandClass != rootCommand) {
+                return getRootCallContext().execute()
+            }
+            return false
+        }
+
+        return true
+    }
+
     override fun create(clazz: Class<out BaseCommand>, messageType: MessageType?): Boolean {
         val handler = commandHandlers.getCommandHandler(clazz)
         val messageType = getFinalMessageType(messageType, handler)
@@ -63,20 +116,14 @@ internal class BaseContextImpl(
             blockId = 0,
             currentMessageId = 0,
             messageType = messageType,
-            command = handler.command,
-            input.copy(type = messageType, inlineMessageId = null, messageId = 0).toInputRefresh()
-        )
-
-        val cmdCallContextImpl = CommandCallContextImpl(
             commandHandler = handler,
             states = states,
-            commandContext = context,
-            defaultContext = { null })
-
-        return cmdCallContextImpl.execute()
+            input = input.copy(type = messageType, inlineMessageId = null, messageId = 0).toInputRefresh()
+        )
+        return context.execute()
     }
 
-    override fun currentCommand(): BaseCommand = command
+    override fun currentCommand(): BaseCommand = commandHandler.command
 
     override fun createPage(page: Page): Long {
         validatePage(page)
@@ -111,7 +158,7 @@ internal class BaseContextImpl(
 
             val savedPage = userState.savePage(
                 block.id,
-                handler = page.handler ?: command.javaClass,
+                handler = page.handler ?: commandHandler.commandClass,
                 subCommands = page.subCommands
             )!!
 
@@ -172,7 +219,7 @@ internal class BaseContextImpl(
 
         val finalPageId = if (pageId <= 0) {
             // create page if pageId is not specified
-            val savedPage = userState.savePage(blockId, command.javaClass)
+            val savedPage = userState.savePage(blockId, commandHandler.commandClass)
                 ?: error("Page not created in block: $blockId")
             savedPage.id
         } else
@@ -216,19 +263,15 @@ internal class BaseContextImpl(
                 messageId = block.messageId,
                 inlineMessageId = block.messageId
             )
-            val context = createCommandContext(
+            createCommandContext(
                 blockId = block.id,
                 pageId = finalPageId,
                 messageType = block.messageType,
                 currentMessageId = block.messageId,
-                command = handler.command,
-                input = newInput
-            )
-            CommandCallContextImpl(
                 commandHandler = handler,
                 states = states,
-                commandContext = context,
-                defaultContext = { null })
+                input = newInput
+            )
         }
 
         callContext.execute()
@@ -415,7 +458,7 @@ internal class BaseContextImpl(
 
             val savedPage = userState.savePage(
                 blockId,
-                handler = page.handler ?: command.javaClass,
+                handler = page.handler ?: commandHandler.commandClass,
                 subCommands = page.subCommands
             )!!
 
@@ -501,7 +544,7 @@ internal class BaseContextImpl(
             val savedPage = userState.savePage(
                 blockId,
                 pageId = bestPageId,
-                handler = page.handler ?: command.javaClass,
+                handler = page.handler ?: commandHandler.commandClass,
                 subCommands = page.subCommands
             )!!
 
@@ -617,18 +660,12 @@ internal class BaseContextImpl(
         val context = createCommandContext(
             blockId = 0,
             currentMessageId = 0,
-            command = handler.command,
+            commandHandler = handler,
+            states = states,
             messageType = MessageType.Text,
             input = newInput
         )
-
-        val callContext = CommandCallContextImpl(
-            commandHandler = handler,
-            states = states,
-            commandContext = context,
-            defaultContext = { null })
-
-        return callContext.execute()
+        return context.execute()
     }
 
     /**
@@ -645,18 +682,12 @@ internal class BaseContextImpl(
         val context = createCommandContext(
             blockId = 0,
             currentMessageId = 0,
-            command = handler.command,
+            commandHandler = handler,
+            states = states,
             messageType = MessageType.Text,
             input = newInput
         )
-
-        val callContext = CommandCallContextImpl(
-            commandHandler = handler,
-            states = states,
-            commandContext = context,
-            defaultContext = { null })
-
-        return callContext.execute()
+        return context.execute()
     }
 
     override fun <T : Service> getService(clazz: Class<T>): T = serviceProvider.getService(clazz)
@@ -687,8 +718,9 @@ internal class BaseContextImpl(
         blockId: Long,
         currentMessageId: Int,
         messageType: MessageType,
-        command: BaseCommand,
         input: InputMessage,
+        commandHandler: CommandHandler,
+        states: States,
         pageId: Long = 0
     ): CommandContext {
         return BaseContextImpl(
@@ -696,13 +728,31 @@ internal class BaseContextImpl(
             pageId = pageId,
             messageType = messageType,
             currentMessageId = currentMessageId,
-            command = command,
             input = input,
+            commandHandler = commandHandler,
+            states = states,
             commandHandlers = commandHandlers,
             messageSender = messageSender,
             serviceProvider = serviceProvider,
             userState = userState,
-            taskManagerFactory = taskManagerFactory
+            taskManagerFactory = taskManagerFactory,
+            rootCommand = rootCommand
+        )
+    }
+
+    /**
+     * Creates [CommandContext] for root command
+     */
+    private fun getRootCallContext(): CommandContext {
+        val handler = commandHandlers.getCommandHandler(rootCommand)
+        val states = userState.getStates()
+        return createCommandContext(
+            blockId = 0,
+            currentMessageId = input.messageId,
+            messageType = MessageType.Text,
+            commandHandler = handler,
+            states = states,
+            input = input
         )
     }
 
@@ -732,7 +782,7 @@ internal class BaseContextImpl(
             if (handler != null) {
                 checkHandlerType(handler, page.messageType)
             } else if (page.messageType == MessageType.Inline) {
-                val handler2 = page.handler ?: command.javaClass
+                val handler2 = page.handler ?: commandHandler.commandClass
                 checkHandlerType(handler2, page.messageType)
             }
         }
@@ -827,7 +877,33 @@ internal class BaseContextImpl(
 
     private fun getTitle(cmd: SubCommand) = cmd.title ?: localizationProvider.getString(cmd.titleId)
 
+    private fun logContext() {
+        if (log.isTraceEnabled) {
+            log.trace(
+                """
+                    ----------------------------------------------------------
+                    Command: [{}]:{}
+                    Handler: {}
+                    Block/Page: {}/{}
+                    State:
+                      local: {}
+                      shared: {}
+                      user: {}
+                      global: {}
+                    ----------------------------------------------------------
+                """.trimIndent(), input.type, input.query, commandHandler.command,
+                blockId(),
+                pageId(),
+                states.getAll(StateKind.LOCAL),
+                states.getAll(StateKind.SHARED),
+                states.getAll(StateKind.USER),
+                states.getAll(StateKind.GLOBAL)
+            )
+        }
+    }
+
     private companion object {
+        val log = LoggerFactory.getLogger(BaseContextImpl::class.java)!!
         const val PAGE_ID_LAST: Long = 0
         const val BUTTONS_MAX_SIZE = 100
         val fileMessageTypes = setOf(

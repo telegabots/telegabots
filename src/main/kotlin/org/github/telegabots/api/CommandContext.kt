@@ -1,7 +1,7 @@
 package org.github.telegabots.api
 
 /**
- * Context used by a command
+ * Context used by any implementation of [BaseCommand]
  */
 interface CommandContext : BaseContext, UserContext {
     /**
@@ -18,4 +18,9 @@ interface CommandContext : BaseContext, UserContext {
      * Returns current command in which input handled
      */
     fun currentCommand(): BaseCommand
+
+    /**
+     * Execute command within current context
+     */
+    fun execute(): Boolean
 }

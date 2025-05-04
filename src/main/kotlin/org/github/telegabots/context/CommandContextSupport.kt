@@ -12,6 +12,8 @@ object CommandContextSupport : BaseContextSupport<CommandContext>(), CommandCont
 
     override fun currentCommand(): BaseCommand = current().currentCommand()
 
+    override fun execute(): Boolean  = current().execute()
+
     override fun isAdmin(): Boolean = current().isAdmin()
 
     override fun getUser(): InputUser = current().getUser()

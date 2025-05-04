@@ -5,15 +5,16 @@ import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandDef
 import org.github.telegabots.entity.CommandPage
 import org.github.telegabots.entity.StateDef
+import org.github.telegabots.state.States
 import org.github.telegabots.state.UserStateService
 import org.github.telegabots.task.TaskManagerFactory
 import org.github.telegabots.util.runIn
 import org.slf4j.LoggerFactory
 
 /**
- * Creates [CommandCallContext] by [InputMessage]
+ * Creates [CommandContext] by [InputMessage]
  */
-internal class CommandCallContextUserFactory(
+internal class CommandConextFactory(
     private val input: InputMessage,
     private val messageSender: MessageSender,
     private val serviceProvider: ServiceProvider,
@@ -26,14 +27,14 @@ internal class CommandCallContextUserFactory(
     private val localizationProvider =
         serviceProvider.getUserService(UserLocalizationProvider::class.java, input.userId)
 
-    fun create(): CommandCallContext =
+    fun create(): CommandContext =
         when (input.type) {
             MessageType.Text -> getTextMessageContext()
             MessageType.Inline -> getInlineMessageContext()
             MessageType.Photo -> error("Input message type not expected: $input")
         }
 
-    private fun getTextMessageContext(): CommandCallContext {
+    private fun getTextMessageContext(): CommandContext {
         check(input.type == MessageType.Text) { "Expected Inline, but found ${input.type}" }
 
         if (BaseCommand.MESSAGE_START == input.query) {
@@ -46,7 +47,7 @@ internal class CommandCallContextUserFactory(
         return getCommonCallContext(lastBlock)
     }
 
-    private fun getInlineMessageContext(): CommandCallContext {
+    private fun getInlineMessageContext(): CommandContext {
         check(input.type == MessageType.Inline) { "Expected Inline, but found ${input.type}" }
 
         val block = userState.getBlockByMessageId(input.messageId)
@@ -54,7 +55,7 @@ internal class CommandCallContextUserFactory(
         return getCommonCallContext(block)
     }
 
-    private fun getCommonCallContext(block: CommandBlock?): CommandCallContext {
+    private fun getCommonCallContext(block: CommandBlock?): CommandContext {
         if (block != null) {
             userState.getWriteLock().runIn {
                 val lastPage = userState.findLastPage(block.id)
@@ -95,13 +96,13 @@ internal class CommandCallContextUserFactory(
     }
 
     /**
-     * Creates [CommandCallContext] by [CommandDef]
+     * Creates [CommandContext] by [CommandDef]
      */
     private fun createCallContextByCommandDef(
         commandDef: CommandDef,
         block: CommandBlock,
         lastPage: CommandPage
-    ): CommandCallContext {
+    ): CommandContext {
         if (commandDef.isBackCommand()) {
             val pages = userState.getPages(block.id)
             // remove last page of the block if the page not first page
@@ -164,7 +165,7 @@ internal class CommandCallContextUserFactory(
     }
 
     /**
-     * Creates [CommandCallContext] by pageId of specified [CommandBlock]
+     * Creates [CommandContext] by pageId of specified [CommandBlock]
      *
      * @param block command block
      * @param handler command handler
@@ -178,44 +179,34 @@ internal class CommandCallContextUserFactory(
         input: InputMessage,
         pageId: Long,
         state: StateDef? = null
-    ): CommandCallContext {
+    ): CommandContext {
         val cmdHandler = commandHandlers.getCommandHandler(handler)
         val states = userState.getStates(block.messageId, state, pageId)
-        val context = createCommandContext(
+        return createCommandContext(
             block.id,
             block.messageId,
             block.messageType,
-            cmdHandler.command,
-            input,
-            pageId = pageId
-        )
-
-        return CommandCallContextImpl(
             commandHandler = cmdHandler,
             states = states,
-            commandContext = context,
-            defaultContext = { getRootCallContext() })
+            input = input,
+            pageId = pageId
+        )
     }
 
     /**
-     * Creates [CommandCallContext] for root command
+     * Creates [CommandContext] for root command
      */
-    private fun getRootCallContext(): CommandCallContext {
+    private fun getRootCallContext(): CommandContext {
         val handler = commandHandlers.getCommandHandler(rootCommand)
         val states = userState.getStates()
-        val context = createCommandContext(
+        return createCommandContext(
             blockId = 0,
             currentMessageId = input.inlineMessageId ?: 0,
             messageType = MessageType.Text,
-            command = handler.command,
-            input
-        )
-
-        return CommandCallContextImpl(
             commandHandler = handler,
             states = states,
-            commandContext = context,
-            defaultContext = { null })
+            input = input
+        )
     }
 
     private fun findCommandDef(block: CommandBlock, page: CommandPage): CommandDef? {
@@ -262,8 +253,9 @@ internal class CommandCallContextUserFactory(
         blockId: Long,
         currentMessageId: Int,
         messageType: MessageType,
-        command: BaseCommand,
         input: InputMessage,
+        commandHandler: CommandHandler,
+        states: States,
         pageId: Long = 0L
     ): CommandContext {
         return BaseContextImpl(
@@ -271,17 +263,19 @@ internal class CommandCallContextUserFactory(
             pageId = pageId,
             currentMessageId = currentMessageId,
             messageType = messageType,
-            command = command,
             input = input,
+            commandHandler = commandHandler,
+            states = states,
             commandHandlers = commandHandlers,
             messageSender = messageSender,
             serviceProvider = serviceProvider,
             userState = userState,
-            taskManagerFactory = taskManagerFactory
+            taskManagerFactory = taskManagerFactory,
+            rootCommand = rootCommand
         )
     }
 
     private companion object {
-        val log = LoggerFactory.getLogger(CommandCallContextUserFactory::class.java)!!
+        val log = LoggerFactory.getLogger(CommandConextFactory::class.java)!!
     }
 }

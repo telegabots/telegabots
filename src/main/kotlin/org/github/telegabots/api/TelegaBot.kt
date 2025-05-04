@@ -2,7 +2,7 @@ package org.github.telegabots.api
 
 import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.service.*
-import org.github.telegabots.service.CommandCallContextUserFactory
+import org.github.telegabots.service.CommandConextFactory
 import org.github.telegabots.service.CommandHandlers
 import org.github.telegabots.service.InternalServiceProvider
 import org.github.telegabots.task.TaskManagerFactory
@@ -50,7 +50,7 @@ class TelegaBot(
 
     fun <T : Service> tryGetService(clazz: Class<T>): T? = finalServiceProvider.tryGetService(clazz)
 
-    private fun createContext(input: InputMessage): CommandCallContext = CommandCallContextUserFactory(
+    private fun createContext(input: InputMessage): CommandContext = CommandConextFactory(
         input,
         messageSender,
         finalServiceProvider,
