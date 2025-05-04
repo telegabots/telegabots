@@ -18,4 +18,9 @@ interface State<T> {
      * Return {@code true} if there is a value present, otherwise {@code false}.
      */
     fun isPresent(): Boolean
+
+    /**
+     * Return {@code true} if there is no value present, otherwise {@code false}.
+     */
+    fun isNotPresent(): Boolean = !isPresent()
 }
