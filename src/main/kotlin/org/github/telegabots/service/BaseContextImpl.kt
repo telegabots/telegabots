@@ -55,6 +55,27 @@ internal class BaseContextImpl(
 
     override fun messageType(): MessageType = messageType
 
+    override fun create(clazz: Class<out BaseCommand>, messageType: MessageType?): Boolean {
+        val handler = commandHandlers.getCommandHandler(clazz)
+        val messageType = getFinalMessageType(messageType, handler)
+        val states = userState.getStates()
+        val context = createCommandContext(
+            blockId = 0,
+            currentMessageId = 0,
+            messageType = messageType,
+            command = handler.command,
+            input.copy(type = messageType, inlineMessageId = null, messageId = 0).toInputRefresh()
+        )
+
+        val cmdCallContextImpl = CommandCallContextImpl(
+            commandHandler = handler,
+            states = states,
+            commandContext = context,
+            defaultContext = { null })
+
+        return cmdCallContextImpl.execute()
+    }
+
     override fun currentCommand(): BaseCommand = command
 
     override fun createPage(page: Page): Long {
@@ -734,6 +755,22 @@ internal class BaseContextImpl(
                 )
             }"
         }
+    }
+
+    private fun getFinalMessageType(messageType: MessageType?, handler: CommandHandler): MessageType {
+        if (messageType != null) {
+            return messageType
+        }
+
+        if (handler.canHandle(MessageType.Text)) {
+            return MessageType.Text
+        } else if (handler.canHandle(MessageType.Inline)) {
+            return MessageType.Inline
+        } else if (handler.canHandle(MessageType.Photo)) {
+            return MessageType.Photo
+        }
+
+        error("Message handler for type ${handler.commandClass.name} not found. Use one of the annotations: @TextHandler, @InlineHandler, etc.")
     }
 
     private fun annotationNameByType(messageType: MessageType) =

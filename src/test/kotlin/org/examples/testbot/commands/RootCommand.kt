@@ -15,6 +15,11 @@ import org.github.telegabots.std.cmd.LanguageCommand
 class RootCommand : BaseCommand() {
     @TextHandler
     fun handle(message: String) {
+        if (message == "file") {
+            context.create(FileViewCommand::class.java)
+            return
+        }
+
         context.page("RootCommand: You said: $message")
             .messageType(MessageType.Inline)
             .subCommands(FileExplorerCommand::class.java, FileViewCommand::class.java, PrintCommand::class.java, LanguageCommand::class.java)

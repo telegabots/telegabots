@@ -24,7 +24,10 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
 
     override fun pageId(): Long = current().pageId()
 
-    override fun messageType(): MessageType  = current().messageType()
+    override fun messageType(): MessageType = current().messageType()
+
+    override fun create(clazz: Class<out BaseCommand>, messageType: MessageType?): Boolean =
+        current().create(clazz, messageType)
 
     override fun createPage(page: Page): Long = current().createPage(page)
 
