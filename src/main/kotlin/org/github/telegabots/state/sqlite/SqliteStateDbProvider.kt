@@ -1,5 +1,6 @@
 package org.github.telegabots.state.sqlite
 
+import com.fasterxml.jackson.databind.JsonMappingException
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.entity.CommandBlock
 import org.github.telegabots.entity.CommandDef
@@ -270,7 +271,7 @@ class SqliteStateDbProvider(
     private fun GlobalStatesRecord.toDto(): StateDef = parseStateDef(this.stateDef)
 
     private fun parseStateDef(raw: String?): StateDef =
-        raw?.let { jsonService.parse(it, StateDef::class.java) } ?: StateDef.Empty
+        raw?.let { parseJson(it, StateDef::class.java) } ?: StateDef.Empty
 
     private fun StateDef.toRaw(): String? = when (this) {
         StateDef.Empty -> null
@@ -278,12 +279,25 @@ class SqliteStateDbProvider(
     }
 
     private fun parseCommandDefs(raw: String?): List<List<CommandDef>> =
-        raw?.let { jsonService.parse(it, CommandDefsRoot::class.java).defs } ?: emptyList()
+        raw?.let { parseJson(it, CommandDefsRoot::class.java)?.defs } ?: emptyList()
 
     private fun toCommandDefsRaw(defs: List<List<CommandDef>>): String? =
         if (defs.isNotEmpty()) jsonService.toJson(CommandDefsRoot(defs)) else null
 
     private data class CommandDefsRoot(val defs: List<List<CommandDef>>)
+
+    private fun <T> parseJson(str: String, clazz: Class<T>): T? {
+        try {
+            return jsonService.parse(str, clazz)
+        } catch (ex: JsonMappingException) {
+            if (ex.cause is ClassNotFoundException) {
+                log.error("State parsing failed, class not found: {}", (ex.cause as ClassNotFoundException).message)
+            } else {
+                log.error("State parsing failed", ex)
+            }
+        }
+        return null
+    }
 
     companion object {
         private val log = LoggerFactory.getLogger(SqliteStateDbProvider::class.java)!!
