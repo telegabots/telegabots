@@ -108,7 +108,7 @@ internal class BaseContextImpl(
         return true
     }
 
-    override fun create(clazz: Class<out BaseCommand>, messageType: MessageType?): Boolean {
+    override fun create(clazz: Class<out BaseCommand>, messageType: MessageType?, message: String?): Boolean {
         val handler = commandHandlers.getCommandHandler(clazz)
         val messageType = getFinalMessageType(messageType, handler)
         val states = userState.getStates()
@@ -118,7 +118,7 @@ internal class BaseContextImpl(
             messageType = messageType,
             commandHandler = handler,
             states = states,
-            input = input.copy(type = messageType, inlineMessageId = null, messageId = 0).toInputRefresh()
+            input = input.copy(type = messageType, inlineMessageId = null, messageId = 0, query = message ?: SystemCommands.REFRESH)
         )
         return context.execute()
     }

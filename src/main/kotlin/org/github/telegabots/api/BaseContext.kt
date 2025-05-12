@@ -32,14 +32,19 @@ interface BaseContext : CommandExecutor {
     fun messageType(): MessageType
 
     /**
-     * Create specified [BaseCommand] and send [SystemCommands.REFRESH] to it
+     * Create specified [BaseCommand] and send [SystemCommands.REFRESH] or message to it
      */
-    fun create(clazz: Class<out BaseCommand>, messageType: MessageType?): Boolean
+    fun create(clazz: Class<out BaseCommand>, messageType: MessageType?, message: String?): Boolean
 
     /**
      * Create specified [BaseCommand] and send [SystemCommands.REFRESH] to it
      */
-    fun create(clazz: Class<out BaseCommand>): Boolean = create(clazz, null)
+    fun create(clazz: Class<out BaseCommand>): Boolean = create(clazz, null, null)
+
+    /**
+     * Create specified [BaseCommand] and send message to it
+     */
+    fun create(clazz: Class<out BaseCommand>, message: String): Boolean = create(clazz, null, message)
 
     /**
      * Creates new page into new block
