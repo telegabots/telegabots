@@ -13,7 +13,7 @@ import java.util.stream.Stream
 import kotlin.reflect.full.isSuperclassOf
 
 /**
- * Utility class to get [HandlerParamInfo]s from method of a command
+ * Utility class to get [HandlerParamInfo]s from method of a controller
  */
 internal object HandlerParamUtil {
     fun getParams(method: Method): List<HandlerParamInfo> =

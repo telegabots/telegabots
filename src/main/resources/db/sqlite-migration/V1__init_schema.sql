@@ -14,7 +14,7 @@ CREATE TABLE pages
     id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     block_id     INTEGER NOT NULL,
     handler      TEXT(100) NOT NULL,
-    command_defs TEXT,
+    button_defs TEXT,
     created_at   INTEGER NOT NULL,
     updated_at   INTEGER NOT NULL,
     FOREIGN KEY (block_id) REFERENCES blocks (id) ON DELETE CASCADE

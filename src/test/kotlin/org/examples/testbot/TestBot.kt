@@ -1,6 +1,6 @@
 package org.examples.testbot
 
-import org.examples.testbot.commands.RootCommand
+import org.examples.testbot.controllers.RootController
 import org.github.telegabots.api.*
 import org.github.telegabots.api.config.BotConfig
 import org.slf4j.LoggerFactory
@@ -17,15 +17,15 @@ class TestBot {
             log.info("TestBot starting...")
 
             val config = BotConfig.load("application.properties")
-            val starter = TelegaBotStarter.builder(RootCommand::class.java)
+            val starter = TelegaBotStarter.builder(RootController::class.java)
                 .config(config)
                 .serviceProvider(ServiceProviderImpl())
                 .onStartHandler(TestBot::onStartHandler)
                 .build()
 
             // this is optional, but recommended
-            val validator = starter.getService(CommandValidator::class.java)
-            validator.validateAll("org.examples.testbot.commands")
+            val validator = starter.getService(ControllerValidator::class.java)
+            validator.validateAll("org.examples.testbot.controllers")
 
             // start the bot
             starter.start()

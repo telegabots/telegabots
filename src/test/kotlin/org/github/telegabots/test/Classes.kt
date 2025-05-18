@@ -1,6 +1,6 @@
 package org.github.telegabots.test
 
-import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.BaseController
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
@@ -19,59 +19,65 @@ fun <T> mockStrict(clazz: Class<T>): T {
     return Mockito.mock(clazz, STRICT)
 }
 
-private val calledCommands = mutableMapOf<KClass<out BaseCommand>, Int>()
+private val calledControllers = mutableMapOf<KClass<out BaseController>, Int>()
 
-fun <T : BaseCommand> KClass<T>.call() {
-    synchronized(calledCommands) {
-        calledCommands.put(this, (calledCommands[this] ?: 0) + 1)
+fun <T : BaseController> KClass<T>.call() {
+    synchronized(calledControllers) {
+        calledControllers.put(this, (calledControllers[this] ?: 0) + 1)
     }
 }
 
-fun <T : BaseCommand> KClass<T>.called(): Int {
-    synchronized(calledCommands) {
-        return calledCommands[this] ?: 0
+fun <T : BaseController> KClass<T>.called(): Int {
+    synchronized(calledControllers) {
+        return calledControllers[this] ?: 0
     }
 }
 
-fun <T : BaseCommand> KClass<T>.resetCalled(): Int {
-    synchronized(calledCommands) {
-        return calledCommands.remove(this) ?: 0
+fun <T : BaseController> KClass<T>.resetCalled(): Int {
+    synchronized(calledControllers) {
+        return calledControllers.remove(this) ?: 0
     }
 }
 
-fun <T : BaseCommand> KClass<T>.assertWasCalled(expected: Int = 1) =
+fun resetAllCalls() {
+    synchronized(calledControllers) {
+        calledControllers.clear()
+    }
+}
+
+fun <T : BaseController> KClass<T>.assertWasCalled(expected: Int = 1) =
     assertEquals(
         expected,
         called()
-    ) { "Command ${this.simpleName} was called ${called()} times but expected $expected" }
+    ) { "Controller ${this.simpleName} was called ${called()} times but expected $expected" }
 
-fun <T : BaseCommand> KClass<T>.assertNotCalled() =
-    assertEquals(0, called()) { "Command ${this.simpleName} was called but expected not" }
+fun <T : BaseController> KClass<T>.assertNotCalled() =
+    assertEquals(0, called()) { "Controller ${this.simpleName} was called but expected not" }
 
 
-object CommandAssert {
+object ControllerAssert {
     /**
-     * Increment command call counter
+     * Increment controller call counter
      */
-    inline fun <reified T : BaseCommand> call() = T::class.call()
-
-    /**
-     * Returns command's call counter
-     */
-    inline fun <reified T : BaseCommand> called(): Int = T::class.called()
+    inline fun <reified T : BaseController> call() = T::class.call()
 
     /**
-     * Resets command call counter
+     * Returns controller's call counter
      */
-    inline fun <reified T : BaseCommand> resetCalled() = T::class.resetCalled()
+    inline fun <reified T : BaseController> called(): Int = T::class.called()
 
     /**
-     * Asserts that command was called expected times
+     * Resets controller call counter
      */
-    inline fun <reified T : BaseCommand> assertWasCalled(expected: Int = 1) = T::class.assertWasCalled(expected)
+    inline fun <reified T : BaseController> resetCalled() = T::class.resetCalled()
 
     /**
-     * Assert that command not called at all
+     * Asserts that controller was called expected times
      */
-    inline fun <reified T : BaseCommand> assertNotCalled() = T::class.assertNotCalled()
+    inline fun <reified T : BaseController> assertWasCalled(expected: Int = 1) = T::class.assertWasCalled(expected)
+
+    /**
+     * Assert that controller not called at all
+     */
+    inline fun <reified T : BaseController> assertNotCalled() = T::class.assertNotCalled()
 }

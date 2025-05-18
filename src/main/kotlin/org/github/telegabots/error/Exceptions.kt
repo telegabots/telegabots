@@ -1,6 +1,6 @@
 package org.github.telegabots.error
 
-import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.BaseController
 import org.github.telegabots.api.BaseTask
 
 /**
@@ -15,10 +15,10 @@ open class BaseException : RuntimeException {
             super(message, cause, enableSuppression, writableStackTrace)
 }
 
-class CommandInvokeException(val command: Class<out BaseCommand>, cause: Throwable?) :
-    BaseException("Command invoke failed: ${command.name}, error: ${cause?.message}", cause) {
+class ControllerInvokeException(val controller: Class<out BaseController>, cause: Throwable?) :
+    BaseException("Controller invoke failed: ${controller.name}, error: ${cause?.message}", cause) {
 }
 
-class TaskInvokeException(val command: Class<out BaseTask>, cause: Throwable?) :
-    BaseException("Task invoke failed: ${command.name}, error: ${cause?.message}", cause) {
+class TaskInvokeException(val task: Class<out BaseTask>, cause: Throwable?) :
+    BaseException("Task invoke failed: ${task.name}, error: ${cause?.message}", cause) {
 }

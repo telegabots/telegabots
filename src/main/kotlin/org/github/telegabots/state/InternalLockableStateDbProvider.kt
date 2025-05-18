@@ -1,7 +1,7 @@
 package org.github.telegabots.state
 
-import org.github.telegabots.entity.CommandBlock
-import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.entity.MessageBlock
+import org.github.telegabots.entity.MessagePage
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.util.runIn
 import java.util.concurrent.locks.Lock
@@ -21,32 +21,32 @@ internal class InternalLockableStateDbProvider(
 
     override fun writeLock(): Lock = writeLock
 
-    override fun saveBlock(block: CommandBlock): CommandBlock {
+    override fun saveBlock(block: MessageBlock): MessageBlock {
         writeLock.runIn {
             return delegate.saveBlock(block)
         }
     }
 
-    override fun savePage(page: CommandPage): CommandPage? {
+    override fun savePage(page: MessagePage): MessagePage? {
         writeLock.runIn {
             return delegate.savePage(page)
         }
     }
 
 
-    override fun findPageById(pageId: Long): CommandPage? {
+    override fun findPageById(pageId: Long): MessagePage? {
         readLock.runIn {
             return delegate.findPageById(pageId)
         }
     }
 
-    override fun findBlockById(blockId: Long): CommandBlock? {
+    override fun findBlockById(blockId: Long): MessageBlock? {
         readLock.runIn {
             return delegate.findBlockById(blockId)
         }
     }
 
-    override fun findBlockByMessageId(userId: Long, messageId: Int): CommandBlock? {
+    override fun findBlockByMessageId(userId: Long, messageId: Int): MessageBlock? {
         readLock.runIn {
             return delegate.findBlockByMessageId(userId, messageId)
         }
@@ -58,25 +58,25 @@ internal class InternalLockableStateDbProvider(
         }
     }
 
-    override fun findLastBlockByUserId(userId: Long): CommandBlock? {
+    override fun findLastBlockByUserId(userId: Long): MessageBlock? {
         readLock.runIn {
             return delegate.findLastBlockByUserId(userId)
         }
     }
 
-    override fun findLastPageByBlockId(blockId: Long): CommandPage? {
+    override fun findLastPageByBlockId(blockId: Long): MessagePage? {
         readLock.runIn {
             return delegate.findLastPageByBlockId(blockId)
         }
     }
 
-    override fun findBlockByPageId(pageId: Long): CommandBlock? {
+    override fun findBlockByPageId(pageId: Long): MessageBlock? {
         readLock.runIn {
             return delegate.findBlockByPageId(pageId)
         }
     }
 
-    override fun getBlockPages(blockId: Long): List<CommandPage> {
+    override fun getBlockPages(blockId: Long): List<MessagePage> {
         readLock.runIn {
             return delegate.getBlockPages(blockId)
         }
@@ -88,7 +88,7 @@ internal class InternalLockableStateDbProvider(
         }
     }
 
-    override fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> {
+    override fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<MessageBlock> {
         readLock.runIn {
             return delegate.getLastBlocks(userId, lastIndexFrom, pageSize)
         }
@@ -148,13 +148,13 @@ internal class InternalLockableStateDbProvider(
         }
     }
 
-    override fun deleteBlock(blockId: Long): CommandBlock? {
+    override fun deleteBlock(blockId: Long): MessageBlock? {
         writeLock.runIn {
             return delegate.deleteBlock(blockId)
         }
     }
 
-    override fun deletePage(pageId: Long): CommandPage? {
+    override fun deletePage(pageId: Long): MessagePage? {
         writeLock.runIn {
             return delegate.deletePage(pageId)
         }

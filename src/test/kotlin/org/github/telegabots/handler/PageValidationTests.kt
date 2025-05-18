@@ -1,13 +1,13 @@
 package org.github.telegabots.handler
 
 import org.github.telegabots.BaseTests
-import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.BaseController
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.Page
-import org.github.telegabots.api.SubCommand
+import org.github.telegabots.api.Button
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
-import org.github.telegabots.error.CommandInvokeException
+import org.github.telegabots.error.ControllerInvokeException
 import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.assertThrows
 class PageValidationTests : BaseTests() {
     @Test
     fun testFail_WhenTextHandlerNotFound_WhileCreateAddingUpdatingPage() {
-        scenario<ValidationTextHandlerRootCommand> {
+        scenario<ValidationTextHandlerRootController> {
             assertThat {
                 rootNotCalled()
             }
@@ -31,50 +31,50 @@ class PageValidationTests : BaseTests() {
             }
 
             user {
-                val ex = assertThrows<CommandInvokeException> { sendTextMessage("create page") }
+                val ex = assertThrows<ControllerInvokeException> { sendTextMessage("create page") }
 
                 assertEquals(
-                    "Message handler for type Text in org.github.telegabots.handler.CommandWithOnlyInlineHandler not found. Use annotation @TextHandler",
+                    "Message handler for type Text in org.github.telegabots.handler.ControllerWithOnlyInlineHandler not found. Use annotation @TextHandler",
                     ex.cause!!.message
                 )
                 assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
-                assertEquals(ValidationTextHandlerRootCommand::class.java, ex.command)
+                assertEquals(ValidationTextHandlerRootController::class.java, ex.controller)
             }
 
             assertThat {
-                notCalled<CommandWithOnlyInlineHandler>()
+                notCalled<ControllerWithOnlyInlineHandler>()
                 rootWasCalled(1)
             }
 
             user {
-                val ex = assertThrows<CommandInvokeException> { sendTextMessage("add page") }
+                val ex = assertThrows<ControllerInvokeException> { sendTextMessage("add page") }
 
                 assertEquals(
-                    "Message handler for type Text in org.github.telegabots.handler.CommandWithOnlyInlineHandler not found. Use annotation @TextHandler",
+                    "Message handler for type Text in org.github.telegabots.handler.ControllerWithOnlyInlineHandler not found. Use annotation @TextHandler",
                     ex.cause!!.message
                 )
                 assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
-                assertEquals(ValidationTextHandlerRootCommand::class.java, ex.command)
+                assertEquals(ValidationTextHandlerRootController::class.java, ex.controller)
             }
 
             assertThat {
-                notCalled<CommandWithOnlyInlineHandler>()
+                notCalled<ControllerWithOnlyInlineHandler>()
                 rootWasCalled(1)
             }
 
             user {
-                val ex = assertThrows<CommandInvokeException> { sendTextMessage("update page") }
+                val ex = assertThrows<ControllerInvokeException> { sendTextMessage("update page") }
 
                 assertEquals(
-                    "Message handler for type Text in org.github.telegabots.handler.CommandWithOnlyInlineHandler not found. Use annotation @TextHandler",
+                    "Message handler for type Text in org.github.telegabots.handler.ControllerWithOnlyInlineHandler not found. Use annotation @TextHandler",
                     ex.cause!!.message
                 )
                 assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
-                assertEquals(ValidationTextHandlerRootCommand::class.java, ex.command)
+                assertEquals(ValidationTextHandlerRootController::class.java, ex.controller)
             }
 
             assertThat {
-                notCalled<CommandWithOnlyInlineHandler>()
+                notCalled<ControllerWithOnlyInlineHandler>()
                 rootWasCalled(1)
             }
         }
@@ -82,7 +82,7 @@ class PageValidationTests : BaseTests() {
 
     @Test
     fun testFail_WhenInlineHandlerNotFound_WhileCreateAddingUpdatingPage() {
-        scenario<ValidationInlineHandlerRootCommand> {
+        scenario<ValidationInlineHandlerRootController> {
             assertThat {
                 rootNotCalled()
             }
@@ -96,57 +96,57 @@ class PageValidationTests : BaseTests() {
             }
 
             user {
-                val ex = assertThrows<CommandInvokeException> { sendTextMessage("create page") }
+                val ex = assertThrows<ControllerInvokeException> { sendTextMessage("create page") }
 
                 assertEquals(
-                    "Message handler for type Inline in org.github.telegabots.handler.CommandWithOnlyTextHandler not found. Use annotation @InlineHandler",
+                    "Message handler for type Inline in org.github.telegabots.handler.ControllerWithOnlyTextHandler not found. Use annotation @InlineHandler",
                     ex.cause!!.message
                 )
                 assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
-                assertEquals(ValidationInlineHandlerRootCommand::class.java, ex.command)
+                assertEquals(ValidationInlineHandlerRootController::class.java, ex.controller)
             }
 
             assertThat {
-                notCalled<CommandWithOnlyInlineHandler>()
+                notCalled<ControllerWithOnlyInlineHandler>()
                 rootWasCalled(1)
             }
 
             user {
-                val ex = assertThrows<CommandInvokeException> { sendTextMessage("add page") }
+                val ex = assertThrows<ControllerInvokeException> { sendTextMessage("add page") }
 
                 assertEquals(
-                    "Message handler for type Inline in org.github.telegabots.handler.CommandWithOnlyTextHandler not found. Use annotation @InlineHandler",
+                    "Message handler for type Inline in org.github.telegabots.handler.ControllerWithOnlyTextHandler not found. Use annotation @InlineHandler",
                     ex.cause!!.message
                 )
                 assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
-                assertEquals(ValidationInlineHandlerRootCommand::class.java, ex.command)
+                assertEquals(ValidationInlineHandlerRootController::class.java, ex.controller)
             }
 
             assertThat {
-                notCalled<CommandWithOnlyInlineHandler>()
+                notCalled<ControllerWithOnlyInlineHandler>()
                 rootWasCalled(1)
             }
 
             user {
-                val ex = assertThrows<CommandInvokeException> { sendTextMessage("update page") }
+                val ex = assertThrows<ControllerInvokeException> { sendTextMessage("update page") }
 
                 assertEquals(
-                    "Message handler for type Inline in org.github.telegabots.handler.CommandWithOnlyTextHandler not found. Use annotation @InlineHandler",
+                    "Message handler for type Inline in org.github.telegabots.handler.ControllerWithOnlyTextHandler not found. Use annotation @InlineHandler",
                     ex.cause!!.message
                 )
                 assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
-                assertEquals(ValidationInlineHandlerRootCommand::class.java, ex.command)
+                assertEquals(ValidationInlineHandlerRootController::class.java, ex.controller)
             }
 
             assertThat {
-                notCalled<CommandWithOnlyInlineHandler>()
+                notCalled<ControllerWithOnlyInlineHandler>()
                 rootWasCalled(1)
             }
         }
     }
 }
 
-class ValidationTextHandlerRootCommand : BaseCommand() {
+class ValidationTextHandlerRootController : BaseController() {
     @TextHandler
     fun handle(msg: String) {
         when (msg) {
@@ -181,17 +181,17 @@ class ValidationTextHandlerRootCommand : BaseCommand() {
     private fun createInitPage() = Page("Init text message", messageType = MessageType.Text, handler = this.javaClass)
 
     private fun createInvalidPage() = Page(
-        "Some foo bar", messageType = MessageType.Text, handler = CommandWithOnlyInlineHandler::class.java
+        "Some foo bar", messageType = MessageType.Text, handler = ControllerWithOnlyInlineHandler::class.java
     )
 }
 
-class CommandWithOnlyInlineHandler : BaseCommand() {
+class ControllerWithOnlyInlineHandler : BaseController() {
     @InlineHandler
     fun handleInline(msg: String) {
     }
 }
 
-class ValidationInlineHandlerRootCommand : BaseCommand() {
+class ValidationInlineHandlerRootController : BaseController() {
     @TextHandler
     fun handle(msg: String) {
         when (msg) {
@@ -226,12 +226,12 @@ class ValidationInlineHandlerRootCommand : BaseCommand() {
     private fun createInitPage() = Page("Init text message", messageType = MessageType.Text, handler = this.javaClass)
 
     private fun createInvalidPage() = Page(
-        "Some foo bar", messageType = MessageType.Inline, handler = CommandWithOnlyTextHandler::class.java,
-        subCommands = listOf(listOf(SubCommand.of("SOME_COMMAND")))
+        "Some foo bar", messageType = MessageType.Inline, handler = ControllerWithOnlyTextHandler::class.java,
+        buttons = listOf(listOf(Button.of("SOME_CONTROLLER")))
     )
 }
 
-class CommandWithOnlyTextHandler : BaseCommand() {
+class ControllerWithOnlyTextHandler : BaseController() {
     @TextHandler
     fun handleText(msg: String) {
     }

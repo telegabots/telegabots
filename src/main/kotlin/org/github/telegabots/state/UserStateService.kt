@@ -1,9 +1,9 @@
 package org.github.telegabots.state
 
 import org.github.telegabots.api.*
-import org.github.telegabots.entity.CommandBlock
-import org.github.telegabots.entity.CommandDef
-import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.entity.MessageBlock
+import org.github.telegabots.entity.ButtonDef
+import org.github.telegabots.entity.MessagePage
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.util.Validation
@@ -11,7 +11,7 @@ import org.github.telegabots.util.runIn
 import java.util.concurrent.locks.Lock
 
 /**
- * Stores commands tree and all user-related states
+ * Stores all user-related states
  */
 internal class UserStateService(
     private val userId: Long,
@@ -31,33 +31,33 @@ internal class UserStateService(
 
     fun getWriteLock(): Lock = dbProvider.writeLock()
 
-    fun getBlockByMessageId(messageId: Int): CommandBlock? = dbProvider.findBlockByMessageId(userId, messageId)
+    fun getBlockByMessageId(messageId: Int): MessageBlock? = dbProvider.findBlockByMessageId(userId, messageId)
 
-    fun findBlockById(blockId: Long): CommandBlock? = dbProvider.findBlockById(blockId)
+    fun findBlockById(blockId: Long): MessageBlock? = dbProvider.findBlockById(blockId)
 
-    fun getLastBlock(): CommandBlock? = dbProvider.findLastBlockByUserId(userId)
+    fun getLastBlock(): MessageBlock? = dbProvider.findLastBlockByUserId(userId)
 
-    fun getLastBlocks(lastIndexFrom: Int, pageSize: Int): List<CommandBlock> =
+    fun getLastBlocks(lastIndexFrom: Int, pageSize: Int): List<MessageBlock> =
         dbProvider.getLastBlocks(userId, lastIndexFrom, pageSize)
 
-    fun findLastPage(blockId: Long): CommandPage? = dbProvider.findLastPageByBlockId(blockId)
+    fun findLastPage(blockId: Long): MessagePage? = dbProvider.findLastPageByBlockId(blockId)
 
-    fun getLastPage(blockId: Long): CommandPage =
+    fun getLastPage(blockId: Long): MessagePage =
         findLastPage(blockId) ?: throw IllegalStateException("Page not found by blockId: $blockId")
 
-    fun getPages(blockId: Long): List<CommandPage> = dbProvider.getBlockPages(blockId)
+    fun getPages(blockId: Long): List<MessagePage> = dbProvider.getBlockPages(blockId)
 
-    fun removePage(pageId: Long): CommandPage? = dbProvider.deletePage(pageId)
+    fun removePage(pageId: Long): MessagePage? = dbProvider.deletePage(pageId)
 
-    fun findPageById(pageId: Long): CommandPage? = dbProvider.findPageById(pageId)
+    fun findPageById(pageId: Long): MessagePage? = dbProvider.findPageById(pageId)
 
     fun pageExists(pageId: Long): Boolean = findPageById(pageId) != null
 
     fun blockExists(blockId: Long): Boolean = findBlockById(blockId) != null
 
-    fun saveBlock(messageId: Int, messageType: MessageType): CommandBlock =
+    fun saveBlock(messageId: Int, messageType: MessageType): MessageBlock =
         dbProvider.saveBlock(
-            CommandBlock(
+            MessageBlock(
                 messageId = messageId,
                 userId = userId,
                 messageType = messageType,
@@ -67,16 +67,16 @@ internal class UserStateService(
 
     fun savePage(
         blockId: Long,
-        handler: Class<out BaseCommand>,
-        subCommands: List<List<SubCommand>> = emptyList(),
+        handler: Class<out BaseController>,
+        buttons: List<List<Button>> = emptyList(),
         pageId: Long = 0
-    ): CommandPage? =
+    ): MessagePage? =
         dbProvider.savePage(
-            CommandPage(
+            MessagePage(
                 id = pageId,
                 blockId = blockId,
                 handler = handler.name,
-                commandDefs = toCommandDefs(subCommands)
+                buttonDefs = toButtonDefs(buttons)
             )
         )
 
@@ -125,7 +125,7 @@ internal class UserStateService(
     /**
      * Clones specified block and returns last page from cloned block
      */
-    fun cloneFromBlock(blockId: Long, newMessageId: Int): CommandPage? {
+    fun cloneFromBlock(blockId: Long, newMessageId: Int): MessagePage? {
         Validation.validateMessageId(newMessageId)
 
         dbProvider.writeLock().runIn {
@@ -137,7 +137,7 @@ internal class UserStateService(
                 val localStates = dbProvider.getLocalStates(blockId)
 
                 val newBlock = dbProvider.saveBlock(
-                    CommandBlock(
+                    MessageBlock(
                         messageId = newMessageId,
                         userId = userId,
                         messageType = block.messageType
@@ -164,9 +164,9 @@ internal class UserStateService(
         return null
     }
 
-    fun findBlockByPageId(pageId: Long): CommandBlock? = dbProvider.findBlockByPageId(pageId)
+    fun findBlockByPageId(pageId: Long): MessageBlock? = dbProvider.findBlockByPageId(pageId)
 
-    fun findBlockByMessageId(messageId: Int): CommandBlock? = dbProvider.findBlockByMessageId(userId, messageId)
+    fun findBlockByMessageId(messageId: Int): MessageBlock? = dbProvider.findBlockByMessageId(userId, messageId)
 
     private fun getSharedState(messageId: Int): StateProvider {
         return synchronized(sharedStates) {
@@ -180,11 +180,11 @@ internal class UserStateService(
         else
             getLocalStateProvider(pageId)
 
-    private fun toCommandDefs(subCommands: List<List<SubCommand>>): List<List<CommandDef>> =
-        subCommands.map { it.map { cmd -> toCommandDef(cmd) } }
+    private fun toButtonDefs(buttons: List<List<Button>>): List<List<ButtonDef>> =
+        buttons.map { it.map { cmd -> toButtonDef(cmd) } }
 
-    private fun toCommandDef(cmd: SubCommand): CommandDef {
-        return CommandDef(
+    private fun toButtonDef(cmd: Button): ButtonDef {
+        return ButtonDef(
             titleId = cmd.titleId,
             title = cmd.title ?: localizationProvider.getString(cmd.titleId),
             handler = cmd.handler?.name,

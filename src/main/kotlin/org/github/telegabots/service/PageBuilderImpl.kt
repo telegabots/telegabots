@@ -10,8 +10,8 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
     private var messageType: MessageType = MessageType.Text
     private var contentType: ContentType = ContentType.Plain
     private var disablePreview: Boolean = false
-    private var subCommands: List<List<SubCommand>> = emptyList()
-    private var handler: Class<out BaseCommand>? = null
+    private var buttons: List<List<Button>> = emptyList()
+    private var handler: Class<out BaseController>? = null
     private var enableBack: Boolean = false
     private var id: Long = 0L
     private var blockId: Long = 0L
@@ -64,12 +64,12 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
         return this
     }
 
-    override fun subCommands(subCommands: List<List<SubCommand>>): PageBuilder {
-        this.subCommands = subCommands
+    override fun buttons(buttons: List<List<Button>>): PageBuilder {
+        this.buttons = buttons
         return this
     }
 
-    override fun handler(handler: Class<out BaseCommand>?): PageBuilder {
+    override fun handler(handler: Class<out BaseController>?): PageBuilder {
         this.handler = handler
         return this
     }
@@ -80,7 +80,7 @@ internal class PageBuilderImpl(val message: String, val context: BaseContext) : 
             contentType = contentType,
             messageType = messageType,
             disablePreview = disablePreview,
-            subCommands = subCommands,
+            buttons = buttons,
             handler = handler,
             id = id,
             blockId = blockId,

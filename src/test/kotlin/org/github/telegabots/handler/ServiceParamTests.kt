@@ -1,10 +1,10 @@
 package org.github.telegabots.handler
 
-import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.BaseController
 import org.github.telegabots.BaseTests
 import org.github.telegabots.api.Service
 import org.github.telegabots.api.annotation.TextHandler
-import org.github.telegabots.error.CommandInvokeException
+import org.github.telegabots.error.ControllerInvokeException
 import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.assertThrows
 class ServiceParamTests : BaseTests() {
     @Test
     fun testServiceCall_Success_WhenServiceRegistered() {
-        scenario<CommandWithServiceParam> {
+        scenario<ControllerWithServiceParam> {
             addService(SimpleTestService::class.java, SimpleTestService())
 
             assertThat {
@@ -33,13 +33,13 @@ class ServiceParamTests : BaseTests() {
 
     @Test
     fun testServiceCall_Fail_WhenServiceNotRegistered() {
-        scenario<CommandWithServiceParam> {
+        scenario<ControllerWithServiceParam> {
 
             user {
-                val ex = assertThrows<CommandInvokeException> { sendTextMessage("Hello from client!") }
+                val ex = assertThrows<ControllerInvokeException> { sendTextMessage("Hello from client!") }
 
                 assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
-                assertEquals(CommandWithServiceParam::class.java, ex.command)
+                assertEquals(ControllerWithServiceParam::class.java, ex.controller)
                 assertEquals("Service not found: org.github.telegabots.handler.SimpleTestService", ex.cause?.message)
             }
 
@@ -51,7 +51,7 @@ class ServiceParamTests : BaseTests() {
 
     @Test
     fun testServiceCallInCtor_Success_WhenServiceRegistered() {
-        scenario<CommandWithServiceParamInCtor>(listOf(SimpleTestService())) {
+        scenario<ControllerWithServiceParamInCtor>(listOf(SimpleTestService())) {
 
             assertThat {
                 assertFalse(SimpleTestService.calledWith("Polina"))
@@ -71,7 +71,7 @@ class ServiceParamTests : BaseTests() {
     @Test
     fun testServiceCallInCtor_Success_WhenServiceNotRegistered() {
         val ex = assertThrows<IllegalStateException> {
-            scenario<CommandWithServiceParamInCtor> {
+            scenario<ControllerWithServiceParamInCtor> {
                 fail("Should not be called")
             }
         }
@@ -80,7 +80,7 @@ class ServiceParamTests : BaseTests() {
     }
 }
 
-internal class CommandWithServiceParam : BaseCommand() {
+internal class ControllerWithServiceParam : BaseController() {
     @TextHandler
     fun handle(msg: String, service: SimpleTestService) {
         assertEquals("Hello from client!", msg)
@@ -88,7 +88,7 @@ internal class CommandWithServiceParam : BaseCommand() {
     }
 }
 
-internal class CommandWithServiceParamInCtor(private val service: SimpleTestService) : BaseCommand() {
+internal class ControllerWithServiceParamInCtor(private val service: SimpleTestService) : BaseController() {
     @TextHandler
     fun handle(msg: String, ) {
         assertEquals("Hello from client2!", msg)

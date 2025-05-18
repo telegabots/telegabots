@@ -8,8 +8,8 @@ data class Page(
     val messageType: MessageType = MessageType.Text,
     val disablePreview: Boolean = false,
     val disableNotification: Boolean = false,
-    val subCommands: List<List<SubCommand>> = emptyList(),
-    val handler: Class<out BaseCommand>? = null,
+    val buttons: List<List<Button>> = emptyList(),
+    val handler: Class<out BaseController>? = null,
     val id: Long = 0L,
     val blockId: Long = 0L,
     val state: StateRef? = null,
@@ -20,7 +20,7 @@ data class Page(
     val enableBack: Boolean? = null,
 ) {
     override fun toString(): String {
-        return "Page(contentType=$contentType, messageType=$messageType, disablePreview=$disablePreview, subCommands=$subCommands, handler=$handler, id=$id,\nmessage='${
+        return "Page(contentType=$contentType, messageType=$messageType, disablePreview=$disablePreview, buttons=$buttons, handler=$handler, id=$id,\nmessage='${
             message.take(
                 TO_STR_MESSAGE_LEN
             )

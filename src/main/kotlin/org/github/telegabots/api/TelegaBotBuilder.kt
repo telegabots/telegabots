@@ -6,7 +6,7 @@ import java.util.function.Consumer
 /**
  * Builder for [TelegaBotStarter]
  */
-class TelegaBotBuilder(private val rootCommand: Class<out BaseCommand>) {
+class TelegaBotBuilder(private val rootController: Class<out BaseController>) {
     private var config: BotConfig? = null
     private var serviceProvider: ServiceProvider = EmptyServiceProvider()
     private var messageSender: MessageSender? = null
@@ -47,7 +47,7 @@ class TelegaBotBuilder(private val rootCommand: Class<out BaseCommand>) {
         return TelegaBotStarter(
             config = config!!,
             serviceProvider = serviceProvider,
-            rootCommand = rootCommand,
+            rootController = rootController,
             messageSender = messageSender,
             onStartHandler = onStartHandler
         )

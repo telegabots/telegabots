@@ -1,7 +1,7 @@
 package org.github.telegabots.state
 
-import org.github.telegabots.entity.CommandBlock
-import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.entity.MessageBlock
+import org.github.telegabots.entity.MessagePage
 import org.github.telegabots.entity.StateDef
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -14,8 +14,8 @@ import java.util.concurrent.atomic.AtomicLong
  */
 class MemoryStateDbProvider : StateDbProvider {
 
-    private val commandBlocks = mutableListOf<CommandBlock>()
-    private val commandPages = mutableMapOf<Long, MutableList<CommandPage>>()
+    private val messageBlocks = mutableListOf<MessageBlock>()
+    private val messagePages = mutableMapOf<Long, MutableList<MessagePage>>()
     private val localStates = mutableMapOf<Long, StateDef>()
     private val sharedStates = mutableMapOf<Long, StateDef>()
     private val userStates = mutableMapOf<Long, StateDef>()
@@ -23,19 +23,19 @@ class MemoryStateDbProvider : StateDbProvider {
     private val blockIds = AtomicLong(10_000)
     private var globalState: StateDef? = null
 
-    override fun saveBlock(block: CommandBlock): CommandBlock {
+    override fun saveBlock(block: MessageBlock): MessageBlock {
         check(block.isValid()) { "block is invalid: $block" }
 
         val savedBlock = block.copy(id = blockIds.getAndIncrement())
-        commandBlocks.add(savedBlock)
+        messageBlocks.add(savedBlock)
 
         return savedBlock
     }
 
-    override fun savePage(page: CommandPage): CommandPage? {
+    override fun savePage(page: MessagePage): MessagePage? {
         check(page.isValid()) { "page is invalid: $page" }
 
-        val block = commandBlocks.find { it.id == page.blockId }
+        val block = messageBlocks.find { it.id == page.blockId }
 
         if (block == null) {
             log.warn("Block not found: {} while saving page: {}", page.blockId, page)
@@ -43,7 +43,7 @@ class MemoryStateDbProvider : StateDbProvider {
         }
 
         if (page.id > 0) {
-            val pages = commandPages.getOrPut(block.id) { mutableListOf() }
+            val pages = messagePages.getOrPut(block.id) { mutableListOf() }
             val index = pages.indexOfFirst { it.id == page.id }
             check(index >= 0) { "Page not found by id: ${page.id}, blockId: ${page.blockId}" }
             val oldPage = pages.removeAt(index)
@@ -53,39 +53,39 @@ class MemoryStateDbProvider : StateDbProvider {
         } else {
             val now = LocalDateTime.now()
             val savedPage = page.copy(id = pageIds.getAndIncrement(), createdAt = now, updatedAt = now)
-            val pages = commandPages.getOrPut(block.id) { mutableListOf() }
+            val pages = messagePages.getOrPut(block.id) { mutableListOf() }
             pages.add(savedPage)
 
             return savedPage
         }
     }
 
-    override fun findPageById(pageId: Long): CommandPage? {
-        return commandPages.values.flatten().find { it.id == pageId }
+    override fun findPageById(pageId: Long): MessagePage? {
+        return messagePages.values.flatten().find { it.id == pageId }
     }
 
-    override fun findBlockByMessageId(userId: Long, messageId: Int): CommandBlock? {
-        return commandBlocks.find { it.userId == userId && it.messageId == messageId }
+    override fun findBlockByMessageId(userId: Long, messageId: Int): MessageBlock? {
+        return messageBlocks.find { it.userId == userId && it.messageId == messageId }
     }
 
     override fun findBlockIdByMessageId(userId: Long, messageId: Int): Long? =
         findBlockByMessageId(userId, messageId)?.id
 
-    override fun findLastBlockByUserId(userId: Long): CommandBlock? {
-        return commandBlocks.filter { it.userId == userId }.maxByOrNull { it.id }
+    override fun findLastBlockByUserId(userId: Long): MessageBlock? {
+        return messageBlocks.filter { it.userId == userId }.maxByOrNull { it.id }
     }
 
-    override fun findBlockById(blockId: Long): CommandBlock? {
-        return commandBlocks.find { it.id == blockId }
+    override fun findBlockById(blockId: Long): MessageBlock? {
+        return messageBlocks.find { it.id == blockId }
     }
 
-    override fun findBlockByPageId(pageId: Long): CommandBlock? {
+    override fun findBlockByPageId(pageId: Long): MessageBlock? {
         // TODO: optimize
-        return commandBlocks.find { commandPages[it.id]?.any { p -> p.id == pageId } ?: false }
+        return messageBlocks.find { messagePages[it.id]?.any { p -> p.id == pageId } ?: false }
     }
 
-    override fun findLastPageByBlockId(blockId: Long): CommandPage? {
-        return commandPages[blockId]?.lastOrNull()
+    override fun findLastPageByBlockId(blockId: Long): MessagePage? {
+        return messagePages[blockId]?.lastOrNull()
     }
 
     override fun saveLocalState(pageId: Long, state: StateDef) {
@@ -132,18 +132,18 @@ class MemoryStateDbProvider : StateDbProvider {
         globalState = state
     }
 
-    override fun deleteBlock(blockId: Long): CommandBlock? {
-        commandPages.remove(blockId)
-        val index = commandBlocks.indexOfFirst { it.id == blockId }
+    override fun deleteBlock(blockId: Long): MessageBlock? {
+        messagePages.remove(blockId)
+        val index = messageBlocks.indexOfFirst { it.id == blockId }
 
-        return if (index >= 0) commandBlocks.removeAt(index) else null
+        return if (index >= 0) messageBlocks.removeAt(index) else null
     }
 
-    override fun deletePage(pageId: Long): CommandPage? {
+    override fun deletePage(pageId: Long): MessagePage? {
         val block = findBlockByPageId(pageId)
 
         if (block != null) {
-            val pages = commandPages[block.id]
+            val pages = messagePages[block.id]
 
             if (pages != null) {
                 val index = pages.indexOfFirst { it.id == pageId }
@@ -163,21 +163,21 @@ class MemoryStateDbProvider : StateDbProvider {
         return null
     }
 
-    override fun getBlockPages(blockId: Long): List<CommandPage> {
-        return commandPages[blockId] ?: emptyList()
+    override fun getBlockPages(blockId: Long): List<MessagePage> {
+        return messagePages[blockId] ?: emptyList()
     }
 
-    override fun getBlocksCount(userId: Long): Int = commandBlocks.size
+    override fun getBlocksCount(userId: Long): Int = messageBlocks.size
 
-    override fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> {
-        return commandBlocks.filter { it.userId == userId }
+    override fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<MessageBlock> {
+        return messageBlocks.filter { it.userId == userId }
             .reversed()
             .drop(lastIndexFrom)
             .take(pageSize)
     }
 
-    fun getUserBlocks(userId: Long): List<CommandBlock> {
-        return commandBlocks.filter { it.userId == userId }
+    fun getUserBlocks(userId: Long): List<MessageBlock> {
+        return messageBlocks.filter { it.userId == userId }
     }
 
     companion object {

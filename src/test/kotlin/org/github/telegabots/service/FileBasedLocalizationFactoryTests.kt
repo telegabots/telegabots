@@ -1,6 +1,6 @@
 package org.github.telegabots.service
 
-import org.github.telegabots.api.SystemCommands
+import org.github.telegabots.api.SystemMessages
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -33,14 +33,14 @@ class FileBasedLocalizationFactoryTests {
         val providerEng = factory.getProvider("en")
 
         assertSame(LanguageImpl.ENGLISH, providerEng.getLanguage())
-        assertEquals("Back", providerEng.getString(SystemCommands.GO_BACK))
+        assertEquals("Back", providerEng.getString(SystemMessages.GO_BACK))
         assertEquals("Yes", providerEng.getString("_YES"))
         assertEquals("No", providerEng.getString("_NO"))
         assertEquals("This is custom key", providerEng.getString("CUSTOM_KEY"))
 
         val providerGer = factory.getProvider("de")
         assertSame(LanguageImpl.GERMAN, providerGer.getLanguage())
-        assertEquals("Zurück", providerGer.getString(SystemCommands.GO_BACK))
+        assertEquals("Zurück", providerGer.getString(SystemMessages.GO_BACK))
         assertEquals("Ja!!!", providerGer.getString("_YES"), "Custom key should override standard key")
         assertEquals("Dies ist ein benutzerdefinierter Schlüssel", providerGer.getString("CUSTOM_KEY"))
     }

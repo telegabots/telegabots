@@ -4,7 +4,7 @@ import org.github.telegabots.MessageFile
 import org.github.telegabots.api.*
 
 /**
- * Base methods of Context for current executing command or task
+ * Base methods of Context for current executing controller or task
  */
 abstract class BaseContextSupport<T : BaseContext> : BaseContext {
     private val contextCurrent = ThreadLocal<T>()
@@ -26,7 +26,7 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
 
     override fun messageType(): MessageType = current().messageType()
 
-    override fun create(clazz: Class<out BaseCommand>, messageType: MessageType?, message: String?): Boolean =
+    override fun create(clazz: Class<out BaseController>, messageType: MessageType?, message: String?): Boolean =
         current().create(clazz, messageType, message)
 
     override fun createPage(page: Page): Long = current().createPage(page)
@@ -81,11 +81,11 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
     override fun sendMessage(message: String, contentType: ContentType, disablePreview: Boolean, chatId: String): Int =
         current().sendMessage(message, contentType, disablePreview, chatId)
 
-    override fun enterCommand(command: BaseCommand) = current().enterCommand(command)
+    override fun enterController(controller: BaseController) = current().enterController(controller)
 
-    override fun leaveCommand(command: BaseCommand?) = current().leaveCommand(command)
+    override fun leaveController(controller: BaseController?) = current().leaveController(controller)
 
-    override fun clearCommands() = current().clearCommands()
+    override fun clearControllers() = current().clearControllers()
 
     override fun getTaskManager(): TaskManager = current().getTaskManager()
 
@@ -99,11 +99,11 @@ abstract class BaseContextSupport<T : BaseContext> : BaseContext {
     override fun <T : UserService> tryGetUserService(clazz: Class<T>): T? =
         current().tryGetUserService(clazz)
 
-    override fun executeTextCommand(handler: Class<out BaseCommand>, text: String): Boolean =
-        current().executeTextCommand(handler, text)
+    override fun executeTextMessage(handler: Class<out BaseController>, text: String): Boolean =
+        current().executeTextMessage(handler, text)
 
-    override fun executeInlineCommand(handler: Class<out BaseCommand>, query: String): Boolean =
-        current().executeInlineCommand(handler, query)
+    override fun executeInlineMessage(handler: Class<out BaseController>, query: String): Boolean =
+        current().executeInlineMessage(handler, query)
 
     override fun page(message: String): PageBuilder = current().page(message)
 

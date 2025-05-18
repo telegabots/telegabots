@@ -14,25 +14,25 @@ import kotlin.test.assertTrue
 
 class StateParamTests : BaseTests() {
     @Test
-    fun testCommand_Success_WhenHandlerWithStateParam() {
-        scenario<CommandWithStateParam> {
-            assertFalse(CommandWithStateParam.handlerCalled.get())
+    fun testController_Success_WhenHandlerWithStateParam() {
+        scenario<ControllerWithStateParam> {
+            assertFalse(ControllerWithStateParam.handlerCalled.get())
 
             user {
                 sendTextMessage("Hello from client")
             }
 
             assertThat {
-                commandReturnTrue()
-                assertTrue(CommandWithStateParam.handlerCalled.get())
+                controllerReturnTrue()
+                assertTrue(ControllerWithStateParam.handlerCalled.get())
             }
         }
     }
 
     @Test
-    fun testCommand_Success_WhenInlineHandlerWithStateParam() {
-        scenario<CommandWithStateParam> {
-            assertFalse(CommandWithStateParam.inlineHandlerCalled.get())
+    fun testController_Success_WhenInlineHandlerWithStateParam() {
+        scenario<ControllerWithStateParam> {
+            assertFalse(ControllerWithStateParam.inlineHandlerCalled.get())
 
             user {
                 sendTextMessage("/start")
@@ -51,48 +51,48 @@ class StateParamTests : BaseTests() {
             }
 
             assertThat {
-                commandReturnTrue()
-                assertTrue(CommandWithStateParam.inlineHandlerCalled.get())
+                controllerReturnTrue()
+                assertTrue(ControllerWithStateParam.inlineHandlerCalled.get())
             }
         }
     }
 
     @Test
-    fun testCommand_Success_WhenHandlerWithReadonlyLocalStateParam() {
-        scenario<CommandWithReadonlyLocalState> {
-            assertFalse(CommandWithReadonlyLocalState.handlerCalled.get())
+    fun testController_Success_WhenHandlerWithReadonlyLocalStateParam() {
+        scenario<ControllerWithReadonlyLocalState> {
+            assertFalse(ControllerWithReadonlyLocalState.handlerCalled.get())
 
             user {
                 sendTextMessage("Hello!")
             }
 
             assertThat {
-                commandReturnTrue()
-                assertTrue(CommandWithReadonlyLocalState.handlerCalled.get())
+                controllerReturnTrue()
+                assertTrue(ControllerWithReadonlyLocalState.handlerCalled.get())
             }
         }
     }
 
     @Test
-    fun testCommand_Success_WhenInlineHandlerShouldNotCalledWhenBlockByMessageIdNotFound() {
-        scenario<CommandWithReadonlyLocalState> {
-            assertFalse(CommandWithReadonlyLocalState.inlineHandlerCalled.get())
+    fun testController_Success_WhenInlineHandlerShouldNotCalledWhenBlockByMessageIdNotFound() {
+        scenario<ControllerWithReadonlyLocalState> {
+            ControllerWithReadonlyLocalState.inlineHandlerCalled.set(false)
 
             user {
                 sendInlineMessage(messageId = 123987, callbackData = "Data2")
             }
 
             assertThat {
-                commandReturnTrue()
-                assertFalse(CommandWithReadonlyLocalState.inlineHandlerCalled.get(), "Inline handler called but not expected")
+                controllerReturnTrue()
+                assertFalse(ControllerWithReadonlyLocalState.inlineHandlerCalled.get(), "Inline handler called but not expected")
             }
         }
     }
 
     @Test
-    fun testCommand_Success_WhenInlineHandlerCalledWhenBlockByMessageIdFound() {
-        scenario<CommandWithReadonlyLocalState> {
-            assertFalse(CommandWithReadonlyLocalState.inlineHandlerCalled.get())
+    fun testController_Success_WhenInlineHandlerCalledWhenBlockByMessageIdFound() {
+        scenario<ControllerWithReadonlyLocalState> {
+            ControllerWithReadonlyLocalState.inlineHandlerCalled.set(false)            
 
             user {
                 sendTextMessage("/start")
@@ -112,8 +112,8 @@ class StateParamTests : BaseTests() {
             }
 
             assertThat {
-                commandReturnTrue()
-                assertFalse(CommandWithReadonlyLocalState.inlineHandlerCalled.get(), "Inline handler called but not expected")
+                controllerReturnTrue()
+                assertFalse(ControllerWithReadonlyLocalState.inlineHandlerCalled.get(), "Inline handler called but not expected")
             }
 
             user {
@@ -122,15 +122,15 @@ class StateParamTests : BaseTests() {
             }
 
             assertThat {
-                commandReturnTrue()
-                assertTrue(CommandWithReadonlyLocalState.inlineHandlerCalled.get())
+                controllerReturnTrue()
+                assertTrue(ControllerWithReadonlyLocalState.inlineHandlerCalled.get())
             }
         }
     }
 
     @Test
-    fun testCommand_DontReuseCachedLocalState() {
-        scenario<CommandReuseLocalState> {
+    fun testController_DontReuseCachedLocalState() {
+        scenario<ControllerReuseLocalState> {
             user {
                 sendTextMessage("HELLO!")
             }
@@ -163,7 +163,7 @@ class StateParamTests : BaseTests() {
     }
 }
 
-internal class CommandWithStateParam : BaseCommand() {
+internal class ControllerWithStateParam : BaseController() {
     @TextHandler
     fun handleText(msg: String, intState: State<Int>) {
         if (msg == MESSAGE_START) {
@@ -204,7 +204,7 @@ internal class CommandWithStateParam : BaseCommand() {
     }
 }
 
-internal class CommandWithReadonlyLocalState : BaseCommand() {
+internal class ControllerWithReadonlyLocalState : BaseController() {
     @TextHandler
     fun handle(message: String, readOnlyState: String?) {
         assertNull(readOnlyState)
@@ -233,13 +233,13 @@ internal class CommandWithReadonlyLocalState : BaseCommand() {
     }
 }
 
-internal class CommandReuseLocalState : BaseCommand() {
+internal class ControllerReuseLocalState : BaseController() {
     @TextHandler
     fun handle(message: String) {
         context.createPage(
             Page(
                 "Some message", ContentType.Plain, MessageType.Inline,
-                subCommands = listOf(listOf(SubCommand.of("CMD1", state = StateRef.of("FOO"))))
+                buttons = listOf(listOf(Button.of("CMD1", state = StateRef.of("FOO"))))
             )
         )
     }

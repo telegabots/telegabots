@@ -1,8 +1,8 @@
 package org.github.telegabots.state
 
 import org.github.telegabots.api.Service
-import org.github.telegabots.entity.CommandBlock
-import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.entity.MessageBlock
+import org.github.telegabots.entity.MessagePage
 import org.github.telegabots.entity.StateDef
 
 /**
@@ -12,27 +12,27 @@ interface StateDbProvider : Service {
     /**
      * Creates new block
      */
-    fun saveBlock(block: CommandBlock): CommandBlock
+    fun saveBlock(block: MessageBlock): MessageBlock
 
     /**
      * Create or update page
      */
-    fun savePage(page: CommandPage): CommandPage?
+    fun savePage(page: MessagePage): MessagePage?
 
     /**
      * Find page by id
      */
-    fun findPageById(pageId: Long): CommandPage?
+    fun findPageById(pageId: Long): MessagePage?
 
     /**
      * Find block by id
      */
-    fun findBlockById(blockId: Long): CommandBlock?
+    fun findBlockById(blockId: Long): MessageBlock?
 
     /**
      * Find block by related message id
      */
-    fun findBlockByMessageId(userId: Long, messageId: Int): CommandBlock?
+    fun findBlockByMessageId(userId: Long, messageId: Int): MessageBlock?
 
     /**
      * Returns block id by message id
@@ -42,22 +42,22 @@ interface StateDbProvider : Service {
     /**
      * Find last block
      */
-    fun findLastBlockByUserId(userId: Long): CommandBlock?
+    fun findLastBlockByUserId(userId: Long): MessageBlock?
 
     /**
      * Find last page by block id
      */
-    fun findLastPageByBlockId(blockId: Long): CommandPage?
+    fun findLastPageByBlockId(blockId: Long): MessagePage?
 
     /**
      * Find block by page id
      */
-    fun findBlockByPageId(pageId: Long): CommandBlock?
+    fun findBlockByPageId(pageId: Long): MessageBlock?
 
     /**
      * Returns list of page by block id
      */
-    fun getBlockPages(blockId: Long): List<CommandPage>
+    fun getBlockPages(blockId: Long): List<MessagePage>
 
     /**
      * Returns blocks count
@@ -67,7 +67,7 @@ interface StateDbProvider : Service {
     /**
      * Returns last blocks from the end
      */
-    fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<CommandBlock>
+    fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<MessageBlock>
 
     /**
      * Creates or updates local state related with page
@@ -117,12 +117,12 @@ interface StateDbProvider : Service {
     /**
      * Removes block and all related pages
      */
-    fun deleteBlock(blockId: Long): CommandBlock?
+    fun deleteBlock(blockId: Long): MessageBlock?
 
     /**
      * Removes page and block if removed page was last
      */
-    fun deletePage(pageId: Long): CommandPage?
+    fun deletePage(pageId: Long): MessagePage?
 }
 
 fun StateDbProvider.getLocalState(pageId: Long): StateDef = findLocalState(pageId) ?: StateDef.Empty

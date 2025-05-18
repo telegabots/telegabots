@@ -2,10 +2,10 @@ package org.github.telegabots.handler
 
 import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
-import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.BaseController
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
-import org.github.telegabots.error.CommandInvokeException
+import org.github.telegabots.error.ControllerInvokeException
 import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -17,32 +17,32 @@ import kotlin.test.assertEquals
  */
 class TextHandlerTests : BaseTests() {
     @Test
-    fun testCommand_Fail_WhenCommandWithoutAnyHandler() {
+    fun testController_Fail_WhenControllerWithoutAnyHandler() {
         val ex = assertThrows<IllegalStateException> {
-            scenario<InvalidRootCommandWithoutTextHandler> { }
+            scenario<InvalidRootControllerWithoutTextHandler> { }
         }
 
         assertEquals(
-            "Root command (org.github.telegabots.handler.InvalidRootCommandWithoutTextHandler) have to implement text handler. Annotate method with @TextHandler",
+            "Root controller (org.github.telegabots.handler.InvalidRootControllerWithoutTextHandler) have to implement text handler. Annotate method with @TextHandler",
             ex.message
         )
     }
 
     @Test
-    fun testCommand_Fail_WhenTextHandlerHasNotStringParam() {
+    fun testController_Fail_WhenTextHandlerHasNotStringParam() {
         val ex = assertThrows<IllegalStateException> {
-            scenario<InvalidCommandWithoutStringParam> { }
+            scenario<InvalidControllerWithoutStringParam> { }
         }
 
         assertEquals(
-            "First parameter must be String but found int in handler public final void org.github.telegabots.handler.InvalidCommandWithoutStringParam.execute(int)",
+            "First parameter must be String but found int in handler public final void org.github.telegabots.handler.InvalidControllerWithoutStringParam.execute(int)",
             ex.message
         )
     }
 
     @Test
-    fun testCommand_Success_WhenHandlerReturnsVoid() {
-        scenario<SimpleCommandReturnsVoid> {
+    fun testController_Success_WhenHandlerReturnsVoid() {
+        scenario<SimpleControllerReturnsVoid> {
             assertThat {
                 rootNotCalled()
             }
@@ -53,14 +53,14 @@ class TextHandlerTests : BaseTests() {
 
             assertThat {
                 rootWasCalled(1)
-                commandReturnTrue()
+                controllerReturnTrue()
             }
         }
     }
 
     @Test
-    fun testCommand_Success_WhenHandlerReturnsBool() {
-        scenario<SimpleCommandReturnsBool> {
+    fun testController_Success_WhenHandlerReturnsBool() {
+        scenario<SimpleControllerReturnsBool> {
             assertThat {
                 rootNotCalled()
             }
@@ -71,14 +71,14 @@ class TextHandlerTests : BaseTests() {
 
             assertThat {
                 rootWasCalled(1)
-                commandReturnFalse()
+                controllerReturnFalse()
             }
         }
     }
 
     @Test
-    fun testCommand_Success_WhenHandlerInherited() {
-        scenario<InheritSimpleCommand> {
+    fun testController_Success_WhenHandlerInherited() {
+        scenario<InheritSimpleController> {
             assertThat {
                 rootNotCalled()
             }
@@ -89,46 +89,46 @@ class TextHandlerTests : BaseTests() {
 
             assertThat {
                 rootWasCalled(1)
-                commandReturnFalse()
+                controllerReturnFalse()
             }
         }
     }
 
     @Test
-    fun testCommand_Fail_WhenHandlerWithoutParams() {
+    fun testController_Fail_WhenHandlerWithoutParams() {
         val ex = assertThrows<IllegalStateException> {
-            scenario<InvalidCommandWithoutAnyParam> { }
+            scenario<InvalidControllerWithoutAnyParam> { }
         }
 
         assertEquals(
-            "Handler must contains at least one parameter: public final boolean org.github.telegabots.handler.InvalidCommandWithoutAnyParam.execute()",
+            "Handler must contains at least one parameter: public final boolean org.github.telegabots.handler.InvalidControllerWithoutAnyParam.execute()",
             ex.message
         )
     }
 
     @Test
-    fun testCommand_Fail_WhenHandlerReturnsNonBool() {
+    fun testController_Fail_WhenHandlerReturnsNonBool() {
         val ex = assertThrows<IllegalStateException> {
-            scenario<InvalidCommandReturnNonBoolParam> { }
+            scenario<InvalidControllerReturnNonBoolParam> { }
         }
 
         assertEquals(
-            "Handler must return bool or void but it returns int in method public final int org.github.telegabots.handler.InvalidCommandReturnNonBoolParam.execute(java.lang.String)",
+            "Handler must return bool or void but it returns int in method public final int org.github.telegabots.handler.InvalidControllerReturnNonBoolParam.execute(java.lang.String)",
             ex.message
         )
     }
 
     @Test
-    fun testCommand_WhenHandlerThrowsError() {
-        scenario<SimpleCommandThrowsError> {
+    fun testController_WhenHandlerThrowsError() {
+        scenario<SimpleControllerThrowsError> {
             assertThat { rootNotCalled() }
 
             user {
-                val ex = assertThrows<CommandInvokeException> { sendTextMessage("!?!") }
+                val ex = assertThrows<ControllerInvokeException> { sendTextMessage("!?!") }
 
                 assertEquals(ParseException::class.java, ex.cause!!::class.java)
-                assertEquals("Command must throw error", ex.cause?.message)
-                assertEquals(SimpleCommandThrowsError::class.java, ex.command)
+                assertEquals("Controller must throw error", ex.cause?.message)
+                assertEquals(SimpleControllerThrowsError::class.java, ex.controller)
             }
 
             assertThat { rootNotCalled() }
@@ -136,50 +136,50 @@ class TextHandlerTests : BaseTests() {
     }
 }
 
-internal class InvalidRootCommandWithoutTextHandler : BaseCommand() {
+internal class InvalidRootControllerWithoutTextHandler : BaseController() {
     @InlineHandler
     fun handle(msg: String, messageId: Int) {
 
     }
 }
 
-internal class InvalidCommandWithoutStringParam : BaseCommand() {
+internal class InvalidControllerWithoutStringParam : BaseController() {
     @TextHandler
     fun execute(mustBeString: Int) {
         CODE_NOT_REACHED()
     }
 }
 
-internal class InvalidCommandWithoutAnyParam : BaseCommand() {
+internal class InvalidControllerWithoutAnyParam : BaseController() {
     @TextHandler
     fun execute(): Boolean {
         CODE_NOT_REACHED()
     }
 }
 
-internal class InvalidCommandReturnNonBoolParam : BaseCommand() {
+internal class InvalidControllerReturnNonBoolParam : BaseController() {
     @TextHandler
     fun execute(text: String): Int {
         CODE_NOT_REACHED()
     }
 }
 
-internal class SimpleCommandThrowsError : BaseCommand() {
+internal class SimpleControllerThrowsError : BaseController() {
     @TextHandler
     fun execute(text: String): Nothing {
-        throw ParseException("Command must throw error", 0)
+        throw ParseException("Controller must throw error", 0)
     }
 }
 
-internal class SimpleCommandReturnsVoid : BaseCommand() {
+internal class SimpleControllerReturnsVoid : BaseController() {
     @TextHandler
     fun execute(text: String) {
     }
 }
 
-internal open class SimpleCommandReturnsBool : BaseCommand() {
+internal open class SimpleControllerReturnsBool : BaseController() {
     @TextHandler
     fun execute(text: String): Boolean = false
 }
 
-internal class InheritSimpleCommand : SimpleCommandReturnsBool()
+internal class InheritSimpleController : SimpleControllerReturnsBool()

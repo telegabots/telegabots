@@ -1,7 +1,7 @@
 package org.github.telegabots.api
 
 /**
- * State used while command executing
+ * State used while controller executing
  */
 data class StateRef(val items: List<StateItem>) {
     override fun toString(): String {

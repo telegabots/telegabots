@@ -99,28 +99,28 @@ interface PageBuilder {
     fun enableBack(enable: Boolean): PageBuilder
 
     /**
-     * Set sub-commands for [Page].
+     * Set buttons for [Page].
      */
-    fun subCommands(subCommands: List<List<SubCommand>>): PageBuilder
+    fun buttons(buttons: List<List<Button>>): PageBuilder
 
     /**
-     * Set sub-commands for [Page].
+     * Set buttons for [Page].
      */
-    fun subCommands(vararg subCommands: SubCommand): PageBuilder {
+    fun buttons(vararg buttons: Button): PageBuilder {
         // convert list to vertical layout
-        return subCommands(subCommands.map { cmd -> listOf(cmd) })
+        return buttons(buttons.map { cmd -> listOf(cmd) })
     }
 
     /**
-     * Set sub-commands by [BaseCommand].
+     * Set buttons by [BaseController].
      */
-    fun subCommands(vararg commands: Class<out BaseCommand>): PageBuilder {
+    fun buttons(vararg controllers: Class<out BaseController>): PageBuilder {
         // convert list to vertical layout
-        return subCommands(commands.map { cmd -> listOf(SubCommand.of(cmd)) })
+        return buttons(controllers.map { cmd -> listOf(Button.of(cmd)) })
     }
 
     /**
      * Set handler for [Page]
      */
-    fun handler(handler: Class<out BaseCommand>?): PageBuilder
+    fun handler(handler: Class<out BaseController>?): PageBuilder
 }

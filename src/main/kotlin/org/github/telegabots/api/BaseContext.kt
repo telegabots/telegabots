@@ -4,9 +4,9 @@ import org.github.telegabots.MessageFile
 import java.io.File
 
 /**
- * Base context used by a command or task
+ * Base context used by a [BaseController] or task
  */
-interface BaseContext : CommandExecutor {
+interface BaseContext : MessageExecutor {
     /**
      * Message id related with current block
      */
@@ -32,19 +32,19 @@ interface BaseContext : CommandExecutor {
     fun messageType(): MessageType
 
     /**
-     * Create specified [BaseCommand] and send [SystemCommands.REFRESH] or message to it
+     * Create specified [BaseController] and send [SystemMessages.REFRESH] or message to it
      */
-    fun create(clazz: Class<out BaseCommand>, messageType: MessageType?, message: String?): Boolean
+    fun create(clazz: Class<out BaseController>, messageType: MessageType?, message: String?): Boolean
 
     /**
-     * Create specified [BaseCommand] and send [SystemCommands.REFRESH] to it
+     * Create specified [BaseController] and send [SystemMessages.REFRESH] to it
      */
-    fun create(clazz: Class<out BaseCommand>): Boolean = create(clazz, null, null)
+    fun create(clazz: Class<out BaseController>): Boolean = create(clazz, null, null)
 
     /**
-     * Create specified [BaseCommand] and send message to it
+     * Create specified [BaseController] and send message to it
      */
-    fun create(clazz: Class<out BaseCommand>, message: String): Boolean = create(clazz, null, message)
+    fun create(clazz: Class<out BaseController>, message: String): Boolean = create(clazz, null, message)
 
     /**
      * Creates new page into new block
@@ -241,13 +241,13 @@ interface BaseContext : CommandExecutor {
     fun sendMarkdownMessage(message: String): Int = sendMessage(message, ContentType.Markdown, false, "")
 
     // TODO: probably remove
-    fun enterCommand(command: BaseCommand)
+    fun enterController(controller: BaseController)
 
     // TODO: probably remove
-    fun leaveCommand(command: BaseCommand? = null)
+    fun leaveController(controller: BaseController? = null)
 
     // TODO: probably remove
-    fun clearCommands()
+    fun clearControllers()
 
     /**
      * Returns task manager

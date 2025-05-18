@@ -8,9 +8,9 @@ import java.lang.reflect.Method
  * TODO: remove?
  */
 internal class TaskClassUtil {
-    fun getHandlers(command: BaseTask): List<TaskHandlerInfo> {
-        return command.javaClass.methods
-            .mapNotNull { mapHandler(it, command) }
+    fun getHandlers(task: BaseTask): List<TaskHandlerInfo> {
+        return task.javaClass.methods
+            .mapNotNull { mapHandler(it, task) }
             .map { checkHandler(it) }
     }
 

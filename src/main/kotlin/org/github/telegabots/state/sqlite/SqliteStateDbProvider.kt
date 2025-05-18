@@ -2,9 +2,9 @@ package org.github.telegabots.state.sqlite
 
 import com.fasterxml.jackson.databind.JsonMappingException
 import org.github.telegabots.api.MessageType
-import org.github.telegabots.entity.CommandBlock
-import org.github.telegabots.entity.CommandDef
-import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.entity.MessageBlock
+import org.github.telegabots.entity.ButtonDef
+import org.github.telegabots.entity.MessagePage
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.jooq.Tables.*
 import org.github.telegabots.jooq.tables.records.*
@@ -26,7 +26,7 @@ class SqliteStateDbProvider(
         log.info("SqliteStateDbProvider created")
     }
 
-    override fun saveBlock(block: CommandBlock): CommandBlock {
+    override fun saveBlock(block: MessageBlock): MessageBlock {
         check(block.isValid()) { "Block is invalid: $block" }
 
         val blockRecord = findBlockByMessageIdInternal(block.userId, block.messageId) ?: context.newRecord(BLOCKS)
@@ -43,7 +43,7 @@ class SqliteStateDbProvider(
         return blockRecord.toDto()
     }
 
-    override fun savePage(page: CommandPage): CommandPage? {
+    override fun savePage(page: MessagePage): MessagePage? {
         check(page.isValid()) { "Page is invalid: $page" }
 
         val pagesRecord = (if (page.id > 0) context.selectFrom(PAGES)
@@ -54,7 +54,7 @@ class SqliteStateDbProvider(
             blockId = page.blockId
             createdAt = TimeUtil.toEpochMillis(page.createdAt)
             updatedAt = TimeUtil.toEpochMillis(page.updatedAt)
-            commandDefs = toCommandDefsRaw(page.commandDefs)
+            buttonDefs = toButtonDefsRaw(page.buttonDefs)
             handler = page.handler
 
             store()
@@ -63,19 +63,19 @@ class SqliteStateDbProvider(
         return pagesRecord.toDto()
     }
 
-    override fun findPageById(pageId: Long): CommandPage? =
+    override fun findPageById(pageId: Long): MessagePage? =
         context.selectFrom(PAGES)
             .where(PAGES.ID.eq(pageId))
             .fetchOne()
             ?.toDto()
 
-    override fun findBlockById(blockId: Long): CommandBlock? =
+    override fun findBlockById(blockId: Long): MessageBlock? =
         context.selectFrom(BLOCKS)
             .where(BLOCKS.ID.eq(blockId))
             .fetchOne()
             ?.toDto()
 
-    override fun findBlockByMessageId(userId: Long, messageId: Int): CommandBlock? =
+    override fun findBlockByMessageId(userId: Long, messageId: Int): MessageBlock? =
         findBlockByMessageIdInternal(userId, messageId)?.toDto()
 
     override fun findBlockIdByMessageId(userId: Long, messageId: Int): Long? =
@@ -84,7 +84,7 @@ class SqliteStateDbProvider(
             .fetchOne()
             ?.value1()
 
-    override fun findLastBlockByUserId(userId: Long): CommandBlock? =
+    override fun findLastBlockByUserId(userId: Long): MessageBlock? =
         context.selectFrom(BLOCKS)
             .where(BLOCKS.USER_ID.eq(userId))
             .orderBy(BLOCKS.ID.desc())
@@ -92,7 +92,7 @@ class SqliteStateDbProvider(
             .fetchOne()
             ?.toDto()
 
-    override fun findLastPageByBlockId(blockId: Long): CommandPage? =
+    override fun findLastPageByBlockId(blockId: Long): MessagePage? =
         context.selectFrom(PAGES)
             .where(PAGES.BLOCK_ID.eq(blockId))
             .orderBy(PAGES.ID.desc())
@@ -100,14 +100,14 @@ class SqliteStateDbProvider(
             .fetchOne()
             ?.toDto()
 
-    override fun findBlockByPageId(pageId: Long): CommandBlock? =
+    override fun findBlockByPageId(pageId: Long): MessageBlock? =
         context.select(BLOCKS.asterisk())
             .from(BLOCKS.join(PAGES).on(BLOCKS.ID.eq(PAGES.BLOCK_ID)))
             .where(PAGES.ID.eq(pageId))
             .fetchOneInto(BlocksRecord::class.java)
             ?.toDto()
 
-    override fun getBlockPages(blockId: Long): List<CommandPage> =
+    override fun getBlockPages(blockId: Long): List<MessagePage> =
         context.selectFrom(PAGES)
             .where(PAGES.BLOCK_ID.eq(blockId))
             .fetch()
@@ -119,7 +119,7 @@ class SqliteStateDbProvider(
                 .where(BLOCKS.USER_ID.eq(userId))
         )
 
-    override fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<CommandBlock> =
+    override fun getLastBlocks(userId: Long, lastIndexFrom: Int, pageSize: Int): List<MessageBlock> =
         context.selectFrom(BLOCKS)
             .where(BLOCKS.USER_ID.eq(userId))
             .orderBy(BLOCKS.ID.desc())
@@ -205,7 +205,7 @@ class SqliteStateDbProvider(
         stateRecord.store()
     }
 
-    override fun deleteBlock(blockId: Long): CommandBlock? {
+    override fun deleteBlock(blockId: Long): MessageBlock? {
         val oldBlock = findBlockById(blockId)
 
         context.deleteFrom(BLOCKS)
@@ -215,7 +215,7 @@ class SqliteStateDbProvider(
         return oldBlock
     }
 
-    override fun deletePage(pageId: Long): CommandPage? {
+    override fun deletePage(pageId: Long): MessagePage? {
         val oldPage = findPageById(pageId)
 
         context.deleteFrom(PAGES)
@@ -225,12 +225,12 @@ class SqliteStateDbProvider(
         return oldPage
     }
 
-    fun getAllPages(): List<CommandPage> =
+    fun getAllPages(): List<MessagePage> =
         context.selectFrom(PAGES)
             .fetch()
             .map { it.toDto() }
 
-    fun getAllBlocks(): List<CommandBlock> =
+    fun getAllBlocks(): List<MessageBlock> =
         context.selectFrom(BLOCKS)
             .fetch()
             .map { it.toDto() }
@@ -246,18 +246,18 @@ class SqliteStateDbProvider(
             .where(BLOCKS.USER_ID.eq(userId).and(BLOCKS.MESSAGE_ID.eq(messageId)))
             .fetchOne()
 
-    private fun PagesRecord.toDto(): CommandPage =
-        CommandPage(
+    private fun PagesRecord.toDto(): MessagePage =
+        MessagePage(
             id = this.id,
             blockId = this.blockId,
             handler = this.handler,
-            commandDefs = parseCommandDefs(this.commandDefs),
+            buttonDefs = parseButtonDefs(this.buttonDefs),
             createdAt = TimeUtil.fromEpochMillis(this.createdAt),
             updatedAt = TimeUtil.fromEpochMillis(this.updatedAt)
         )
 
-    private fun BlocksRecord.toDto(): CommandBlock =
-        CommandBlock(
+    private fun BlocksRecord.toDto(): MessageBlock =
+        MessageBlock(
             id = this.id,
             userId = this.userId,
             messageId = this.messageId,
@@ -278,13 +278,13 @@ class SqliteStateDbProvider(
         else -> jsonService.toJson(this)
     }
 
-    private fun parseCommandDefs(raw: String?): List<List<CommandDef>> =
-        raw?.let { parseJson(it, CommandDefsRoot::class.java)?.defs } ?: emptyList()
+    private fun parseButtonDefs(raw: String?): List<List<ButtonDef>> =
+        raw?.let { parseJson(it, ButtonDefsRoot::class.java)?.defs } ?: emptyList()
 
-    private fun toCommandDefsRaw(defs: List<List<CommandDef>>): String? =
-        if (defs.isNotEmpty()) jsonService.toJson(CommandDefsRoot(defs)) else null
+    private fun toButtonDefsRaw(defs: List<List<ButtonDef>>): String? =
+        if (defs.isNotEmpty()) jsonService.toJson(ButtonDefsRoot(defs)) else null
 
-    private data class CommandDefsRoot(val defs: List<List<CommandDef>>)
+    private data class ButtonDefsRoot(val defs: List<List<ButtonDef>>)
 
     private fun <T> parseJson(str: String, clazz: Class<T>): T? {
         try {
@@ -299,7 +299,7 @@ class SqliteStateDbProvider(
         return null
     }
 
-    companion object {
-        private val log = LoggerFactory.getLogger(SqliteStateDbProvider::class.java)!!
+    private companion object {
+        val log = LoggerFactory.getLogger(SqliteStateDbProvider::class.java)!!
     }
 }

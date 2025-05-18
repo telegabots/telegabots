@@ -18,5 +18,5 @@ data class InputMessage(
         check(chatId != 0L) { "ChatId cannot be $chatId" }
     }
 
-    fun toInputRefresh() = this.copy(query = SystemCommands.REFRESH)
+    fun toInputRefresh() = this.copy(query = SystemMessages.REFRESH)
 }

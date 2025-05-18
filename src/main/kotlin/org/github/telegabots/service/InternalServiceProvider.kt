@@ -6,7 +6,7 @@ import org.github.telegabots.sqlite.SqliteEntityRepositoryFactory
 import org.github.telegabots.state.*
 import org.github.telegabots.state.sqlite.SqliteStateDbProvider
 import org.github.telegabots.task.TaskManagerFactory
-import org.github.telegabots.util.CommandValidatorImpl
+import org.github.telegabots.util.ControllerValidatorImpl
 import org.github.telegabots.util.LazySupplier
 import org.github.telegabots.util.SqliteConnectionUtil
 import org.jooq.DSLContext
@@ -96,9 +96,9 @@ internal class InternalServiceProvider(
 
             TaskManagerFactory::class.java -> TaskManagerFactory()
 
-            CommandHandlers::class.java -> CommandHandlers(this)
+            ControllerHandlers::class.java -> ControllerHandlers(this)
 
-            CommandValidator::class.java -> CommandValidatorImpl(getService(CommandHandlers::class.java))
+            ControllerValidator::class.java -> ControllerValidatorImpl(getService(ControllerHandlers::class.java))
 
             MessageSender::class.java -> messageSender
 

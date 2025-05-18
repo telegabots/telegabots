@@ -5,12 +5,12 @@ package org.github.telegabots.state
  */
 enum class StateKind {
     /**
-     * Local state for command page only. Default type of state parameter
+     * Local state for page only. Default type of state parameter
      */
     LOCAL,
 
     /**
-     * Shared state of all command pages of the message
+     * Shared state of all pages of the message
      */
     SHARED,
 

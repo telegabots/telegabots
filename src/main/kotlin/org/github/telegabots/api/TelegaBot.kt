@@ -2,8 +2,8 @@ package org.github.telegabots.api
 
 import org.github.telegabots.api.config.BotConfig
 import org.github.telegabots.service.*
-import org.github.telegabots.service.CommandConextFactory
-import org.github.telegabots.service.CommandHandlers
+import org.github.telegabots.service.ControllerContextFactory
+import org.github.telegabots.service.ControllerHandlers
 import org.github.telegabots.service.InternalServiceProvider
 import org.github.telegabots.task.TaskManagerFactory
 import org.slf4j.LoggerFactory
@@ -17,21 +17,21 @@ class TelegaBot(
     messageSender: MessageSender,
     userServiceProvider: ServiceProvider,
     val config: BotConfig,
-    val rootCommand: Class<out BaseCommand> = EmptyCommand::class.java
+    val rootController: Class<out BaseController> = EmptyController::class.java
 ) {
     private val adminChatId: Long = config.adminChatId
     private val jsonService: JsonService = JsonService()
     private val finalServiceProvider = InternalServiceProvider(userServiceProvider, messageSender, jsonService, config)
     private val taskManagerFactory = finalServiceProvider.getService(TaskManagerFactory::class.java)
     private val messageSender = finalServiceProvider.getService(MessageSender::class.java)
-    private val commandHandlers = finalServiceProvider.getService(CommandHandlers::class.java)
+    private val controllerHandlers = finalServiceProvider.getService(ControllerHandlers::class.java)
 
     init {
-        val rootHandler = commandHandlers.getCommandHandler(rootCommand)
+        val rootHandler = controllerHandlers.getControllerHandler(rootController)
 
-        check(rootHandler.canHandle(MessageType.Text)) { "Root command (${rootCommand.name}) have to implement text handler. Annotate method with @TextHandler" }
+        check(rootHandler.canHandle(MessageType.Text)) { "Root controller (${rootController.name}) have to implement text handler. Annotate method with @TextHandler" }
 
-        log.info("CommandCallContextFactory created")
+        log.info("TelegaBot created")
     }
 
     fun handle(update: Update): Boolean {
@@ -50,13 +50,13 @@ class TelegaBot(
 
     fun <T : Service> tryGetService(clazz: Class<T>): T? = finalServiceProvider.tryGetService(clazz)
 
-    private fun createContext(input: InputMessage): CommandContext = CommandConextFactory(
+    private fun createContext(input: InputMessage): ControllerContext = ControllerContextFactory(
         input,
         messageSender,
         finalServiceProvider,
-        commandHandlers,
+        controllerHandlers,
         taskManagerFactory,
-        rootCommand
+        rootController
     ).create()
 
     private fun getInputMessage(update: Update): InputMessage {
@@ -107,6 +107,6 @@ class TelegaBot(
         )
 
     private companion object {
-        private val log = LoggerFactory.getLogger(TelegaBot::class.java)!!
+        val log = LoggerFactory.getLogger(TelegaBot::class.java)!!
     }
 }

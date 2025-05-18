@@ -1,0 +1,142 @@
+package org.github.telegabots.handler
+
+import org.github.telegabots.BaseTests
+import org.github.telegabots.api.*
+import org.github.telegabots.api.annotation.InlineHandler
+import org.github.telegabots.api.annotation.TextHandler
+import org.github.telegabots.test.scenario
+import org.junit.jupiter.api.Test
+
+class MultiButtonTests : BaseTests() {
+    @Test
+    fun testMultipleButtons() {
+        scenario<ControllerRoot> {
+            assertThat {
+                rootNotCalled()
+                userMessageNotSentYet()
+                blocksCountEmpty()
+            }
+
+            user {
+                sendTextMessage("/start")
+            }
+
+            assertThat {
+                userMessageWasSent()
+                rootWasCalled()
+                notCalled<SubMenu1Controller>()
+                blocksCount(1)
+                lastBlockPagesCount(1)
+            }
+
+            val messageId = lastUserMessageId()
+
+            user {
+                sendTextMessage("SUB_MENU1")
+            }
+
+            assertThat {
+                notCalled<SubMenu1Controller>()
+                rootWasCalled(2)
+                blocksCount(2)
+                lastBlockPagesCount(1)
+                printBlocks()
+            }
+
+            user {
+                sendInlineMessage(messageId = messageId, callbackData = "SUB_MENU1")
+            }
+
+            assertThat {
+                wasCalled<SubMenu1Controller>()
+                notCalled<SubMenu2Controller>()
+                rootWasCalled(2)
+                blocksCount(2)
+                messageBlockPagesCount(messageId, 2)
+                lastBlockPagesCount(1)
+            }
+
+            user {
+                sendInlineMessage(messageId = messageId, callbackData = SystemMessages.GO_BACK)
+            }
+
+            assertThat {
+                wasCalled<SubMenu1Controller>(1)
+                notCalled<SubMenu2Controller>()
+                rootWasCalled(3)
+                blocksCount(2)
+                messageBlockPagesCount(messageId, 1)
+                lastBlockPagesCount(1)
+            }
+
+            user {
+                sendInlineMessage(messageId = messageId, callbackData = "SUB_MENU2")
+            }
+
+            assertThat {
+                wasCalled<SubMenu1Controller>(1)
+                wasCalled<SubMenu2Controller>(1)
+                rootWasCalled(3)
+                blocksCount(2)
+                messageBlockPagesCount(messageId, 2)
+                lastBlockPagesCount(1)
+            }
+
+            user {
+                // start message must redirect to root controller
+                sendTextMessage("/start")
+            }
+
+            assertThat {
+                wasCalled<SubMenu1Controller>(1)
+                wasCalled<SubMenu2Controller>(1)
+                rootWasCalled(4)
+                blocksCount(3)
+                messageBlockPagesCount(messageId, 2)
+                lastBlockPagesCount(1)
+            }
+        }
+    }
+}
+
+internal class ControllerRoot : BaseController() {
+    @TextHandler
+    fun handle(msg: String) {
+        context.createPage(createPage())
+    }
+
+    @InlineHandler
+    fun handleInline(msg: String) {
+        context.updatePage(createPage())
+    }
+
+    private fun createPage() = Page(
+        message = "Choose menu:",
+        contentType = ContentType.Plain,
+        messageType = MessageType.Inline,
+        buttons = listOf(listOf(Button.of<SubMenu1Controller>(), Button.of<SubMenu2Controller>()))
+    )
+}
+
+internal class SubMenu1Controller : BaseController() {
+    @InlineHandler
+    fun handle(message: String) {
+        if (message == SystemMessages.REFRESH) {
+            context.updatePage(Page("SubMenu1Controller", messageType = MessageType.Inline))
+        }
+    }
+}
+
+internal class SubMenu2Controller : BaseController() {
+    @InlineHandler
+    fun handle(message: String) {
+        if (message == SystemMessages.REFRESH) {
+            context.updatePage(Page("SubMenu2Controller", messageType = MessageType.Inline))
+        }
+    }
+
+    @TextHandler
+    fun handleText(message: String) {
+        context.page("TextCommand: $message").create()
+    }
+}

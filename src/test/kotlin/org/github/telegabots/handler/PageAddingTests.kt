@@ -2,22 +2,21 @@ package org.github.telegabots.handler
 
 import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
-import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.BaseController
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.Page
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
-import org.github.telegabots.error.CommandInvokeException
+import org.github.telegabots.error.ControllerInvokeException
 import org.github.telegabots.test.scenario
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertEquals
 
 class PageAddingTests : BaseTests() {
     @Test
     fun testAddPage_WhenTextMessage() {
-        scenario<TextCommandAddingPage> {
+        scenario<TextControllerAddingPage> {
             assertThat {
                 rootNotCalled()
                 blocksCountEmpty()
@@ -47,7 +46,7 @@ class PageAddingTests : BaseTests() {
 
     @Test
     fun testAddPage_WhenInlineMessage() {
-        scenario<InlineCommandAddingPage> {
+        scenario<InlineControllerAddingPage> {
             assertThat {
                 rootNotCalled()
                 blocksCountEmpty()
@@ -79,7 +78,7 @@ class PageAddingTests : BaseTests() {
 
     @Test
     fun testFail_AddPage_WhenTextMessageAfterInline() {
-        scenario<InvalidCommandTextMessageAfterInline> {
+        scenario<InvalidControllerTextMessageAfterInline> {
             assertThat {
                 rootNotCalled()
                 blocksCountEmpty()
@@ -98,7 +97,7 @@ class PageAddingTests : BaseTests() {
             }
 
             user {
-                val ex = assertThrows<CommandInvokeException> {
+                val ex = assertThrows<ControllerInvokeException> {
                     sendInlineMessage(messageId, "someTitleId")
                 }
 
@@ -107,7 +106,7 @@ class PageAddingTests : BaseTests() {
                     ex.cause!!.message
                 )
                 Assertions.assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
-                Assertions.assertEquals(InvalidCommandTextMessageAfterInline::class.java, ex.command)
+                Assertions.assertEquals(InvalidControllerTextMessageAfterInline::class.java, ex.controller)
             }
 
             assertThat {
@@ -120,7 +119,7 @@ class PageAddingTests : BaseTests() {
 
     @Test
     fun testFail_AddPage_WhenInlineMessageAfterText() {
-        scenario<InvalidCommandInlineMessageAfterText> {
+        scenario<InvalidControllerInlineMessageAfterText> {
             assertThat {
                 rootNotCalled()
                 blocksCountEmpty()
@@ -137,7 +136,7 @@ class PageAddingTests : BaseTests() {
             }
 
             user {
-                val ex = assertThrows<CommandInvokeException> {
+                val ex = assertThrows<ControllerInvokeException> {
                     sendTextMessage("pupa lupa")
                 }
 
@@ -146,7 +145,7 @@ class PageAddingTests : BaseTests() {
                     ex.cause!!.message
                 )
                 Assertions.assertEquals(IllegalStateException::class.java, ex.cause!!::class.java)
-                Assertions.assertEquals(InvalidCommandInlineMessageAfterText::class.java, ex.command)
+                Assertions.assertEquals(InvalidControllerInlineMessageAfterText::class.java, ex.controller)
             }
 
             assertThat {
@@ -158,14 +157,14 @@ class PageAddingTests : BaseTests() {
     }
 }
 
-internal class TextCommandAddingPage : BaseCommand() {
+internal class TextControllerAddingPage : BaseController() {
     @TextHandler
     fun handle(message: String) {
-        context.addPage(Page("Hello from command"))
+        context.addPage(Page("Hello from controller"))
     }
 }
 
-internal class InlineCommandAddingPage : BaseCommand() {
+internal class InlineControllerAddingPage : BaseController() {
     @InlineHandler
     fun handleInline(message: String) {
         context.addPage(Page("new inline content", messageType = MessageType.Inline))
@@ -177,7 +176,7 @@ internal class InlineCommandAddingPage : BaseCommand() {
     }
 }
 
-internal class InvalidCommandTextMessageAfterInline : BaseCommand() {
+internal class InvalidControllerTextMessageAfterInline : BaseController() {
     @TextHandler
     fun handle(message: String) {
         context.addPage(Page("Inline message", messageType = MessageType.Inline))
@@ -189,7 +188,7 @@ internal class InvalidCommandTextMessageAfterInline : BaseCommand() {
     }
 }
 
-internal class InvalidCommandInlineMessageAfterText : BaseCommand() {
+internal class InvalidControllerInlineMessageAfterText : BaseController() {
     @TextHandler
     fun handle(message: String) {
         if ("/start" == message) {

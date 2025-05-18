@@ -1,7 +1,7 @@
 package org.github.telegabots.util
 
 import org.junit.jupiter.api.Test
-import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.BaseController
 import org.github.telegabots.api.State
 import org.github.telegabots.api.annotation.TextHandler
 import java.io.Serializable
@@ -11,8 +11,8 @@ import kotlin.test.assertNotNull
 class ClassUtilTest {
     @Test
     fun testGetHandlers() {
-        val command = TestCommand()
-        val handlers = CommandClassUtil.getHandlers(command)
+        val controller = TestController()
+        val handlers = ControllerClassUtil.getHandlers(controller)
 
         handlers.forEach { handler ->
             println("\t${handler.name}")
@@ -36,7 +36,7 @@ class ClassUtilTest {
     }
 }
 
-class TestCommand : BaseCommand() {
+class TestController : BaseController() {
     @TextHandler
     fun handleCommand(
         text: String,

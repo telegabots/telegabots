@@ -1,8 +1,8 @@
 package org.github.telegabots.state
 
 import org.github.telegabots.api.MessageType
-import org.github.telegabots.entity.CommandBlock
-import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.entity.MessageBlock
+import org.github.telegabots.entity.MessagePage
 import org.github.telegabots.service.JsonService
 import org.github.telegabots.state.sqlite.SqliteStateDbProvider
 import org.github.telegabots.util.SqliteConnectionUtil
@@ -32,7 +32,7 @@ class StateDbProviderTests {
     fun testCreateBlock() {
         open {
             val block =
-                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+                saveBlock(MessageBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
 
             assertTrue(block.id > 0)
             assertEquals(USER_ID, block.userId)
@@ -66,13 +66,13 @@ class StateDbProviderTests {
     fun testCreatePage() {
         open {
             val block =
-                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
-            val page1 = savePage(CommandPage(blockId = block.id, handler = "some_handler"))!!
-            val page2 = savePage(CommandPage(blockId = block.id, handler = "another_handler"))!!
+                saveBlock(MessageBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+            val page1 = savePage(MessagePage(blockId = block.id, handler = "some_handler"))!!
+            val page2 = savePage(MessagePage(blockId = block.id, handler = "another_handler"))!!
 
             assertTrue(page1.id > 0)
             assertEquals("some_handler", page1.handler)
-            assertEquals(0, page1.commandDefs.size)
+            assertEquals(0, page1.buttonDefs.size)
             assertEquals(block.id, page1.blockId)
 
             val pageFound = findPageById(page1.id)
@@ -106,10 +106,10 @@ class StateDbProviderTests {
     fun testUpdateBlock_ByMessageIdAndUserId() {
         open {
             val block1 =
-                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+                saveBlock(MessageBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
 
             val block2 =
-                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Text))
+                saveBlock(MessageBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Text))
 
             assertEquals(block1.id, block2.id)
             assertEquals(USER_ID, block2.userId)
@@ -129,11 +129,11 @@ class StateDbProviderTests {
     fun testCreateBlock_IgnoreId() {
         open {
             val block1 =
-                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+                saveBlock(MessageBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
 
             val block2 =
                 saveBlock(
-                    CommandBlock(
+                    MessageBlock(
                         id = block1.id,
                         messageId = MESSAGE_ID + 1,
                         userId = USER_ID,
@@ -159,14 +159,14 @@ class StateDbProviderTests {
     fun testUpdatePage_ById() {
         open {
             val block =
-                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
-            val page1 = savePage(CommandPage(blockId = block.id, handler = "some_handler"))!!
-            val page2 = savePage(CommandPage(id = page1.id, blockId = block.id, handler = "another_handler"))!!
+                saveBlock(MessageBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+            val page1 = savePage(MessagePage(blockId = block.id, handler = "some_handler"))!!
+            val page2 = savePage(MessagePage(id = page1.id, blockId = block.id, handler = "another_handler"))!!
 
             assertEquals(page1.id, page2.id)
             assertEquals("another_handler", page2.handler)
             assertEquals(block.id, page2.blockId)
-            assertEquals(0, page2.commandDefs.size)
+            assertEquals(0, page2.buttonDefs.size)
             assertNotEquals(page1, page2)
 
             if (this is SqliteStateDbProvider) {
@@ -181,7 +181,7 @@ class StateDbProviderTests {
         open {
             (0..9).forEach { index ->
                 saveBlock(
-                    CommandBlock(
+                    MessageBlock(
                         messageId = MESSAGE_ID + index,
                         userId = USER_ID,
                         messageType = if ((index % 2) == 0) MessageType.Inline else MessageType.Text
@@ -221,9 +221,9 @@ class StateDbProviderTests {
     fun testSaveLocalState() {
         open {
             val block =
-                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
-            val page1 = savePage(CommandPage(blockId = block.id, handler = "some_handler"))!!
-            val page2 = savePage(CommandPage(blockId = block.id, handler = "another_handler"))!!
+                saveBlock(MessageBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+            val page1 = savePage(MessagePage(blockId = block.id, handler = "some_handler"))!!
+            val page2 = savePage(MessagePage(blockId = block.id, handler = "another_handler"))!!
 
             val state1 = jsonService.toStateDefFrom(FooState(123L, "foo1"))
             val state2 = jsonService.toStateDefFrom(FooState(888L, "bar2"))
@@ -293,8 +293,8 @@ class StateDbProviderTests {
     @Test
     fun testSaveSharedState() {
         open {
-            saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
-            saveBlock(CommandBlock(messageId = MESSAGE_ID + 1, userId = USER_ID, messageType = MessageType.Text))
+            saveBlock(MessageBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+            saveBlock(MessageBlock(messageId = MESSAGE_ID + 1, userId = USER_ID, messageType = MessageType.Text))
 
             val state1 = jsonService.toStateDefFrom(FooState(123L, "foo1"))
             val state2 = jsonService.toStateDefFrom(FooState(666L, "bar1"))
@@ -313,7 +313,7 @@ class StateDbProviderTests {
     @Test
     fun testUpdateSharedState() {
         open {
-            saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+            saveBlock(MessageBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
 
             val state1 = jsonService.toStateDefFrom(FooState(123L, "foo1"))
 
@@ -333,8 +333,8 @@ class StateDbProviderTests {
     fun testDeleteBlock() {
         open {
             val block =
-                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
-            savePage(CommandPage(blockId = block.id, handler = "some_handler"))!!
+                saveBlock(MessageBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+            savePage(MessagePage(blockId = block.id, handler = "some_handler"))!!
             val state = jsonService.toStateDefFrom(FooState(123L, "foo1"))
 
             saveSharedState(USER_ID, MESSAGE_ID, state)
@@ -355,8 +355,8 @@ class StateDbProviderTests {
     fun testDeletePage() {
         open {
             val block =
-                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
-            val page = savePage(CommandPage(blockId = block.id, handler = "some_handler"))!!
+                saveBlock(MessageBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+            val page = savePage(MessagePage(blockId = block.id, handler = "some_handler"))!!
             val state = jsonService.toStateDefFrom(FooState(123L, "foo1"))
 
             saveLocalState(page.id, state)
@@ -383,7 +383,7 @@ class StateDbProviderTests {
         open {
             val ex = assertThrows<IllegalStateException> {
                 saveBlock(
-                    CommandBlock(
+                    MessageBlock(
                         messageId = 0,
                         userId = USER_ID,
                         messageType = MessageType.Inline,
@@ -393,7 +393,7 @@ class StateDbProviderTests {
             }
 
             assertEquals(
-                "Block is invalid: CommandBlock(messageId=0, userId=100, messageType=Inline, id=0, createdAt=2021-09-23T23:23:13.467)",
+                "Block is invalid: MessageBlock(messageId=0, userId=100, messageType=Inline, id=0, createdAt=2021-09-23T23:23:13.467)",
                 ex.message
             )
 
@@ -409,7 +409,7 @@ class StateDbProviderTests {
         open {
             val ex = assertThrows<IllegalStateException> {
                 saveBlock(
-                    CommandBlock(
+                    MessageBlock(
                         messageId = MESSAGE_ID,
                         userId = 0,
                         messageType = MessageType.Inline,
@@ -419,7 +419,7 @@ class StateDbProviderTests {
             }
 
             assertEquals(
-                "Block is invalid: CommandBlock(messageId=10000, userId=0, messageType=Inline, id=0, createdAt=2021-09-23T23:23:13.467)",
+                "Block is invalid: MessageBlock(messageId=10000, userId=0, messageType=Inline, id=0, createdAt=2021-09-23T23:23:13.467)",
                 ex.message
             )
 
@@ -434,23 +434,23 @@ class StateDbProviderTests {
     fun testCreatePage_Failed_When_Handler_IsInvalid() {
         open {
             val block =
-                saveBlock(CommandBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
+                saveBlock(MessageBlock(messageId = MESSAGE_ID, userId = USER_ID, messageType = MessageType.Inline))
 
             val ex = assertThrows<IllegalStateException> {
-                savePage(CommandPage(blockId = block.id, handler = " ", createdAt = NOW, updatedAt = NOW))!!
+                savePage(MessagePage(blockId = block.id, handler = " ", createdAt = NOW, updatedAt = NOW))!!
             }
 
             assertEquals(
-                "Page is invalid: CommandPage(id=0, blockId=1, handler= , commandDefs=[], createdAt=2021-09-23T23:23:13.467, updatedAt=2021-09-23T23:23:13.467)",
+                "Page is invalid: MessagePage(id=0, blockId=1, handler= , buttonDefs=[], createdAt=2021-09-23T23:23:13.467, updatedAt=2021-09-23T23:23:13.467)",
                 ex.message
             )
 
             val ex2 = assertThrows<IllegalStateException> {
-                savePage(CommandPage(blockId = block.id, handler = "", createdAt = NOW, updatedAt = NOW))!!
+                savePage(MessagePage(blockId = block.id, handler = "", createdAt = NOW, updatedAt = NOW))!!
             }
 
             assertEquals(
-                "Page is invalid: CommandPage(id=0, blockId=1, handler=, commandDefs=[], createdAt=2021-09-23T23:23:13.467, updatedAt=2021-09-23T23:23:13.467)",
+                "Page is invalid: MessagePage(id=0, blockId=1, handler=, buttonDefs=[], createdAt=2021-09-23T23:23:13.467, updatedAt=2021-09-23T23:23:13.467)",
                 ex2.message
             )
 
@@ -465,20 +465,20 @@ class StateDbProviderTests {
     fun testCreatePage_Failed_When_BlockId_IsInvalid() {
         open {
             val ex = assertThrows<IllegalStateException> {
-                savePage(CommandPage(blockId = 0, handler = "foo_bar", createdAt = NOW, updatedAt = NOW))!!
+                savePage(MessagePage(blockId = 0, handler = "foo_bar", createdAt = NOW, updatedAt = NOW))!!
             }
 
             assertEquals(
-                "Page is invalid: CommandPage(id=0, blockId=0, handler=foo_bar, commandDefs=[], createdAt=2021-09-23T23:23:13.467, updatedAt=2021-09-23T23:23:13.467)",
+                "Page is invalid: MessagePage(id=0, blockId=0, handler=foo_bar, buttonDefs=[], createdAt=2021-09-23T23:23:13.467, updatedAt=2021-09-23T23:23:13.467)",
                 ex.message
             )
 
             val ex2 = assertThrows<IllegalStateException> {
-                savePage(CommandPage(blockId = -100, handler = "foo_bar2", createdAt = NOW, updatedAt = NOW))!!
+                savePage(MessagePage(blockId = -100, handler = "foo_bar2", createdAt = NOW, updatedAt = NOW))!!
             }
 
             assertEquals(
-                "Page is invalid: CommandPage(id=0, blockId=-100, handler=foo_bar2, commandDefs=[], createdAt=2021-09-23T23:23:13.467, updatedAt=2021-09-23T23:23:13.467)",
+                "Page is invalid: MessagePage(id=0, blockId=-100, handler=foo_bar2, buttonDefs=[], createdAt=2021-09-23T23:23:13.467, updatedAt=2021-09-23T23:23:13.467)",
                 ex2.message
             )
 
@@ -493,7 +493,7 @@ class StateDbProviderTests {
     fun testCreatePage_Failed_When_BlockId_IsNotExists() {
         open {
             val ex = assertThrows<DataAccessException> {
-                savePage(CommandPage(blockId = 123, handler = "foo_bar"))!!
+                savePage(MessagePage(blockId = 123, handler = "foo_bar"))!!
             }
 
             assertTrue(ex.message!!.contains("A foreign key constraint failed"))

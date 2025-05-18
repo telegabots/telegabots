@@ -2,11 +2,11 @@ package org.github.telegabots.handler
 
 import org.github.telegabots.BaseTests
 import org.github.telegabots.CODE_NOT_REACHED
-import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.BaseController
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.Page
-import org.github.telegabots.api.SubCommand
-import org.github.telegabots.api.SystemCommands
+import org.github.telegabots.api.Button
+import org.github.telegabots.api.SystemMessages
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
 import org.github.telegabots.test.scenario
@@ -17,46 +17,46 @@ import kotlin.test.assertNull
 
 class InlineHandlerTests : BaseTests() {
     @Test
-    fun testCommand_Fail_WhenHandlerWithoutParams() {
+    fun testController_Fail_WhenHandlerWithoutParams() {
         val ex = assertThrows<IllegalStateException> {
-            scenario<InvalidInlineCommandWithoutAnyParam> { }
+            scenario<InvalidInlineControllerWithoutAnyParam> { }
         }
 
         assertEquals(
-            "Handler must contains at least one parameter: public final void org.github.telegabots.handler.InvalidInlineCommandWithoutAnyParam.handle()",
+            "Handler must contains at least one parameter: public final void org.github.telegabots.handler.InvalidInlineControllerWithoutAnyParam.handle()",
             ex.message
         )
     }
 
     @Test
-    fun testCommand_Fail_WhenHandlerWithOnlyIntParam() {
+    fun testController_Fail_WhenHandlerWithOnlyIntParam() {
         val ex = assertThrows<IllegalStateException> {
-            scenario<InvalidInlineCommandWithOnlyIntParam> { }
+            scenario<InvalidInlineControllerWithOnlyIntParam> { }
         }
 
         assertEquals(
-            "First parameter must be String but found int in handler public final void org.github.telegabots.handler.InvalidInlineCommandWithOnlyIntParam.handle(int)",
+            "First parameter must be String but found int in handler public final void org.github.telegabots.handler.InvalidInlineControllerWithOnlyIntParam.handle(int)",
             ex.message
         )
     }
 
     @Test
-    fun testCommand_Fail_WhenHandlerWithOnlyTwoIntParams() {
+    fun testController_Fail_WhenHandlerWithOnlyTwoIntParams() {
         val ex = assertThrows<IllegalStateException> {
-            scenario<InvalidInlineCommandWithTwoIntParams> { }
+            scenario<InvalidInlineControllerWithTwoIntParams> { }
         }
 
         assertEquals(
-            "First parameter must be String but found int in handler public final void org.github.telegabots.handler.InvalidInlineCommandWithTwoIntParams.handle(int,int)",
+            "First parameter must be String but found int in handler public final void org.github.telegabots.handler.InvalidInlineControllerWithTwoIntParams.handle(int,int)",
             ex.message
         )
     }
 
     @Test
-    fun testCommand_Fail_WhenHandlerWithOnlyTwoStringParams() {
-        scenario<ValidInlineCommandWithTwoStringParams> {
+    fun testController_Fail_WhenHandlerWithOnlyTwoStringParams() {
+        scenario<ValidInlineControllerWithTwoStringParams> {
             assertThat {
-                notCalled<ValidInlineCommandWithTwoStringParams>()
+                notCalled<ValidInlineControllerWithTwoStringParams>()
             }
 
             user {
@@ -69,22 +69,22 @@ class InlineHandlerTests : BaseTests() {
                 rootWasCalled(1)
                 blocksCount(1)
                 lastBlockPagesCount(1)
-                wasCalled<ValidInlineCommandWithTwoStringParams>(1)
+                wasCalled<ValidInlineControllerWithTwoStringParams>(1)
             }
 
             user { sendInlineMessage(messageId, "XXX") }
 
             assertThat {
-                wasCalled<ValidInlineCommandWithTwoStringParams>(2)
+                wasCalled<ValidInlineControllerWithTwoStringParams>(2)
             }
         }
     }
 
     @Test
-    fun testCommand_Success_WhenHandlerWithStringIntParams() {
-        scenario<ValidInlineCommandStringInt> {
+    fun testController_Success_WhenHandlerWithStringIntParams() {
+        scenario<ValidInlineControllerStringInt> {
             assertThat {
-                notCalled<ValidInlineCommandStringInt>()
+                notCalled<ValidInlineControllerStringInt>()
             }
 
             user {
@@ -97,7 +97,7 @@ class InlineHandlerTests : BaseTests() {
                 rootWasCalled(1)
                 blocksCount(1)
                 lastBlockPagesCount(1)
-                wasCalled<ValidInlineCommandStringInt>(1)
+                wasCalled<ValidInlineControllerStringInt>(1)
             }
 
             user {
@@ -105,16 +105,16 @@ class InlineHandlerTests : BaseTests() {
             }
 
             assertThat {
-                wasCalled<ValidInlineCommandStringInt>(2)
+                wasCalled<ValidInlineControllerStringInt>(2)
             }
         }
     }
 
     @Test
-    fun testCommand_Success_RedirectToRootCommand_WhenTextHandlerNotExists() {
-        scenario<ValidTextHandlerCommand> {
+    fun testController_Success_RedirectToRootController_WhenTextHandlerNotExists() {
+        scenario<ValidTextHandlerController> {
             assertThat {
-                notCalled<ValidTextHandlerCommand>()
+                notCalled<ValidTextHandlerController>()
             }
 
             user {
@@ -122,8 +122,8 @@ class InlineHandlerTests : BaseTests() {
             }
 
             assertThat {
-                wasCalled<ValidTextHandlerCommand>(1)
-                notCalled<ValidInlineHandlerCommand>()
+                wasCalled<ValidTextHandlerController>(1)
+                notCalled<ValidInlineHandlerController>()
             }
 
             user {
@@ -131,8 +131,8 @@ class InlineHandlerTests : BaseTests() {
             }
 
             assertThat {
-                wasCalled<ValidTextHandlerCommand>(1)
-                wasCalled<ValidInlineHandlerCommand>(1)
+                wasCalled<ValidTextHandlerController>(1)
+                wasCalled<ValidInlineHandlerController>(1)
             }
 
             user {
@@ -140,35 +140,35 @@ class InlineHandlerTests : BaseTests() {
             }
 
             assertThat {
-                wasCalled<ValidTextHandlerCommand>(2)
-                wasCalled<ValidInlineHandlerCommand>(1)
+                wasCalled<ValidTextHandlerController>(2)
+                wasCalled<ValidInlineHandlerController>(1)
             }
         }
     }
 }
 
-internal class InvalidInlineCommandWithoutAnyParam : BaseCommand() {
+internal class InvalidInlineControllerWithoutAnyParam : BaseController() {
     @InlineHandler
     fun handle() {
         CODE_NOT_REACHED()
     }
 }
 
-internal class InvalidInlineCommandWithOnlyIntParam() : BaseCommand() {
+internal class InvalidInlineControllerWithOnlyIntParam() : BaseController() {
     @InlineHandler
     fun handle(messageId: Int) {
         CODE_NOT_REACHED()
     }
 }
 
-internal class InvalidInlineCommandWithTwoIntParams() : BaseCommand() {
+internal class InvalidInlineControllerWithTwoIntParams() : BaseController() {
     @InlineHandler
     fun handle(first: Int, second: Int) {
         CODE_NOT_REACHED()
     }
 }
 
-internal class ValidInlineCommandWithTwoStringParams() : BaseCommand() {
+internal class ValidInlineControllerWithTwoStringParams() : BaseController() {
     @InlineHandler
     fun handle(first: String, second: String?) {
         assertEquals(100001, context.messageId())
@@ -186,7 +186,7 @@ internal class ValidInlineCommandWithTwoStringParams() : BaseCommand() {
     }
 }
 
-internal class ValidInlineCommandStringInt() : BaseCommand() {
+internal class ValidInlineControllerStringInt() : BaseController() {
     @InlineHandler
     fun handleInline(message: String, someInt: Int?) {
         assertEquals(100001, context.messageId())
@@ -203,17 +203,17 @@ internal class ValidInlineCommandStringInt() : BaseCommand() {
 }
 
 
-internal class ValidTextHandlerCommand() : BaseCommand() {
+internal class ValidTextHandlerController() : BaseController() {
     @TextHandler
     fun handle(message: String) {
         if ("start" == message) {
             context.createPage(
                 Page(
                     "INLINE ME", messageType = MessageType.Inline,
-                    subCommands = listOf(
+                    buttons = listOf(
                         listOf(
-                            SubCommand.of(ValidInlineHandlerCommand::class.java),
-                            SubCommand.REFRESH
+                            Button.of(ValidInlineHandlerController::class.java),
+                            Button.REFRESH
                         )
                     )
                 )
@@ -224,9 +224,9 @@ internal class ValidTextHandlerCommand() : BaseCommand() {
     }
 }
 
-internal class ValidInlineHandlerCommand : BaseCommand() {
+internal class ValidInlineHandlerController : BaseController() {
     @InlineHandler
     fun handleInline(message: String, someInt: Int?) {
-        assertEquals(SystemCommands.REFRESH, message)
+        assertEquals(SystemMessages.REFRESH, message)
     }
 }

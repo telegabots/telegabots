@@ -14,5 +14,7 @@ data class StateDef(val items: List<StateItemDef>) {
 /**
  * Raw state item. How it stored in db
  */
-data class StateItemDef(val key: StateKey,
-                        val value: String)
+data class StateItemDef(
+    val key: StateKey,
+    val value: String
+)

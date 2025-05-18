@@ -2,8 +2,8 @@ package org.github.telegabots.service
 
 import org.github.telegabots.MessageFile
 import org.github.telegabots.api.*
-import org.github.telegabots.entity.CommandBlock
-import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.entity.MessageBlock
+import org.github.telegabots.entity.MessagePage
 import org.github.telegabots.state.StateKind
 import org.github.telegabots.state.States
 import org.github.telegabots.state.UserStateService
@@ -21,7 +21,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import java.util.function.Consumer
 
 /**
- * Implementation of [CommandContext] and [TaskContext]
+ * Implementation of [ControllerContext] and [TaskContext]
  */
 internal class BaseContextImpl(
     private val blockId: Long,
@@ -32,15 +32,15 @@ internal class BaseContextImpl(
      */
     private val currentMessageId: Int,
     private val input: InputMessage,
-    private val commandHandlers: CommandHandlers,
-    private val commandHandler: CommandHandler,
+    private val controllerHandlers: ControllerHandlers,
+    private val controllerHandler: ControllerHandler,
     private val states: States,
     private val userState: UserStateService,
     private val serviceProvider: ServiceProvider,
     private val messageSender: MessageSender,
     private val taskManagerFactory: TaskManagerFactory,
-    private val rootCommand: Class<out BaseCommand>
-) : CommandContext, TaskContext {
+    private val rootController: Class<out BaseController>
+) : ControllerContext, TaskContext {
     private val jsonService = serviceProvider.getService(JsonService::class.java)
     private val localizationProvider =
         serviceProvider.getUserService(UserLocalizationProvider::class.java, userState.userId())
@@ -59,7 +59,7 @@ internal class BaseContextImpl(
     override fun messageType(): MessageType = messageType
 
     override fun execute(): Boolean {
-        if (!commandHandler.canHandle(input.type)) {
+        if (!controllerHandler.canHandle(input.type)) {
             if (input.type == MessageType.Text) {
                 val success = getRootCallContext().execute()
                 if (success) {
@@ -67,29 +67,29 @@ internal class BaseContextImpl(
                 }
             }
 
-            log.error("Command handler not found for message: $input")
-            error("Message of type ${input.type} can not be handled by command: ${commandHandler.command.javaClass.name}")
+            log.error("Controller handler not found for message: $input")
+            error("Message of type ${input.type} can not be handled by controller: ${controllerHandler.controller.javaClass.name}")
         }
 
         logContext()
 
         val success = when (input.type) {
-            MessageType.Text -> commandHandler.executeText(input.query, states, this)
+            MessageType.Text -> controllerHandler.executeText(input.query, states, this)
             MessageType.Inline -> {
-                commandHandler.executeInline(input.query, states, this)
+                controllerHandler.executeInline(input.query, states, this)
                 true
             }
 
             MessageType.Photo -> error("Input message type not expected: $input")
         }
 
-        tryGetService(CommandInterceptor::class.java)?.let { commandInterceptor ->
+        tryGetService(ControllerInterceptor::class.java)?.let { controllerInterceptor ->
             try {
-                commandInterceptor.executed(commandHandler.command, input.type, success)
+                controllerInterceptor.executed(controllerHandler.controller, input.type, success)
             } catch (ex: Exception) {
                 log.error(
-                    "Interceptor call failed on command {} with error: {}",
-                    commandHandler.command.javaClass.simpleName,
+                    "Interceptor call failed on controller {} with error: {}",
+                    controllerHandler.controller.javaClass.simpleName,
                     ex.message,
                     ex
                 )
@@ -99,7 +99,7 @@ internal class BaseContextImpl(
         states.flush()
 
         if (!success) {
-            if (commandHandler.commandClass != rootCommand) {
+            if (controllerHandler.controllerClass != rootController) {
                 return getRootCallContext().execute()
             }
             return false
@@ -108,22 +108,22 @@ internal class BaseContextImpl(
         return true
     }
 
-    override fun create(clazz: Class<out BaseCommand>, messageType: MessageType?, message: String?): Boolean {
-        val handler = commandHandlers.getCommandHandler(clazz)
+    override fun create(clazz: Class<out BaseController>, messageType: MessageType?, message: String?): Boolean {
+        val handler = controllerHandlers.getControllerHandler(clazz)
         val messageType = getFinalMessageType(messageType, handler)
         val states = userState.getStates()
-        val context = createCommandContext(
+        val context = createControllerContext(
             blockId = 0,
             currentMessageId = 0,
             messageType = messageType,
-            commandHandler = handler,
+            controllerHandler = handler,
             states = states,
-            input = input.copy(type = messageType, inlineMessageId = null, messageId = 0, query = message ?: SystemCommands.REFRESH)
+            input = input.copy(type = messageType, inlineMessageId = null, messageId = 0, query = message ?: SystemMessages.REFRESH)
         )
         return context.execute()
     }
 
-    override fun currentCommand(): BaseCommand = commandHandler.command
+    override fun currentController(): BaseController = controllerHandler.controller
 
     override fun createPage(page: Page): Long {
         validatePage(page)
@@ -135,7 +135,7 @@ internal class BaseContextImpl(
                 disablePreview = page.disablePreview,
                 message = page.message,
                 preSendHandler = { msg ->
-                    applyMessageButtons(msg, page.subCommands, page.messageType)
+                    applyMessageButtons(msg, page.buttons, page.messageType)
                 })
 
             MessageType.Photo -> messageSender.sendImage(
@@ -145,7 +145,7 @@ internal class BaseContextImpl(
                 captionContentType = page.contentType,
                 disableNotification = page.disableNotification,
                 preSendHandler = { msg ->
-                    applyMessageButtons(msg, page.subCommands)
+                    applyMessageButtons(msg, page.buttons)
                 })
         }
 
@@ -158,8 +158,8 @@ internal class BaseContextImpl(
 
             val savedPage = userState.savePage(
                 block.id,
-                handler = page.handler ?: commandHandler.commandClass,
-                subCommands = page.subCommands
+                handler = page.handler ?: controllerHandler.controllerClass,
+                buttons = page.buttons
             )!!
 
             if (page.state != null) {
@@ -219,7 +219,7 @@ internal class BaseContextImpl(
 
         val finalPageId = if (pageId <= 0) {
             // create page if pageId is not specified
-            val savedPage = userState.savePage(blockId, commandHandler.commandClass)
+            val savedPage = userState.savePage(blockId, controllerHandler.controllerClass)
                 ?: error("Page not created in block: $blockId")
             savedPage.id
         } else
@@ -250,7 +250,7 @@ internal class BaseContextImpl(
                 return null
             }
 
-            val handler = commandHandlers.getCommandHandler(page.handler)
+            val handler = controllerHandlers.getControllerHandler(page.handler)
             // TODO: improve userState to not use jsonService.toStateDef
             val states = userState.getStates(
                 messageId = block.messageId,
@@ -259,16 +259,16 @@ internal class BaseContextImpl(
             )
             val newInput = input.copy(
                 type = MessageType.Inline,
-                query = SystemCommands.REFRESH,
+                query = SystemMessages.REFRESH,
                 messageId = block.messageId,
                 inlineMessageId = block.messageId
             )
-            createCommandContext(
+            createControllerContext(
                 blockId = block.id,
                 pageId = finalPageId,
                 messageType = block.messageType,
                 currentMessageId = block.messageId,
-                commandHandler = handler,
+                controllerHandler = handler,
                 states = states,
                 input = newInput
             )
@@ -396,9 +396,9 @@ internal class BaseContextImpl(
         return BlockStateInfo(pageId, emptyList())
     }
 
-    private fun mapBlockInfo(it: CommandBlock) = BlockInfo(it.id, createdAt = it.createdAt)
+    private fun mapBlockInfo(it: MessageBlock) = BlockInfo(it.id, createdAt = it.createdAt)
 
-    private fun mapPageInfo(it: CommandPage): PageInfo =
+    private fun mapPageInfo(it: MessagePage): PageInfo =
         PageInfo(it.id, createdAt = it.createdAt, updatedAt = it.updatedAt)
 
     /**
@@ -418,7 +418,7 @@ internal class BaseContextImpl(
 
             check(page.messageType == block.messageType) { "Adding page message type mismatch block's type. Expected: ${block.messageType}" }
 
-            val finalSubCommands = addBackCommandIf(page, blockId, false)
+            val finalButtons = addBackButtonIf(page, blockId, false)
             when (page.messageType) {
                 MessageType.Text -> {
                     messageSender.sendMessage(
@@ -427,7 +427,7 @@ internal class BaseContextImpl(
                         disablePreview = page.disablePreview,
                         message = page.message,
                         preSendHandler = Consumer { msg ->
-                            applyMessageButtons(msg, finalSubCommands, page.messageType)
+                            applyMessageButtons(msg, finalButtons, page.messageType)
                         })
                 }
 
@@ -439,7 +439,7 @@ internal class BaseContextImpl(
                         disablePreview = page.disablePreview,
                         message = page.message,
                         preSendHandler = Consumer { msg ->
-                            applyMessageButtons(msg, finalSubCommands)
+                            applyMessageButtons(msg, finalButtons)
                         })
                 }
 
@@ -451,15 +451,15 @@ internal class BaseContextImpl(
                         captionContentType = page.contentType,
                         file = page.file ?: error("MessageFile is required for photo message"),
                         preSendHandler = Consumer { msg ->
-                            applyMessageButtons(msg, finalSubCommands)
+                            applyMessageButtons(msg, finalButtons)
                         })
                 }
             }
 
             val savedPage = userState.savePage(
                 blockId,
-                handler = page.handler ?: commandHandler.commandClass,
-                subCommands = page.subCommands
+                handler = page.handler ?: controllerHandler.controllerClass,
+                buttons = page.buttons
             )!!
 
             if (page.state != null) {
@@ -498,7 +498,7 @@ internal class BaseContextImpl(
 
             check(page.messageType == block.messageType) { "Update page message type mismatch block's type. Expected: ${block.messageType}" }
 
-            val finalSubCommands = addBackCommandIf(page, blockId, true)
+            val finalButtons = addBackButtonIf(page, blockId, true)
             when (page.messageType) {
                 MessageType.Text -> {
                     messageSender.sendMessage(
@@ -507,7 +507,7 @@ internal class BaseContextImpl(
                         disablePreview = page.disablePreview,
                         message = page.message,
                         preSendHandler = { msg ->
-                            applyMessageButtons(msg, finalSubCommands, page.messageType)
+                            applyMessageButtons(msg, finalButtons, page.messageType)
                         })
                 }
 
@@ -519,7 +519,7 @@ internal class BaseContextImpl(
                         disablePreview = page.disablePreview,
                         message = page.message,
                         preSendHandler = { msg ->
-                            applyMessageButtons(msg, finalSubCommands)
+                            applyMessageButtons(msg, finalButtons)
                         })
                 }
 
@@ -531,7 +531,7 @@ internal class BaseContextImpl(
                         caption = page.message,
                         captionContentType = page.contentType,
                         preSendHandler = { msg ->
-                            applyMessageButtons(msg, finalSubCommands)
+                            applyMessageButtons(msg, finalButtons)
                         })
                 }
             }
@@ -544,8 +544,8 @@ internal class BaseContextImpl(
             val savedPage = userState.savePage(
                 blockId,
                 pageId = bestPageId,
-                handler = page.handler ?: commandHandler.commandClass,
-                subCommands = page.subCommands
+                handler = page.handler ?: controllerHandler.controllerClass,
+                buttons = page.buttons
             )!!
 
             if (page.state != null) {
@@ -567,19 +567,19 @@ internal class BaseContextImpl(
     }
 
     /**
-     * First page of the block cannot contain Back command
+     * First page of the block cannot contain Back controller
      */
-    private fun addBackCommandIf(page: Page, blockId: Long, isUpdate: Boolean): List<List<SubCommand>> {
+    private fun addBackButtonIf(page: Page, blockId: Long, isUpdate: Boolean): List<List<Button>> {
         if (page.enableBack == true) {
             // TODO: add special method to get pages count
             val pages = userState.getPages(blockId)
             val finalPageCount = pages.size + if (isUpdate) 0 else 1
             if (finalPageCount > 1) {
-                return page.subCommands + listOf(listOf(SubCommand.GO_BACK))
+                return page.buttons + listOf(listOf(Button.GO_BACK))
             }
         }
 
-        return page.subCommands
+        return page.buttons
     }
 
     override fun sendDocument(document: Document) {
@@ -634,33 +634,33 @@ internal class BaseContextImpl(
         )
     }
 
-    override fun enterCommand(command: BaseCommand) {
+    override fun enterController(controller: BaseController) {
         TODO("not implemented") //To change body of created functions use MessageFile | Settings | MessageFile Templates.
     }
 
-    override fun leaveCommand(command: BaseCommand?) {
+    override fun leaveController(controller: BaseController?) {
         TODO("not implemented") //To change body of created functions use MessageFile | Settings | MessageFile Templates.
     }
 
-    override fun clearCommands() {
+    override fun clearControllers() {
         TODO("not implemented") //To change body of created functions use MessageFile | Settings | MessageFile Templates.
     }
 
     override fun getTaskManager(): TaskManager = taskManager.value
 
     /**
-     * Used when command call another command
+     * Used when controller call another controller
      *
      * TODO: providing local state from caller
      */
-    override fun executeTextCommand(clazz: Class<out BaseCommand>, text: String): Boolean {
+    override fun executeTextMessage(clazz: Class<out BaseController>, text: String): Boolean {
         val newInput = input.copy(query = text, inlineMessageId = null, type = MessageType.Text)
-        val handler = commandHandlers.getCommandHandler(clazz)
+        val handler = controllerHandlers.getControllerHandler(clazz)
         val states = userState.getStates()
-        val context = createCommandContext(
+        val context = createControllerContext(
             blockId = 0,
             currentMessageId = 0,
-            commandHandler = handler,
+            controllerHandler = handler,
             states = states,
             messageType = MessageType.Text,
             input = newInput
@@ -669,20 +669,20 @@ internal class BaseContextImpl(
     }
 
     /**
-     * Used when command call another command
+     * Used when controller call another controller
      *
      * TODO: providing local state from caller
      */
-    override fun executeInlineCommand(clazz: Class<out BaseCommand>, query: String): Boolean {
+    override fun executeInlineMessage(clazz: Class<out BaseController>, query: String): Boolean {
         val messageId = input.inlineMessageId
-            ?: throw IllegalStateException("Inline command can be executed only in inline message context")
+            ?: throw IllegalStateException("Inline message can be executed only in inline message context")
         val newInput = input.copy(query = query, inlineMessageId = messageId, type = MessageType.Inline)
-        val handler = commandHandlers.getCommandHandler(clazz.name)
+        val handler = controllerHandlers.getControllerHandler(clazz.name)
         val states = userState.getStates()
-        val context = createCommandContext(
+        val context = createControllerContext(
             blockId = 0,
             currentMessageId = 0,
-            commandHandler = handler,
+            controllerHandler = handler,
             states = states,
             messageType = MessageType.Text,
             input = newInput
@@ -708,49 +708,49 @@ internal class BaseContextImpl(
 
     override fun getUser(): InputUser = input.user
 
-    private fun cloneFromBlock(blockId: Long, newMessageId: Int): CommandPage? {
+    private fun cloneFromBlock(blockId: Long, newMessageId: Int): MessagePage? {
         return userState.cloneFromBlock(blockId, newMessageId)
     }
 
     private fun findBlockIdByPageId(pageId: Long): Long? = userState.findBlockByPageId(pageId)?.id
 
-    private fun createCommandContext(
+    private fun createControllerContext(
         blockId: Long,
         currentMessageId: Int,
         messageType: MessageType,
         input: InputMessage,
-        commandHandler: CommandHandler,
+        controllerHandler: ControllerHandler,
         states: States,
         pageId: Long = 0
-    ): CommandContext {
+    ): ControllerContext {
         return BaseContextImpl(
             blockId = blockId,
             pageId = pageId,
             messageType = messageType,
             currentMessageId = currentMessageId,
             input = input,
-            commandHandler = commandHandler,
+            controllerHandler = controllerHandler,
             states = states,
-            commandHandlers = commandHandlers,
+            controllerHandlers = controllerHandlers,
             messageSender = messageSender,
             serviceProvider = serviceProvider,
             userState = userState,
             taskManagerFactory = taskManagerFactory,
-            rootCommand = rootCommand
+            rootController = rootController
         )
     }
 
     /**
-     * Creates [CommandContext] for root command
+     * Creates [ControllerContext] for root controller
      */
-    private fun getRootCallContext(): CommandContext {
-        val handler = commandHandlers.getCommandHandler(rootCommand)
+    private fun getRootCallContext(): ControllerContext {
+        val handler = controllerHandlers.getControllerHandler(rootController)
         val states = userState.getStates()
-        return createCommandContext(
+        return createControllerContext(
             blockId = 0,
             currentMessageId = input.messageId,
             messageType = MessageType.Text,
-            commandHandler = handler,
+            controllerHandler = handler,
             states = states,
             input = input
         )
@@ -771,18 +771,18 @@ internal class BaseContextImpl(
             checkHandlerType(pageHandler, page.messageType)
         }
 
-        val allCommands = page.subCommands.flatten()
-        if (allCommands.size > BUTTONS_MAX_SIZE) {
-            error("Sub-commands size is too big: ${allCommands.size}. Max size is $BUTTONS_MAX_SIZE")
+        val allButtons = page.buttons.flatten()
+        if (allButtons.size > BUTTONS_MAX_SIZE) {
+            error("Buttons size is too big: ${allButtons.size}. Max size is $BUTTONS_MAX_SIZE")
         }
 
-        allCommands.filter { !it.isSystemCommand() }.forEach { subCmd ->
+        allButtons.filter { !it.isSystemMessage() }.forEach { subCmd ->
             val handler = subCmd.handler
 
             if (handler != null) {
                 checkHandlerType(handler, page.messageType)
             } else if (page.messageType == MessageType.Inline) {
-                val handler2 = page.handler ?: commandHandler.commandClass
+                val handler2 = page.handler ?: controllerHandler.controllerClass
                 checkHandlerType(handler2, page.messageType)
             }
         }
@@ -793,10 +793,10 @@ internal class BaseContextImpl(
     }
 
     private fun checkHandlerType(
-        handler: Class<out BaseCommand>,
+        handler: Class<out BaseController>,
         messageType: MessageType
     ) {
-        val cmdHandler = commandHandlers.getCommandHandler(handler)
+        val cmdHandler = controllerHandlers.getControllerHandler(handler)
 
         check(cmdHandler.canHandle(messageType)) {
             "Message handler for type $messageType in ${handler.name} not found. Use annotation @${
@@ -807,7 +807,7 @@ internal class BaseContextImpl(
         }
     }
 
-    private fun getFinalMessageType(messageType: MessageType?, handler: CommandHandler): MessageType {
+    private fun getFinalMessageType(messageType: MessageType?, handler: ControllerHandler): MessageType {
         if (messageType != null) {
             return messageType
         }
@@ -820,7 +820,7 @@ internal class BaseContextImpl(
             return MessageType.Photo
         }
 
-        error("Message handler for type ${handler.commandClass.name} not found. Use one of the annotations: @TextHandler, @InlineHandler, etc.")
+        error("Message handler for type ${handler.controllerClass.name} not found. Use one of the annotations: @TextHandler, @InlineHandler, etc.")
     }
 
     private fun annotationNameByType(messageType: MessageType) =
@@ -829,45 +829,45 @@ internal class BaseContextImpl(
             MessageType.Inline, MessageType.Photo -> "InlineHandler"
         }
 
-    private fun applyMessageButtons(msg: SendMessage, subCommands: List<List<SubCommand>>, messageType: MessageType) {
+    private fun applyMessageButtons(msg: SendMessage, buttons: List<List<Button>>, messageType: MessageType) {
         msg.replyMarkup = when (messageType) {
-            MessageType.Inline, MessageType.Photo -> mapInlineKeyboardMarkup(subCommands)
-            MessageType.Text -> mapReplyKeyboardMarkup(subCommands)
+            MessageType.Inline, MessageType.Photo -> mapInlineKeyboardMarkup(buttons)
+            MessageType.Text -> mapReplyKeyboardMarkup(buttons)
         }
     }
 
-    private fun applyMessageButtons(msg: EditMessageText, subCommands: List<List<SubCommand>>) {
-        msg.replyMarkup = mapInlineKeyboardMarkup(subCommands)
+    private fun applyMessageButtons(msg: EditMessageText, buttons: List<List<Button>>) {
+        msg.replyMarkup = mapInlineKeyboardMarkup(buttons)
     }
 
-    private fun applyMessageButtons(msg: EditMessageMedia, subCommands: List<List<SubCommand>>) {
-        msg.replyMarkup = mapInlineKeyboardMarkup(subCommands)
+    private fun applyMessageButtons(msg: EditMessageMedia, buttons: List<List<Button>>) {
+        msg.replyMarkup = mapInlineKeyboardMarkup(buttons)
     }
 
-    private fun applyMessageButtons(msg: SendPhoto, subCommands: List<List<SubCommand>>) {
-        msg.replyMarkup = mapInlineKeyboardMarkup(subCommands)
+    private fun applyMessageButtons(msg: SendPhoto, buttons: List<List<Button>>) {
+        msg.replyMarkup = mapInlineKeyboardMarkup(buttons)
     }
 
-    private fun mapInlineKeyboardMarkup(subCommands: List<List<SubCommand>>): InlineKeyboardMarkup =
+    private fun mapInlineKeyboardMarkup(buttons: List<List<Button>>): InlineKeyboardMarkup =
         InlineKeyboardMarkup().apply {
-            keyboard = subCommands.map { mapInlineButtonsRow(it) }
+            keyboard = buttons.map { mapInlineButtonsRow(it) }
                 .filter { it.isNotEmpty() }
                 .toMutableList()
         }
 
-    private fun mapReplyKeyboardMarkup(subCommands: List<List<SubCommand>>): ReplyKeyboardMarkup =
+    private fun mapReplyKeyboardMarkup(buttons: List<List<Button>>): ReplyKeyboardMarkup =
         ReplyKeyboardMarkup().apply {
-            keyboard = subCommands.map { mapTextButtonsRow(it) }
+            keyboard = buttons.map { mapTextButtonsRow(it) }
                 .filter { it.isNotEmpty() }
                 .toMutableList()
         }
 
-    private fun mapTextButtonsRow(cmds: List<SubCommand>): KeyboardRow =
+    private fun mapTextButtonsRow(cmds: List<Button>): KeyboardRow =
         KeyboardRow().apply {
             cmds.forEach { cmd -> add(getTitle(cmd)) }
         }
 
-    private fun mapInlineButtonsRow(cmds: List<SubCommand>): MutableList<InlineKeyboardButton> =
+    private fun mapInlineButtonsRow(cmds: List<Button>): MutableList<InlineKeyboardButton> =
         cmds.map { cmd ->
             InlineKeyboardButton().apply {
                 text = getTitle(cmd)
@@ -875,14 +875,14 @@ internal class BaseContextImpl(
             }
         }.toMutableList()
 
-    private fun getTitle(cmd: SubCommand) = cmd.title ?: localizationProvider.getString(cmd.titleId)
+    private fun getTitle(cmd: Button) = cmd.title ?: localizationProvider.getString(cmd.titleId)
 
     private fun logContext() {
         if (log.isTraceEnabled) {
             log.trace(
                 """
                     ----------------------------------------------------------
-                    Command: [{}]:{}
+                    Controller: [{}]:{}
                     Handler: {}
                     Block/Page: {}/{}
                     State:
@@ -891,7 +891,7 @@ internal class BaseContextImpl(
                       user: {}
                       global: {}
                     ----------------------------------------------------------
-                """.trimIndent(), input.type, input.query, commandHandler.command,
+                """.trimIndent(), input.type, input.query, controllerHandler.controller,
                 blockId(),
                 pageId(),
                 states.getAll(StateKind.LOCAL),

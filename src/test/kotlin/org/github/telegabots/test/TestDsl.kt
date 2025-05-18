@@ -1,24 +1,24 @@
 package org.github.telegabots.test
 
 import org.github.telegabots.BaseTests
-import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.BaseController
 import org.github.telegabots.api.Service
-import org.github.telegabots.entity.CommandDef
-import org.github.telegabots.entity.CommandPage
+import org.github.telegabots.entity.ButtonDef
+import org.github.telegabots.entity.MessagePage
 import org.junit.jupiter.api.Assertions.*
 import java.time.LocalDateTime
 
-class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>, services: List<Service> = emptyList()) :
+class ScenarioBuilder(private val rootController: Class<out BaseController>, services: List<Service> = emptyList()) :
     BaseTests() {
     private val userId = nextRandomLong()
     private val chatId = nextRandomLong()
-    private val executor = createExecutor(rootCommand, services)
+    private val executor = createExecutor(rootController, services)
     private val assertBuilder = AssertBuilder()
     private val userBuilder = UserBuilder()
     private var lastHandleResult: Boolean? = null
 
     init {
-        resetRootCall()
+        resetAllCalls()
     }
 
     fun lastUserMessageId(): Int {
@@ -37,25 +37,23 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>, services:
         executor.addService(service, instance)
     }
 
-    fun resetRootCall() = rootCommand.kotlin.resetCalled()
-
     inner class AssertBuilder {
         fun rootNotCalled() {
-            rootCommand.kotlin.assertNotCalled()
+            rootController.kotlin.assertNotCalled()
         }
 
         fun rootWasCalled(expected: Int = 1) {
-            rootCommand.kotlin.assertWasCalled(expected)
+            rootController.kotlin.assertWasCalled(expected)
         }
 
         fun blocksCountEmpty() {
             val blocksCount = executor.getUserBlocks(userId).size
-            assertEquals(0, blocksCount, "Command blocks count expected to be empty")
+            assertEquals(0, blocksCount, "Controller blocks count expected to be empty")
         }
 
         fun blocksCount(expected: Int) {
             val blocksCount = executor.getUserBlocks(userId).size
-            assertEquals(expected, blocksCount) { "Command blocks count expected to be $expected" }
+            assertEquals(expected, blocksCount) { "Controller blocks count expected to be $expected" }
         }
 
         fun messageBlockPagesCount(messageId: Int, expected: Int) {
@@ -94,7 +92,7 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>, services:
             assertEquals(
                 pages.size,
                 lastPages.size
-            ) { "Pages of last command expected to be ${pages.size}, but found ${lastPages.size}. Last pages: $lastPages" }
+            ) { "Pages of last controller expected to be ${pages.size}, but found ${lastPages.size}. Last pages: $lastPages" }
         }
 
         fun printBlocks() {
@@ -103,22 +101,22 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>, services:
                 val pages = executor.getBlockPages(block.id)
                 println("Block(id: ${block.id}, pages: ${pages.size})")
                 pages.forEach { page ->
-                    val cmds = page.commandDefs.flatten().map { it.titleId }
-                    println("  Page(id: ${page.id}, subCommands size: ${cmds.size}, subCommands: $cmds)")
+                    val buttons = page.buttonDefs.flatten().map { it.titleId }
+                    println("  Page(id: ${page.id}, buttonDefs size: ${buttons.size}, buttonDefs: $buttons)")
                 }
             }
         }
 
-        fun commandReturnTrue() {
+        fun controllerReturnTrue() {
             assertNotNull(lastHandleResult, "Handle not called")
 
-            assertTrue(lastHandleResult!!, "Last command result is false, expected true")
+            assertTrue(lastHandleResult!!, "Last controller result is false, expected true")
         }
 
-        fun commandReturnFalse() {
+        fun controllerReturnFalse() {
             assertNotNull(lastHandleResult, "Handle not called")
 
-            assertFalse(lastHandleResult!!, "Last command result is true, expected false")
+            assertFalse(lastHandleResult!!, "Last controller result is true, expected false")
         }
 
         fun userMessageNotSentYet() {
@@ -130,10 +128,10 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>, services:
             return executor.lastUserMessageId()!!
         }
 
-        inline fun <reified T : BaseCommand> notCalled() = CommandAssert.assertNotCalled<T>()
+        inline fun <reified T : BaseController> notCalled() = ControllerAssert.assertNotCalled<T>()
 
-        inline fun <reified T : BaseCommand> wasCalled(expected: Int = 1) =
-            CommandAssert.assertWasCalled<T>(expected)
+        inline fun <reified T : BaseController> wasCalled(expected: Int = 1) =
+            ControllerAssert.assertWasCalled<T>(expected)
     }
 
     inner class UserBuilder {
@@ -160,24 +158,24 @@ class ScenarioBuilder(private val rootCommand: Class<out BaseCommand>, services:
     }
 }
 
-inline fun <reified T : BaseCommand> scenario(init: ScenarioBuilder.() -> Unit) {
+inline fun <reified T : BaseController> scenario(init: ScenarioBuilder.() -> Unit) {
     ScenarioBuilder(T::class.java).apply(init)
 }
 
-inline fun <reified T : BaseCommand> scenario(services: List<Service>, init: ScenarioBuilder.() -> Unit) {
+inline fun <reified T : BaseController> scenario(services: List<Service>, init: ScenarioBuilder.() -> Unit) {
     ScenarioBuilder(T::class.java, services).apply(init)
 }
 
 data class Page(
     val handler: String,
-    val commandDefs: List<List<CommandDef>> = emptyList()
+    val buttonDefs: List<List<ButtonDef>> = emptyList()
 ) {
     companion object {
-        fun from(page: CommandPage): Page = Page(page.handler, page.commandDefs)
+        fun from(page: MessagePage): Page = Page(page.handler, page.buttonDefs)
 
         fun page(
             handler: String,
-            subCommands: List<List<CommandDef>> = emptyList()
-        ): Page = Page(handler, subCommands)
+            buttonDefs: List<List<ButtonDef>> = emptyList()
+        ): Page = Page(handler, buttonDefs)
     }
 }

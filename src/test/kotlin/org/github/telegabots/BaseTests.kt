@@ -1,8 +1,8 @@
 package org.github.telegabots
 
-import org.github.telegabots.api.BaseCommand
+import org.github.telegabots.api.BaseController
 import org.github.telegabots.api.Service
-import org.github.telegabots.exectutor.BotCommandExecutor
+import org.github.telegabots.exectutor.BotControllerExecutor
 import org.mockito.Mockito
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery
 import org.telegram.telegrambots.meta.api.objects.Message
@@ -12,8 +12,8 @@ import java.time.LocalDateTime
 import java.util.*
 
 abstract class BaseTests {
-    protected fun createExecutor(clazz: Class<out BaseCommand>, services: List<Service>) =
-        BotCommandExecutor(rootCommand = clazz, services)
+    protected fun createExecutor(clazz: Class<out BaseController>, services: List<Service>) =
+        BotControllerExecutor(rootController = clazz, services)
     private val random = Random()
 
     protected fun nextRandomInt(): Int = random.nextInt()

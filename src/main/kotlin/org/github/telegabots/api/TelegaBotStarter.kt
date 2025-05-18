@@ -16,7 +16,7 @@ import java.util.function.Consumer
 open class TelegaBotStarter(
     private val config: BotConfig,
     serviceProvider: ServiceProvider,
-    rootCommand: Class<out BaseCommand>,
+    rootController: Class<out BaseController>,
     messageSender: MessageSender? = null,
     private val onStartHandler: Consumer<TelegaBot> = Consumer { }
 ) : TelegramLongPollingBot(config.botToken) {
@@ -26,7 +26,7 @@ open class TelegaBotStarter(
         messageSender = messageSenderReal,
         userServiceProvider = serviceProvider,
         config = config,
-        rootCommand = rootCommand
+        rootController = rootController
     )
 
     override fun getBotUsername(): String = config.botName
@@ -36,7 +36,7 @@ open class TelegaBotStarter(
     }
 
     /**
-     * Starts bot with rootCommand as entry point
+     * Starts bot with root controller as entry point
      */
     fun start() {
         val telegramBotsApi = TelegramBotsApi(DefaultBotSession::class.java)
@@ -58,8 +58,8 @@ open class TelegaBotStarter(
         private val log = LoggerFactory.getLogger(TelegaBotStarter::class.java)!!
 
         @JvmStatic
-        fun builder(rootCommand: Class<out BaseCommand>): TelegaBotBuilder {
-            return TelegaBotBuilder(rootCommand)
+        fun builder(rootController: Class<out BaseController>): TelegaBotBuilder {
+            return TelegaBotBuilder(rootController)
         }
     }
 }

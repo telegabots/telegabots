@@ -1,6 +1,6 @@
 package org.github.telegabots.util
 
-import org.github.telegabots.api.CommandContext
+import org.github.telegabots.api.ControllerContext
 import org.github.telegabots.api.Service
 import org.github.telegabots.api.State
 import org.github.telegabots.api.UserService
@@ -18,7 +18,7 @@ internal data class HandlerParamInfo(
 ) {
     fun isState(): Boolean = State::class.isSuperclassOf(type.kotlin)
 
-    fun isContext(): Boolean = CommandContext::class.isSuperclassOf(type.kotlin)
+    fun isContext(): Boolean = ControllerContext::class.isSuperclassOf(type.kotlin)
 
     fun isService(): Boolean = Service::class.isSuperclassOf(type.kotlin)
 
