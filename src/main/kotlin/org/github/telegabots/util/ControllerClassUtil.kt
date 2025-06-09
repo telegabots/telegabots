@@ -2,7 +2,8 @@ package org.github.telegabots.util
 
 import org.github.telegabots.api.BaseController
 import org.github.telegabots.api.EmptyController
-import org.github.telegabots.api.MessageType
+import org.github.telegabots.api.HandlerType
+import org.github.telegabots.api.annotation.ErrorHandler
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
 import java.lang.reflect.Method
@@ -26,7 +27,7 @@ internal object ControllerClassUtil {
             error("Controller class must contain at least one handler: ${clazz.name}")
         }
 
-        handlers.groupBy { it.messageType }
+        handlers.groupBy { it.handlerType }
             .filter { it.value.size > 1 }
             .forEach { (type, methods) ->
                 val methods = methods.joinToString(", ") { it.method.name }
@@ -35,10 +36,10 @@ internal object ControllerClassUtil {
     }
 
     private fun checkHandler(handler: ControllerHandlerInfo): ControllerHandlerInfo {
-        when (handler.messageType) {
-            MessageType.Text -> checkTextHandler(handler)
-            MessageType.Inline -> checkInlineHandler(handler)
-            MessageType.Photo -> checkPhotoHandler(handler)
+        when (handler.handlerType) {
+            HandlerType.Text -> checkTextHandler(handler)
+            HandlerType.Inline -> checkInlineHandler(handler)
+            HandlerType.Error -> checkErrorHandler(handler)
         }
 
         return handler
@@ -54,10 +55,6 @@ internal object ControllerClassUtil {
         check(handler.params.none { it.isContext() }) { "ControllerContext can not be used as handler parameter. Use \"context\" field instead. Handler: ${handler.method}" }
     }
 
-    private fun checkPhotoHandler(handler: ControllerHandlerInfo) {
-        checkInlineHandler(handler)
-    }
-
     private fun checkTextHandler(handler: ControllerHandlerInfo) {
         check(handler.params.isNotEmpty()) { "Handler must contains at least one parameter: ${handler.method}" }
 
@@ -68,22 +65,39 @@ internal object ControllerClassUtil {
         check(handler.params.none { it.isContext() }) { "ControllerContext can not be used as handler parameter. Use \"context\" field instead. Handler: ${handler.method}" }
     }
 
+    private fun checkErrorHandler(handler: ControllerHandlerInfo) {
+        check(handler.params.isNotEmpty()) { "Handler must contains at least one Throwable parameter: ${handler.method}" }
+
+        val firstParam = handler.params[0]
+
+        check(firstParam.isException()) { "First parameter must be Throwable but found ${firstParam.type.name} in handler ${handler.method}" }
+        check(handler.isVoidReturnType()) { "Handler must return void type but it returns ${handler.retType} in method ${handler.method}" }
+        check(handler.params.none { it.isContext() }) { "ControllerContext can not be used as handler parameter. Use \"context\" field instead. Handler: ${handler.method}" }
+
+        val secondParam = if (handler.params.size > 1) handler.params[1] else null
+        if (secondParam != null) {
+            check(secondParam.isString()) { "Second parameter must be String but found ${secondParam.type.name} in handler ${handler.method}" }
+        }
+    }
+
     private fun mapHandler(method: Method, controller: BaseController): ControllerHandlerInfo? =
-        getMessageType(method)?.let { messageType ->
+        getMessageType(method)?.let { handlerType ->
             ControllerHandlerInfo(
                 name = method.name, method = method,
                 params = HandlerParamUtil.getParams(method),
-                messageType = messageType,
+                handlerType = handlerType,
                 retType = method.returnType,
                 controller = controller
             )
         }
 
-    private fun getMessageType(method: Method): MessageType? {
+    private fun getMessageType(method: Method): HandlerType? {
         return if (method.annotations.any { it.annotationClass == TextHandler::class }) {
-            MessageType.Text
+            HandlerType.Text
         } else if (method.annotations.any { it.annotationClass == InlineHandler::class }) {
-            MessageType.Inline
+            HandlerType.Inline
+        } else if (method.annotations.any { it.annotationClass == ErrorHandler::class }) {
+            HandlerType.Error
         } else {
             null
         }

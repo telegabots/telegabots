@@ -11,14 +11,14 @@ import java.lang.reflect.Method
  */
 internal data class ControllerHandlerInfo(
     val name: String,
-    val messageType: MessageType,
+    val handlerType: HandlerType,
     val params: List<HandlerParamInfo>,
     val method: Method,
     val retType: Class<*>,
     val controller: BaseController
 ) {
     fun executeText(text: String, states: States, context: ControllerContext): Boolean {
-        check(messageType == MessageType.Text) { "Invalid message type: $messageType" }
+        check(handlerType == HandlerType.Text) { "Invalid handler type: $handlerType. Expected Text type" }
 
         try {
             val args = toArgs(text, states, context)
@@ -30,10 +30,23 @@ internal data class ControllerHandlerInfo(
     }
 
     fun executeInline(query: String, states: States, context: ControllerContext) {
-        check(messageType == MessageType.Inline) { "Invalid message type: $messageType" }
+        check(handlerType == HandlerType.Inline) { "Invalid handler type: $handlerType. Expected Inline type" }
+
 
         try {
             val args = toArgs(query, states, context)
+
+            method.invoke(controller, *args)
+        } catch (ex: Throwable) {
+            throw ControllerInvokeException(controller.javaClass, getInnerException(ex))
+        }
+    }
+
+    fun handleError(exception: ControllerInvokeException, states: States, context: ControllerContext, message: String) {
+        check(handlerType == HandlerType.Error) { "Invalid handler type: $handlerType. Expected Error type" }
+
+        try {
+            val args = toArgs(exception.cause!!, message, states, context)
 
             method.invoke(controller, *args)
         } catch (ex: Throwable) {
@@ -49,6 +62,16 @@ internal data class ControllerHandlerInfo(
     private fun toArgs(text: String, states: States, context: ControllerContext): Array<Any?> {
         return Array(params.size) { idx ->
             if (idx == 0) text else toArg(params[idx], states, context)
+        }
+    }
+
+    private fun toArgs(exception: Throwable, text: String, states: States, context: ControllerContext): Array<Any?> {
+        return Array(params.size) { idx ->
+            if (idx == 0)
+                exception
+            else if (idx == 1)
+                text // the second parameter is always message
+            else toArg(params[idx], states, context)
         }
     }
 

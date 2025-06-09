@@ -27,4 +27,6 @@ internal data class HandlerParamInfo(
     fun isString(): Boolean = type == String::class.java
 
     fun isInteger(): Boolean = type == Int::class.java
+
+    fun isException(): Boolean = Throwable::class.isSuperclassOf(type.kotlin)
 }

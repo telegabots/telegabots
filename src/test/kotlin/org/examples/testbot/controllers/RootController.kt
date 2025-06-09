@@ -22,7 +22,7 @@ class RootController : BaseController() {
 
         context.page("RootController: You said: $message")
             .messageType(MessageType.Inline)
-            .buttons(FileExplorerController::class.java, FileViewController::class.java, PrintController::class.java, LanguageController::class.java)
+            .buttons(FileExplorerController::class.java, FileViewController::class.java, PrintController::class.java, LanguageController::class.java, ErrorController::class.java)
             .create()
     }
 
@@ -31,7 +31,7 @@ class RootController : BaseController() {
         if (message == SystemMessages.REFRESH) {
             context.page("RootController: Main menu")
                 .messageType(MessageType.Inline)
-                .buttons(FileExplorerController::class.java, FileViewController::class.java, PrintController::class.java, LanguageController::class.java)
+                .buttons(FileExplorerController::class.java, FileViewController::class.java, PrintController::class.java, LanguageController::class.java, ErrorController::class.java)
                 .update()
         } else {
             TODO(message)
