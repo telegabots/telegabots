@@ -22,7 +22,6 @@ internal class ControllerHandler(
     val controllerClass: Class<out BaseController> get() = controller.javaClass
     private val textHandler: ControllerHandlerInfo? = handlers.find { p -> p.handlerType == HandlerType.Text }
     private val inlineHandler: ControllerHandlerInfo? = handlers.find { p -> p.handlerType == HandlerType.Inline }
-    private val errorHandler: ControllerHandlerInfo? = handlers.find { p -> p.handlerType == HandlerType.Error }
 
     fun executeText(text: String, states: States, context: ControllerContext): Boolean {
         checkNotNull(textHandler) { "Text message handler not implemented in ${controller.javaClass.name}. Annotate method with @TextHandler" }
@@ -37,6 +36,7 @@ internal class ControllerHandler(
                 text,
                 ex
             )
+            val errorHandler = getErrorHandler(ex)
             if (errorHandler != null) {
                 errorHandler.handleError(ex, states, context, text)
                 return false
@@ -59,6 +59,7 @@ internal class ControllerHandler(
                 data,
                 ex
             )
+            val errorHandler = getErrorHandler(ex)
             if (errorHandler != null) {
                 errorHandler.handleError(ex, states, context, data)
                 return
@@ -66,6 +67,16 @@ internal class ControllerHandler(
             throw ex
         } finally {
             clearContext()
+        }
+    }
+
+    /**
+     * Returns error handler for given exception if it exists.
+     */
+    private fun getErrorHandler(ex: ControllerInvokeException): ControllerHandlerInfo? {
+        return handlers.filter { it.handlerType == HandlerType.Error }.find { handler ->
+            val cause = ex.cause
+            cause != null && handler.params.isNotEmpty() && handler.params[0].type.isAssignableFrom(cause.javaClass)
         }
     }
 

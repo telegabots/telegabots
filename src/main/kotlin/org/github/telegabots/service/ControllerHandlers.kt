@@ -31,8 +31,12 @@ internal class ControllerHandlers(
     private fun createHandler(handler: String, onlyValidate: Boolean): ControllerHandler {
         try {
             // Controller is stateless and can be created once
-            val controllerClass = this.javaClass.classLoader.loadClass(handler) as? Class<BaseController>
+            val controllerClass = this.javaClass.classLoader.loadClass(handler)
                 ?: throw ClassNotFoundException("Controller class not found: $handler")
+            if (!BaseController::class.java.isAssignableFrom(controllerClass)) {
+                error("Controller class ${controllerClass.name} is not a Controller")
+            }
+            controllerClass as Class<BaseController>
             check(classCanBeInstantiated(controllerClass)) { "Controller class cannot be created: $handler" }
             // Controller class can contain multiple Service references in constructor
             val controller = createBaseControllerInstance(controllerClass, onlyValidate)

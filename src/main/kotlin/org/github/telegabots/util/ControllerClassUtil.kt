@@ -7,19 +7,20 @@ import org.github.telegabots.api.annotation.ErrorHandler
 import org.github.telegabots.api.annotation.InlineHandler
 import org.github.telegabots.api.annotation.TextHandler
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
 /**
  * Utility class to work with [ControllerHandlerInfo]
  */
 internal object ControllerClassUtil {
     fun getHandlers(controller: BaseController): List<ControllerHandlerInfo> {
-        return controller.javaClass.methods
+        return getMethods(controller.javaClass)
             .mapNotNull { mapHandler(it, controller) }
             .map { checkHandler(it) }
     }
 
     fun checkHandlers(clazz: Class<BaseController>) {
-        val handlers = clazz.methods
+        val handlers = getMethods(clazz)
             .mapNotNull { method -> mapHandler(method, EmptyController.INSTANCE) }
             .map { method -> checkHandler(method) }
 
@@ -27,12 +28,30 @@ internal object ControllerClassUtil {
             error("Controller class must contain at least one handler: ${clazz.name}")
         }
 
+        handlers.map { it.method }.forEach { method ->
+            // Check that handler method is public
+            check(Modifier.isPublic(method.modifiers)) {
+                "Handler method '${method.name}' in controller ${method.declaringClass.name} must be public"
+            }
+        }
+        // TODO: check that in controller exists only one handler for each Exception type
         handlers.groupBy { it.handlerType }
-            .filter { it.value.size > 1 }
+            .filter { it.value.size > 1 && it.key != HandlerType.Error } // Error handlers can be multiple
             .forEach { (type, methods) ->
                 val methods = methods.joinToString(", ") { it.method.name }
-                error("Controller class ${clazz.name} must contain only one handler of type $type. Found methods: $methods")
+                error("Controller class '${clazz.name}' must contain only one handler of type $type. Found methods: $methods")
             }
+    }
+
+    private fun getMethods(clazz: Class<BaseController>): List<Method> {
+        val declaredMethods = clazz.declaredMethods.toList()
+        val superClass = clazz.superclass
+
+        return declaredMethods + if (BaseController::class.java.isAssignableFrom(clazz.superclass)) {
+            getMethods(superClass as Class<BaseController>)
+        } else {
+            emptyList()
+        }
     }
 
     private fun checkHandler(handler: ControllerHandlerInfo): ControllerHandlerInfo {

@@ -1,6 +1,5 @@
 package org.examples.testbot.controllers
 
-import org.github.telegabots.api.BaseController
 import org.github.telegabots.api.ContentType
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.api.annotation.ErrorHandler
@@ -10,7 +9,7 @@ import org.github.telegabots.api.annotation.TextHandler
 /**
  * Controller which throws an exception on any request.
  */
-class ErrorController : BaseController() {
+class ErrorController : AbstractController() {
     @TextHandler
     fun handle(message: String) {
         throw IllegalStateException("Error in text handler")
@@ -22,7 +21,7 @@ class ErrorController : BaseController() {
     }
 
     @ErrorHandler
-    fun handleError(ex: Exception, message: String?) {
+    override fun handleError(ex: Exception, message: String?) {
         context.page("Error occurred: *${ex.message}* of type `${ex.javaClass.simpleName}`. With message: `${message ?: "null"}`")
             .contentType(ContentType.Markdown)
             .messageType(MessageType.Inline)
