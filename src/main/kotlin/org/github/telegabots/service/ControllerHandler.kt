@@ -74,9 +74,19 @@ internal class ControllerHandler(
      * Returns error handler for given exception if it exists.
      */
     private fun getErrorHandler(ex: ControllerInvokeException): ControllerHandlerInfo? {
-        return handlers.filter { it.handlerType == HandlerType.Error }.find { handler ->
-            val cause = ex.cause
-            cause != null && handler.params.isNotEmpty() && handler.params[0].type.isAssignableFrom(cause.javaClass)
+        val cause = ex.cause ?: return null
+        val errorHandlers = handlers.filter { it.handlerType == HandlerType.Error }
+
+        val errorHandler = errorHandlers.find { handler ->
+            // Check if the first parameter of the handler matches the cause type exactly
+            handler.params.isNotEmpty() && handler.params[0].type == cause.javaClass
+        }
+        if (errorHandler != null) {
+            return errorHandler
+        }
+        return errorHandlers.find { handler ->
+            // try to find a handler with parameter type that is assignable from a cause type
+            handler.params.isNotEmpty() && handler.params[0].type.isAssignableFrom(cause.javaClass)
         }
     }
 
