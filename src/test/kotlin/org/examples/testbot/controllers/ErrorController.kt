@@ -22,6 +22,15 @@ class ErrorController : AbstractController() {
 
     @ErrorHandler
     override fun handleError(ex: Exception, message: String?) {
+        context.page("Common Error occurred: *${ex.message}* of type `${ex.javaClass.simpleName}`. With message: `${message ?: "null"}`")
+            .contentType(ContentType.Markdown)
+            .messageType(MessageType.Inline)
+            .enableBack()
+            .update()
+    }
+
+    @ErrorHandler
+    fun handleRuntimeError(ex: RuntimeException, message: String?) {
         context.page("Error occurred: *${ex.message}* of type `${ex.javaClass.simpleName}`. With message: `${message ?: "null"}`")
             .contentType(ContentType.Markdown)
             .messageType(MessageType.Inline)

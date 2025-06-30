@@ -77,12 +77,17 @@ internal class ControllerHandler(
         val cause = ex.cause ?: return null
         val errorHandlers = handlers.filter { it.handlerType == HandlerType.Error }
 
-        val errorHandler = errorHandlers.find { handler ->
-            // Check if the first parameter of the handler matches the cause type exactly
-            handler.params.isNotEmpty() && handler.params[0].type == cause.javaClass
-        }
-        if (errorHandler != null) {
-            return errorHandler
+        // Check if the first parameter of the handler matches the cause type exactly
+        var errorType: Class<*> = cause.javaClass
+        while (errorType != Object::class.java) {
+            val errorHandler = errorHandlers.find { handler ->
+                handler.params.isNotEmpty() && handler.params[0].type == errorType
+            }
+            if (errorHandler != null) {
+                return errorHandler
+            }
+            // If not found, try to find a handler with a superclass type
+            errorType = errorType.superclass
         }
         return errorHandlers.find { handler ->
             // try to find a handler with parameter type that is assignable from a cause type
