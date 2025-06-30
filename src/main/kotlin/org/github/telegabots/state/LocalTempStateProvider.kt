@@ -2,14 +2,14 @@ package org.github.telegabots.state
 
 import org.github.telegabots.entity.ButtonDef
 import org.github.telegabots.entity.StateDef
-import org.github.telegabots.service.JsonService
+import org.github.telegabots.service.InternalJsonService
 
 /**
  * Used as Local state for [ButtonDef]. Can not be flushed
  */
 internal class LocalTempStateProvider(
     private val state: StateDef?,
-    private val jsonService: JsonService
+    private val jsonService: InternalJsonService
 ) : AbstractStateProvider(jsonService) {
     override fun saveState(state: StateDef) {
         throw IllegalStateException("Temp local state cannot be flushed")

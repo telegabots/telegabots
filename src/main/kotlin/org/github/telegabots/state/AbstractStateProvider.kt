@@ -3,13 +3,13 @@ package org.github.telegabots.state
 import org.github.telegabots.api.StateItem
 import org.github.telegabots.api.StateKey
 import org.github.telegabots.entity.StateDef
-import org.github.telegabots.service.JsonService
+import org.github.telegabots.service.InternalJsonService
 import org.slf4j.LoggerFactory
 
 /**
  * Common methods for [StateProvider] implementations
  */
-abstract class AbstractStateProvider(private val jsonService: JsonService) : StateProvider {
+internal abstract class AbstractStateProvider(private val jsonService: InternalJsonService) : StateProvider {
     protected val log = LoggerFactory.getLogger(javaClass)!!
     private val cache: MutableMap<StateKey, StateItem> = mutableMapOf()
     private var initted: Boolean = false

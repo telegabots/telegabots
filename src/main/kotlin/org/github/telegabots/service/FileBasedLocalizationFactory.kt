@@ -1,5 +1,6 @@
 package org.github.telegabots.service
 
+import org.github.telegabots.api.JsonService
 import org.github.telegabots.api.Language
 import org.github.telegabots.api.LocalizationFactory
 import org.github.telegabots.api.LocalizationProvider

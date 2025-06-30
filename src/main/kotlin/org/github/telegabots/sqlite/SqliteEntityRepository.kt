@@ -8,7 +8,7 @@ import org.github.telegabots.jooq.Tables.ENTITY_TYPES
 import org.github.telegabots.jooq.Tables.USER_ENTITIES
 import org.github.telegabots.jooq.tables.records.EntityTypesRecord
 import org.github.telegabots.jooq.tables.records.UserEntitiesRecord
-import org.github.telegabots.service.JsonService
+import org.github.telegabots.api.JsonService
 import org.github.telegabots.util.EntityMetaInfo
 import org.github.telegabots.util.EntityPageImpl
 import org.github.telegabots.util.TimeUtil

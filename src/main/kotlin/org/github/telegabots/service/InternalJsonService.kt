@@ -6,14 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import org.github.telegabots.api.Service
+import org.github.telegabots.api.JsonService
 import org.github.telegabots.api.StateItem
 import org.github.telegabots.api.StateRef
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.entity.StateItemDef
 
-open class JsonService : Service {
-    private val objectMapper = ObjectMapper()
+internal open class InternalJsonService : JsonService {
+    protected val objectMapper = ObjectMapper()
 
     init {
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
@@ -23,11 +23,11 @@ open class JsonService : Service {
         objectMapper.registerKotlinModule()
     }
 
-    fun <T> parse(str: String, clazz: Class<T>): T = objectMapper.readValue(str, clazz)
+    override fun <T> parse(str: String, clazz: Class<T>): T = objectMapper.readValue(str, clazz)
 
-    fun toJson(obj: Any): String = objectMapper.writeValueAsString(obj)
+    override fun toJson(obj: Any): String = objectMapper.writeValueAsString(obj)
 
-    fun toPrettyJson(obj: Any): String = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj)
+    override fun toPrettyJson(obj: Any): String = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj)
 
     fun toStateItem(item: StateItemDef): StateItem =
         StateItem(key = item.key, value = parse(item.value, item.key.type))

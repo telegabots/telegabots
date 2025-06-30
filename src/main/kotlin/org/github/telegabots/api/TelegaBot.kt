@@ -20,7 +20,7 @@ class TelegaBot(
     val rootController: Class<out BaseController> = EmptyController::class.java
 ) {
     private val adminChatId: Long = config.adminChatId
-    private val jsonService: JsonService = JsonService()
+    private val jsonService: InternalJsonService = InternalJsonService()
     private val finalServiceProvider = InternalServiceProvider(userServiceProvider, messageSender, jsonService, config)
     private val taskManagerFactory = finalServiceProvider.getService(TaskManagerFactory::class.java)
     private val messageSender = finalServiceProvider.getService(MessageSender::class.java)

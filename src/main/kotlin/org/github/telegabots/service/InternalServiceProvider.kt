@@ -20,7 +20,7 @@ import java.util.function.Supplier
 internal class InternalServiceProvider(
     private val userServiceProvider: ServiceProvider,
     private val messageSender: MessageSender,
-    private val jsonService: JsonService,
+    private val jsonService: InternalJsonService,
     private val config: BotConfig
 ) : ServiceProvider {
 
@@ -77,6 +77,7 @@ internal class InternalServiceProvider(
     @Suppress("UNCHECKED_CAST")
     private fun <T : Service> getServiceInternal(clazz: Class<T>): T? {
         var service = when (clazz) {
+            InternalJsonService::class.java -> jsonService
             JsonService::class.java -> jsonService
             LockableStateDbProvider::class.java ->
                 LockableStateDbProvider.of(

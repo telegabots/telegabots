@@ -3,7 +3,7 @@ package org.github.telegabots.state
 import org.github.telegabots.api.MessageType
 import org.github.telegabots.entity.MessageBlock
 import org.github.telegabots.entity.MessagePage
-import org.github.telegabots.service.JsonService
+import org.github.telegabots.service.InternalJsonService
 import org.github.telegabots.state.sqlite.SqliteStateDbProvider
 import org.github.telegabots.util.SqliteConnectionUtil
 import org.jooq.exception.DataAccessException
@@ -544,6 +544,6 @@ class StateDbProviderTests {
         const val USER_ID: Long = 100
         const val MESSAGE_ID: Int = 10_000
         val NOW: LocalDateTime = LocalDateTime.parse("2021-09-23T23:23:13.467")
-        val jsonService = JsonService()
+        val jsonService = InternalJsonService()
     }
 }

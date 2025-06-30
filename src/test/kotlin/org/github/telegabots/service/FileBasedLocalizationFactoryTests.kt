@@ -10,7 +10,7 @@ class FileBasedLocalizationFactoryTests {
     @Test
     fun testFactoryWhenResourceNotFound() {
         val factory = FileBasedLocalizationFactory(
-            jsonService = JsonService(),
+            jsonService = InternalJsonService(),
             file = "file-xyz.json"
         )
 
@@ -26,7 +26,7 @@ class FileBasedLocalizationFactoryTests {
 
     @Test
     fun testSupportedLanguages() {
-        val factory = FileBasedLocalizationFactory(jsonService = JsonService())
+        val factory = FileBasedLocalizationFactory(jsonService = InternalJsonService())
         val supportedLanguages = factory.getSupportedLanguages()
         assertEquals(listOf("en", "de"), supportedLanguages.map { it.code() })
         { "Only languages from telegabots-locales.json should be supported" }

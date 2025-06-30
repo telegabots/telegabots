@@ -3,7 +3,7 @@ package org.github.telegabots.state
 import org.github.telegabots.api.StateItem
 import org.github.telegabots.api.StateKey
 import org.github.telegabots.entity.StateDef
-import org.github.telegabots.service.JsonService
+import org.github.telegabots.service.InternalJsonService
 
 /**
  * Composition of specified state provider with priority access to additional state
@@ -11,7 +11,7 @@ import org.github.telegabots.service.JsonService
 internal class AdditionalStateProvider(
     private val provider: StateProvider,
     private val additional: StateDef,
-    private val jsonService: JsonService
+    private val jsonService: InternalJsonService
 ) : StateProvider {
     private val localCache: MutableMap<StateKey, StateItem> = fromStateDef(additional, jsonService)
 
@@ -53,7 +53,7 @@ internal class AdditionalStateProvider(
     }
 
     companion object {
-        private fun fromStateDef(state: StateDef, jsonService: JsonService): MutableMap<StateKey, StateItem> =
+        private fun fromStateDef(state: StateDef, jsonService: InternalJsonService): MutableMap<StateKey, StateItem> =
             state.items.map { it.key to jsonService.toStateItem(it) }.toMap().toMutableMap()
     }
 }

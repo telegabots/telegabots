@@ -1,14 +1,14 @@
 package org.github.telegabots.state
 
 import org.github.telegabots.entity.StateDef
-import org.github.telegabots.service.JsonService
+import org.github.telegabots.service.InternalJsonService
 
 /**
  * Implementation of [StateProvider] for state type [StateKind.GLOBAL]
  */
 internal class GlobalStateProvider(
     private val dbProvider: StateDbProvider,
-    private val jsonService: JsonService
+    private val jsonService: InternalJsonService
 ) : AbstractStateProvider(jsonService) {
     override fun saveState(state: StateDef) = dbProvider.saveGlobalState(state)
 

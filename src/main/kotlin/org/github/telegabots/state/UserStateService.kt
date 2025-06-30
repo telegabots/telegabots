@@ -1,11 +1,11 @@
 package org.github.telegabots.state
 
 import org.github.telegabots.api.*
-import org.github.telegabots.entity.MessageBlock
 import org.github.telegabots.entity.ButtonDef
+import org.github.telegabots.entity.MessageBlock
 import org.github.telegabots.entity.MessagePage
 import org.github.telegabots.entity.StateDef
-import org.github.telegabots.service.JsonService
+import org.github.telegabots.service.InternalJsonService
 import org.github.telegabots.util.Validation
 import org.github.telegabots.util.runIn
 import java.util.concurrent.locks.Lock
@@ -16,7 +16,7 @@ import java.util.concurrent.locks.Lock
 internal class UserStateService(
     private val userId: Long,
     private val dbProvider: LockableStateDbProvider,
-    private val jsonService: JsonService,
+    private val jsonService: InternalJsonService,
     private val globalState: StateProvider,
     private val serviceProvider: ServiceProvider
 ) : UserService {

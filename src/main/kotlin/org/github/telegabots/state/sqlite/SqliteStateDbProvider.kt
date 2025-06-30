@@ -8,7 +8,7 @@ import org.github.telegabots.entity.MessagePage
 import org.github.telegabots.entity.StateDef
 import org.github.telegabots.jooq.Tables.*
 import org.github.telegabots.jooq.tables.records.*
-import org.github.telegabots.service.JsonService
+import org.github.telegabots.api.JsonService
 import org.github.telegabots.state.StateDbProvider
 import org.github.telegabots.util.TimeUtil
 import org.jooq.DSLContext

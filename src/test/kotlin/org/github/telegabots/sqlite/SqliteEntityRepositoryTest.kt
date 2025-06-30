@@ -4,7 +4,7 @@ import org.github.telegabots.api.EntityRepository
 import org.github.telegabots.api.EntityRepositoryTest
 import org.github.telegabots.api.entity.BaseEntity
 import org.github.telegabots.service.DbReadWriteLockImpl
-import org.github.telegabots.service.JsonService
+import org.github.telegabots.service.InternalJsonService
 import org.github.telegabots.util.SqliteConnectionUtil
 import org.jooq.impl.DSL
 import kotlin.io.path.createTempFile
@@ -31,6 +31,6 @@ class SqliteEntityRepositoryTest : EntityRepositoryTest() {
     }
 
     private companion object {
-        val jsonService = JsonService()
+        val jsonService = InternalJsonService()
     }
 }

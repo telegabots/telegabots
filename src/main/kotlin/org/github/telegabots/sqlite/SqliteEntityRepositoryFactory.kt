@@ -3,7 +3,7 @@ package org.github.telegabots.sqlite
 import org.github.telegabots.api.EntityRepository
 import org.github.telegabots.api.EntityRepositoryFactory
 import org.github.telegabots.api.entity.BaseEntity
-import org.github.telegabots.service.JsonService
+import org.github.telegabots.api.JsonService
 import org.jooq.DSLContext
 import java.util.concurrent.locks.ReadWriteLock
 

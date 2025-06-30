@@ -41,7 +41,7 @@ internal class BaseContextImpl(
     private val taskManagerFactory: TaskManagerFactory,
     private val rootController: Class<out BaseController>
 ) : ControllerContext, TaskContext {
-    private val jsonService = serviceProvider.getService(JsonService::class.java)
+    private val jsonService = serviceProvider.getService(InternalJsonService::class.java)
     private val localizationProvider =
         serviceProvider.getUserService(UserLocalizationProvider::class.java, userState.userId())
     private val taskManager = lazy { taskManagerFactory.create(this) }

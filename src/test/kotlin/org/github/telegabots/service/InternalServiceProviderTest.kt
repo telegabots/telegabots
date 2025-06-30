@@ -101,7 +101,7 @@ class InternalServiceProviderTest {
     }
 
     private fun createProvider(userProvider: ServiceProvider): ServiceProvider {
-        val jsonService = mockStrict(JsonService::class.java)
+        val jsonService = mockStrict(InternalJsonService::class.java)
         val config = mockStrict(BotConfig::class.java)
         val messageSender = mockStrict(MessageSender::class.java)
         val serviceProvider: ServiceProvider = InternalServiceProvider(userProvider, messageSender, jsonService, config)
