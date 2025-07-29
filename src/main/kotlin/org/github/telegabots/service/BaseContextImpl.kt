@@ -99,9 +99,7 @@ internal class BaseContextImpl(
         states.flush()
 
         if (!success) {
-            if (controllerHandler.controllerClass != rootController) {
-                return getRootCallContext().execute()
-            }
+            log.error("Failed to execute controller: ${controllerHandler.controller.javaClass.simpleName} for input: $input")
             return false
         }
 
